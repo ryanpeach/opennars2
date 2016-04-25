@@ -59,9 +59,11 @@
    :term (:content sentence)
    }))
 
-(defn syntactic-complexity [s]
-  (if (sequential? s)
-    (inc (reduce (fn [a, b] (+ a b)) (map syntactic-complexity s)))
+(defn syntactic-complexity [content]
+  "Calculates the syntactic complexity of a content term,
+  for example (| (& a b) c) has complexity 5"
+  (if (and (sequential? content) (not= (first content) :interval))
+    (reduce + (map syntactic-complexity content))
     1))
 
 (defn create-derived-task
