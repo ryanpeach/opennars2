@@ -2,7 +2,9 @@
   (:require
     [co.paralleluniverse.pulsar.actors :refer [! spawn gen-server register! cast! Server self whereis state set-state! shutdown! unregister!]]
     [narjure.actor.utils :refer [defactor]]
-    [taoensso.timbre :refer [debug info]])
+    [taoensso.timbre :refer [debug info]]
+    [clojure.set :as set]
+    [narjure.defaults :refer :all])
   (:refer-clojure :exclude [promise await]))
 
 (def aname :task-creator)
@@ -43,28 +45,48 @@
               :eternal :eternal
               :present time
               :past (- time future-past-offset)
-              :future (+ time future-past-offset))]
+              :future (+ time future-past-offset))
+        content (:content sentence)
+        task-type (:punctuation sentence)
+        budget (case task-type
+                 :goal goal-budget
+                 :belief belief-budget
+                 :question question-budget
+                 :quest quest-budget)]
   {:truth (:truth sentence)
    :desire (:desire sentence)
-   :budget (:p 0.9 :d 0.9)
+   :budget budget
    :creation time
    :occurrence toc
    :source :input
    :id id
    :evidence '(id)
-   :sc (syntactic-complexity (:content sentence))
-   :terms '()                                               ;<- TODO add subterms
+   :sc (syntactic-complexity content)
+   :terms (termlink-subterms 0 content)                                               ;<- TODO add subterms
    :solution nil
-   :task-type (:punctuation sentence)
-   :term (:content sentence)
+   :task-type task-type
+   :term content
    }))
 
-(defn syntactic-complexity [content]
+(defn compound?
+  [content]
+  (and (sequential? content) (not= (first content) :interval))
+  )
+
+(defn syntactic-complexity                                  ;TODO move to term utils
   "Calculates the syntactic complexity of a content term,
   for example (| (& a b) c) has complexity 5"
-  (if (and (sequential? content) (not= (first content) :interval))
+  [content]
+  (if (compound? content)
     (reduce + (map syntactic-complexity content))
     1))
+
+(defn termlink-subterms                                     ;TODO: filter out --> etc. since we don't need to termlink them
+  "Extract the termlink relevant subterms of the term up to 3 levels as demanded by the NAL rules"
+  [level content]
+  (if (and (< level 3) (compound? content))
+    (set/union #{content} (reduce set/union (map (partial termlink-subterms (+ level 1)) content)))
+    #{content}))
 
 (defn create-derived-task
   "Create a derived task with the provided sentence, budget and occurence time
