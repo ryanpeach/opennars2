@@ -47,22 +47,17 @@
               :past (- time future-past-offset)
               :future (+ time future-past-offset))
         content (:content sentence)
-        task-type (:punctuation sentence)
-        budget (case task-type
-                 :goal goal-budget
-                 :belief belief-budget
-                 :question question-budget
-                 :quest quest-budget)]
+        task-type (:punctuation sentence)]
   {:truth (:truth sentence)
    :desire (:desire sentence)
-   :budget budget
+   :budget (task-type budgets)
    :creation time
    :occurrence toc
    :source :input
    :id id
    :evidence '(id)
    :sc (syntactic-complexity content)
-   :terms (termlink-subterms 0 content)                                               ;<- TODO add subterms
+   :terms (termlink-subterms content)                                               ;<- TODO add subterms
    :solution nil
    :task-type task-type
    :term content
@@ -83,16 +78,21 @@
 
 (defn termlink-subterms                                     ;TODO: filter out --> etc. since we don't need to termlink them
   "Extract the termlink relevant subterms of the term up to 3 levels as demanded by the NAL rules"
-  [level content]
+  ([level content]
   (if (and (< level 3) (compound? content))
-    (set/union #{content} (reduce set/union (map (partial termlink-subterms (+ level 1)) content)))
+    (reduce set/union #{content} (map (partial termlink-subterms (+ level 1)) content))
     #{content}))
+  ([content]
+    (termlink-subterms 0 content)))
 
 (defn create-derived-task
   "Create a derived task with the provided sentence, budget and occurence time
    and default values for the remaining parameters"
   [sentence budget occurrence time id]
-  {:creation time
+  {:truth (:truth sentence)
+   :desire (:desire sentence)
+   :budget (task-type budgets)
+   :creation time
    :occurrence occurrence
    :source :derived
    :id id

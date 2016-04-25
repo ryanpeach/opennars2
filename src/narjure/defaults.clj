@@ -33,4 +33,6 @@
 
 (def budgets
   {:belief belief-budget
-   :question question-budget})
+   :question question-budget
+   :goal goal-budget
+   :quest quest-budget})
