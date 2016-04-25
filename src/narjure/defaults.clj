@@ -36,3 +36,6 @@
    :question question-budget
    :goal goal-budget
    :quest quest-budget})
+
+(def logic-ops '#{==> =|> =/> =\> --> <-> <=> <|> </>
+              seq-conj conj})

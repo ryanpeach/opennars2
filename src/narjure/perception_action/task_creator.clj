@@ -63,10 +63,15 @@
    :term content
    }))
 
-(defn compound?
+(defn interval?
+   "Is the term an interval?"
   [content]
-  (and (sequential? content) (not= (first content) :interval))
-  )
+  (and (sequential? content) (= (first content) 'interval)))
+
+(defn compound?
+  "Is the term a compound term?"
+  [content]
+  (and (sequential? content) (not= (first content) 'interval)))
 
 (defn syntactic-complexity                                  ;TODO move to term utils
   "Calculates the syntactic complexity of a content term,
@@ -83,7 +88,9 @@
     (reduce set/union #{content} (map (partial termlink-subterms (+ level 1)) content))
     #{content}))
   ([content]
-    (termlink-subterms 0 content)))
+   (filter (fn [z] (and (not (contains? logic-ops z))
+                        (not (interval? z))))
+           (termlink-subterms 0 content))))
 
 (defn create-derived-task
   "Create a derived task with the provided sentence, budget and occurence time
