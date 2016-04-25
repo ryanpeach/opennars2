@@ -57,18 +57,18 @@
    :id id
    :evidence '(id)
    :sc (syntactic-complexity content)
-   :terms (termlink-subterms content)                                               ;<- TODO add subterms
+   :terms (termlink-subterms content)
    :solution nil
    :task-type task-type
-   :term content
+   :content content
    }))
 
-(defn interval?
+(defn interval?                                             ;TODO move to term utils
    "Is the term an interval?"
   [content]
   (and (sequential? content) (= (first content) 'interval)))
 
-(defn compound?
+(defn compound?                                             ;TODO move to term utils
   "Is the term a compound term?"
   [content]
   (and (sequential? content) (not= (first content) 'interval)))
@@ -81,7 +81,7 @@
     (reduce + (map syntactic-complexity content))
     1))
 
-(defn termlink-subterms                                     ;TODO: filter out --> etc. since we don't need to termlink them
+(defn termlink-subterms                                     ;TODO move to term utils
   "Extract the termlink relevant subterms of the term up to 3 levels as demanded by the NAL rules"
   ([level content]
   (if (and (< level 3) (compound? content))
@@ -95,17 +95,22 @@
 (defn create-derived-task
   "Create a derived task with the provided sentence, budget and occurence time
    and default values for the remaining parameters"
-  [sentence budget occurrence time id]
-  {:truth (:truth sentence)
-   :desire (:desire sentence)
-   :budget (task-type budgets)
-   :creation time
-   :occurrence occurrence
-   :source :derived
-   :id id
-   :evidence '(id)
-   :solution nil
-   :content (:content sentence)})
+  [sentence budget occurrence time id evidence]
+  (let [content (:content sentence)]
+    {:truth      (:truth sentence)
+    :desire     (:desire sentence)
+    :budget     budget
+    :creation   time
+    :occurrence occurrence
+    :source     :derived
+    :id         id
+    :evidence   evidence
+    :sc         (syntactic-complexity content)
+    :terms      (termlink-subterms content)
+    :solution   nil
+    :content    content
+    :task-type  (:punctuation sentence)
+    :content    content}))
 
 (defn sentence-handler
   "Processes a :sentence-msg"
@@ -114,8 +119,8 @@
 
 (defn derived-sentence-handler
   "processes a :derived-sentence-msg"
-  [from [msg sentence budget occurrence]]
-  (cast! (:task-dispatcher @state) [:task-msg (create-derived-task sentence budget occurrence (:time @state) (get-id))]))
+  [from [msg sentence budget occurrence evidence]]
+  (cast! (:task-dispatcher @state) [:task-msg (create-derived-task sentence budget occurrence (:time @state) (get-id) evidence)]))
 
 (defn shutdown-handler
   "Processes :shutdown-msg and shuts down actor"
