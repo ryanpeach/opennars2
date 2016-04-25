@@ -38,13 +38,19 @@
   "create a new task with the provided sentence and default values
    convert tense to occurrence time if applicable"
   [sentence time id]
+  (let [future-past-offset 1000                             ;n steps offset for now
+        toc (case (:tense sentence)                         ;TODO: grammar extension :/k: :\h: ?
+              :eternal :eternal
+              :present time
+              :past (- time future-past-offset)
+              :future (+ time future-past-offset))]
   {:creation time
-   :occurrence 0
+   :occurrence toc
    :source :input
    :id id
    :evidence '(id)
    :solution nil
-   :statement sentence})
+   :statement sentence}))
 
 (defn create-derived-task
   "Create a derived task with the provided sentence, budget and occurence time
