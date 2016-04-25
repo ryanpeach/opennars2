@@ -44,13 +44,25 @@
               :present time
               :past (- time future-past-offset)
               :future (+ time future-past-offset))]
-  {:creation time
+  {:truth (:truth sentence)
+   :desire (:desire sentence)
+   :budget (:p 0.9 :d 0.9)
+   :creation time
    :occurrence toc
    :source :input
    :id id
    :evidence '(id)
+   :sc (syntactic-complexity (:content sentence))
+   :terms '()                                               ;<- TODO add subterms
    :solution nil
-   :statement sentence}))
+   :task-type (:punctuation sentence)
+   :term (:content sentence)
+   }))
+
+(defn syntactic-complexity [s]
+  (if (sequential? s)
+    (inc (reduce (fn [a, b] (+ a b)) (map syntactic-complexity s)))
+    1))
 
 (defn create-derived-task
   "Create a derived task with the provided sentence, budget and occurence time
@@ -62,7 +74,7 @@
    :id id
    :evidence '(id)
    :solution nil
-   :statement sentence})
+   :content (:content sentence)})
 
 (defn sentence-handler
   "Processes a :sentence-msg"
