@@ -42,8 +42,9 @@
       (is (= (first (b/get-by-id bag 123)) element)))
     (is (thrown? IndexOutOfBoundsException
                  (b/get-by-index (b/default-bag) 1)))
-    (is (true? (b/exists? bag 1)))
-    (is (false? (b/exists? bag 1000)))))
+    (let [bag (b/add-element (b/default-bag 1) {:id 1 :priority 2})]
+      (is (true? (b/exists? bag 1)))
+      (is (false? (b/exists? bag 1000))))))
 
 
 (comment
