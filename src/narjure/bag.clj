@@ -39,13 +39,15 @@
 (defrecord DefaultBag [priority-index elements-map capacity]
   Bag
   (add-element [bag {:keys [id priority] :as element}]
-    (let [cnt (count priority-index)
-          already-existing (exists? bag id)]
-      (if already-existing
+    (let [cnt (count priority-index)]
+      (if (exists? bag id)
         (update-element bag element)
         (if (>= cnt capacity)
-         (let [[_ bag'] (pop-element bag)]
-           (add-element bag' element))
+          (if (<= (:priority (nth priority-index (dec cnt)));if same priority, still prefer the new one.
+                   priority)                                ;if new element has lower priority than the lowest,
+            (let [[_ bag'] (pop-element bag)]               ;then don't even attempt to add the new element.
+             (add-element bag' element))
+            bag)
          (let [priority-index' (conj priority-index (el id priority))
                element-map' (assoc elements-map id element)]
            (->DefaultBag priority-index' element-map' capacity))))))
