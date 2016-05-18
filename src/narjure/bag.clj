@@ -40,17 +40,15 @@
   Bag
   (add-element [bag {:keys [id priority] :as element}]
     (let [cnt (count priority-index)
-          already-there (exists? bag id)]
-      (if (and (not already-there) (>= cnt capacity))
-        (let [[_ bag'] (pop-element bag)]
-          (add-element bag' element))
-        (let [priority-index' (if already-there
-                                (-> priority-index
-                                    (disj (el id priority))
-                                    (conj (el id priority)))
-                                (conj priority-index (el id priority)))
-              element-map' (assoc elements-map id element)]
-          (->DefaultBag priority-index' element-map' capacity)))))
+          already-existing (exists? bag id)]
+      (if already-existing
+        (update-element bag element)
+        (if (>= cnt capacity)
+         (let [[_ bag'] (pop-element bag)]
+           (add-element bag' element))
+         (let [priority-index' (conj priority-index (el id priority))
+               element-map' (assoc elements-map id element)]
+           (->DefaultBag priority-index' element-map' capacity))))))
 
   (get-by-index [_ index]
     (let [{:keys [id] :as element} (nth priority-index index)
