@@ -33,7 +33,7 @@
 (defn derived-sentence-handler
   "adds sentence to input-bag and selects n senetences on system-time-tick"
   [from [msg sentence budget evidence]]
-  (let [elem {:id (assoc sentence :budget budget) :priority (first budget) :evidence evidence}]
+  (let [elem {:id (assoc sentence :budget budget :evidence evidence) :priority (first budget)}]
     (debuglogger search display [:add elem])
     (swap! bag b/add-element elem)))
 
