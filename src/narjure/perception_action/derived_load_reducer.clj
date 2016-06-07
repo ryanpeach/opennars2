@@ -13,8 +13,9 @@
 (def display (atom '()))
 (def search (atom ""))
 
-(def max-derived-sentences 50)
-(def max-selections 20)
+(def max-derived-sentences 100)
+(def max-selections 50)
+
 (def bag (atom (b/default-bag max-derived-sentences)))
 
 (defn system-time-tick-handler

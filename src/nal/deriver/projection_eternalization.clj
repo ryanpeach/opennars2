@@ -29,15 +29,17 @@
 
 ;temporally projecting/eternalizing a task to ref time
 (defn project-eternalize-to [target-time t cur-time]
-  (let [source-time (:occurrence t)
-        get-eternal (fn [x] (if (= x :eternal) :eternal :temporal))]
-    (case [(get-eternal target-time) (get-eternal source-time)]
-      [:eternal  :eternal ] t
-      [:temporal :eternal ] t
-      [:eternal  :temporal] (eternalize t)
-      [:temporal :temporal] (let [t-eternal (eternalize t)
-                                  t-project (project-to target-time t cur-time)]
-                              (if (> (confidence t-eternal)
-                                     (confidence t-project))
-                                t-eternal
-                                t-project)))))
+  (if (= nil t)
+    nil
+    (let [source-time (:occurrence t)
+         get-eternal (fn [x] (if (= x :eternal) :eternal :temporal))]
+     (case [(get-eternal target-time) (get-eternal source-time)]
+       [:eternal :eternal] t
+       [:temporal :eternal] t
+       [:eternal :temporal] (eternalize t)
+       [:temporal :temporal] (let [t-eternal (eternalize t)
+                                   t-project (project-to target-time t cur-time)]
+                               (if (> (confidence t-eternal)
+                                      (confidence t-project))
+                                 t-eternal
+                                 t-project))))))
