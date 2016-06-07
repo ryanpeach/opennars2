@@ -26,6 +26,7 @@
       (doseq [[belief belief-task-projected-to-goal] projected-list]
         (when (better-solution belief goal-task)
           ;update budget and solution
+          (potential-output-answer state goal-task belief)
           (let [new-goal (reduced-goal-budget-by-belief goal-task belief-task-projected-to-goal)
                 new-goal-with-solution (assoc new-goal :solution belief)]
             (update-task-in-tasks state new-goal-with-solution goal-task))
@@ -57,6 +58,7 @@
     (when (not-empty projected-list)
       (doseq [[quest goal-task-projected-to-quest] projected-list]
         (when (better-solution goal-task quest)
+          (potential-output-answer state quest goal-task)
           ;update budget and solution
           (let [new-quest (reduced-quest-budget-by-goal quest goal-task-projected-to-quest)
                 new-quest-with-solution (assoc new-quest :solution goal-task)]
@@ -66,9 +68,10 @@
 
 (defn process-goal [state task]
   ;group-by :task-type tasks
-  (let [goals (filter #(= (:task-type %) :goal) (:tasks @state))
-        beliefs (filter #(= (:task-type %) :belief) (:tasks @state))
-        quests (filter #(= (:task-type %) :quest ) (:tasks @state))]
+  (let [tasks (get-tasks state)
+        goals (filter #(= (:task-type %) :goal) tasks)
+        beliefs (filter #(= (:task-type %) :belief) tasks)
+        quests (filter #(= (:task-type %) :quest ) tasks)]
 
     ;filter beliefs matching concept content
     ;(project to task time
@@ -90,7 +93,7 @@
     (let [projected-goals (map #(project-eternalize-to @nars-time % @nars-time)
                                (filter #(= (:statement %) (:statement task))
                                        (filter #(= (:task-type %) :goal) ;re-getting the goals because we also want our just added goal
-                                               (apply vector (for [x (:priority-index (:tasks @state))] (:id x))))))]
+                                               (get-tasks state))))] ;needs new
      (if (not-empty projected-goals)
        (let [goal (reduce #(max (confidence %)) projected-goals)]
          (when (and (operation? goal)

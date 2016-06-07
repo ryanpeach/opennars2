@@ -27,12 +27,12 @@
 
 (defn update-task-in-tasks [state task old-task]
   ;(info (str "old time: " old-item))
-  (let [[element bag] (b/get-by-id (:tasks @state) (item old-task))]
+  (let [[element bag] (b/get-by-id (:tasks @state) old-task)]
     ;(info (str "have element " element))
     (when (not= nil element)
       ;(info (str "in when"))
       (set-state! (assoc @state :tasks bag))))
-  (add-to-tasks @state task))
+  (add-to-tasks state task))
 
 (defn revisable? [t1 t2]
   (empty? (clojure.set/intersection (set (:evidence t1)) (set (:evidence t2)))))
@@ -107,3 +107,7 @@
 
 (defn decrease-quest-budget-by-solution [quest]
   (decrease-question-budget-by-solution quest))
+
+(defn get-tasks [state]
+  (apply vector (for [x (:priority-index (:tasks @state))]
+                  (:id x))))

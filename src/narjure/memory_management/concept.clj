@@ -31,10 +31,10 @@
     (let [tasks (apply vector (for [x (:priority-index (:tasks @state))]
                    (:id x)))]
       (case (:task-type task)
-        :belief (process-belief state task tasks)
-        :goal (process-goal state task tasks)
-        :question (process-question state task tasks)
-        :quest (process-quest state task tasks)))
+        :belief (process-belief state task)
+        :goal (process-goal state task)
+        :question (process-question state task)
+        :quest (process-quest state task)))
     (catch Exception e (debuglogger search display (str "local inference error " (.toString e)))))
 
   (try

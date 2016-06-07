@@ -80,14 +80,16 @@
             rightres))
      (str (beautify st)))))
 
+(defn punctuation-print
+  [task-type]
+  (case task-type
+    :goal "!"
+    :quest "@"
+    :question "?"
+    :belief "."))
+
 (defn output-task [type task]
   (let [type-print (fn [t] t)
-        punctuation-print (fn [task-type]
-                            (case task-type
-                              :goal "!"
-                              :quest "@"
-                              :question "?"
-                              :belief "."))
         time-print (fn [occurrence]
                       (if (= occurrence :eternal)
                         ""
@@ -103,3 +105,16 @@
                                                    (time-print (:occurrence task))
                                                    " "
                                                    (truth-print (:truth task))))))
+(defn user? [task]
+  (= (:source task) :input))
+
+(defn conditionalprint [state st stru]
+  (when (= (:id @state) st)
+    (println stru)))
+
+(defn potential-output-answer [state task result]
+  (conditionalprint state '[--> a A] "inprint1")
+  (when (and (user? task)
+             (= (:statement task) (:id @state)))
+    (conditionalprint state '[--> a A] "inprint2")
+    (output-task [:answer-to (str (narsese-print (:statement task)) (punctuation-print (:task-type task)))] result)))

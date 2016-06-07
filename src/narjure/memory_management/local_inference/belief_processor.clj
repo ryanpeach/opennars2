@@ -43,11 +43,16 @@
       (doseq [[goal belief-task-projected-to-goal] projected-list]
         (when (better-solution belief-task goal)
           ;update budget and solution
+          (potential-output-answer state goal belief-task)
           (let [new-goal (reduced-goal-budget-by-belief goal belief-task-projected-to-goal)
                 new-goal-with-solution (assoc new-goal :solution belief-task)]
             (update-task-in-tasks state new-goal-with-solution goal))
           (let [new-belief (increased-belief-budget-by-goal belief-task-projected-to-goal goal)]
             (update-task-in-tasks state new-belief belief-task)))))))
+
+(defn conditionalprint [state st stru]
+  (when (= (:id @state) st)
+    (println stru)))
 
 (defn answer-based-budget-change [state belief-task questions]
   ;filter goals matching concept content
@@ -56,9 +61,16 @@
   (let [projected-list
         (map (fn [a] [a (project-eternalize-to (:occurrence a) belief-task @nars-time)])
              (filter #(= (:statement %) (:statement belief-task)) questions))]
+    (println "empty?1")
     (when (not-empty projected-list)
+      (println "1")
       (doseq [[question belief-task-projected-to-question] projected-list]
+        (conditionalprint state '[--> a A] "1.1...")
+        (conditionalprint state '[--> a A] (str "new" belief-task (:id @state)))
+        (conditionalprint state '[--> a A] (str "old" (:solution question) (:id @state)))
         (when (better-solution belief-task question)
+          (println "2")
+          (potential-output-answer state question belief-task)
           ;update budget and solution
           (let [new-question (reduced-question-budget-by-belief question belief-task-projected-to-question)
                 new-question-with-solution (assoc new-question :solution belief-task)]
@@ -68,10 +80,11 @@
 
 (defn process-belief [state task]
   ;group-by :task-type tasks
-  (let [goals (filter #(= (:task-type %) :goal) (:tasks @state))
-        beliefs (filter #(= (:task-type %) :belief) (:tasks @state))
-        anticipations (filter #(= (:task-type %) :anticipation) (:tasks @state))
-        questions (filter #(= (:task-type %) :question ) (:tasks @state))]
+  (let [tasks (get-tasks state)
+        goals (filter #(= (:task-type %) :goal) tasks)
+        beliefs (filter #(= (:task-type %) :belief) tasks)
+        anticipations (filter #(= (:task-type %) :anticipation) tasks)
+        questions (filter #(= (:task-type %) :question ) tasks)]
 
     ;also allow revision in subterm concepts! this is why statement is compared to task statement, not to ID!!
     (let [projected-beliefs (map #(project-eternalize-to (:occurrence task) % @nars-time) (filter #(= (:statement %) (:statement task)) beliefs))]
@@ -83,13 +96,14 @@
         ;revise beliefs and add to tasks
         (process-belief state (revise task revisable))))
 
+    (println "added")
     ;add task to bag
     (add-to-tasks state task)
     ;check if it satisfies a goal or question and change budget accordingly
     (satisfaction-based-budget-change state task goals)
     (answer-based-budget-change state task questions)
 
-    ;generate neg confirmation for expired anticipations
+      ;generate neg confirmation for expired anticipations
     ;and add to tasks
     (doseq [anticipation anticipations]
       (when (expired? anticipation)
