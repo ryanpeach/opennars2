@@ -87,7 +87,6 @@
          ;revise beliefs and add to tasks
          (process-belief state (revise task revisable) (inc cnt)))))
 
-    (println "added")
     ;add task to bag
     (add-to-tasks state task)
     ;check if it satisfies a goal or question and change budget accordingly

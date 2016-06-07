@@ -157,25 +157,6 @@
     )
   )
 
-(defn update-concept-budget2 []
-  "Update the concept budget"
-  (let [concept-state @state
-        budget (:budget concept-state)
-        tasks (:priority-index (:tasks concept-state))
-        priority-sum (reduce t-or (for [x tasks] (:priority x)))
-        state-update (assoc concept-state :budget (assoc budget :priority priority-sum))]
-    (set-state! (merge concept-state state-update))
-
-    ;update c-bag directly instead of message passing
-    ;(reset! (:c-bag @state) (b/add-element @(:c-bag @state) {:id (:id @state) :priority priority-sum :ref @self}))
-
-    (let [concept-state-new @state]
-      (cast! (whereis :concept-manager) [:budget-update-msg
-                                         {:id       (:id concept-state-new)
-                                          :priority priority-sum
-                                          :ref      @self}])))
-  )
-
 (defn concept-state-handler
   "Sends a copy of the actor state to requesting actor"
   [from _]
@@ -186,13 +167,6 @@
   "set concept state to value passed in message"
   [from [_ new-state]]
   (set-state! (merge @state new-state)))
-
-(defn task-budget-update-handler
-  ""
-  [from message]
-  ;todo change task bag item priority before
-  (update-concept-budget)
-  )
 
 (defn shutdown-handler
   "Processes :shutdown-msg and shuts down actor"
@@ -229,7 +203,6 @@
     :inference-request-msg (inference-request-handler from message)
     :concept-state-request-msg (concept-state-handler from message)
     :set-concept-state-msg (set-concept-state-handler from message)
-    :task-budget-update-msg (task-budget-update-handler from message)
     :solution-update-msg (solution-update-handler from message)
     :shutdown (shutdown-handler from message)
     (debug (str "unhandled msg: " type))))
