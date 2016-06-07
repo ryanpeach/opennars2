@@ -113,8 +113,6 @@
     (println stru)))
 
 (defn potential-output-answer [state task result]
-  (conditionalprint state '[--> a A] "inprint1")
   (when (and (user? task)
              (= (:statement task) (:id @state)))
-    (conditionalprint state '[--> a A] "inprint2")
     (output-task [:answer-to (str (narsese-print (:statement task)) (punctuation-print (:task-type task)))] result)))

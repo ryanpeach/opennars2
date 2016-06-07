@@ -57,15 +57,9 @@
   (let [projected-list
         (map (fn [a] [a (project-eternalize-to (:occurrence a) belief-task @nars-time)])
              (filter #(= (:statement %) (:statement belief-task)) questions))]
-    (println "empty?1")
     (when (not-empty projected-list)
-      (println "1")
       (doseq [[question belief-task-projected-to-question] projected-list]
-        (conditionalprint state '[--> a A] "1.1...")
-        (conditionalprint state '[--> a A] (str "new" belief-task (:id @state)))
-        (conditionalprint state '[--> a A] (str "old" (:solution question) (:id @state)))
         (when (better-solution belief-task question)
-          (println "2")
           (potential-output-answer state question belief-task)
           ;update budget and solution
           (let [new-question (reduced-question-budget-by-belief question belief-task-projected-to-question)
