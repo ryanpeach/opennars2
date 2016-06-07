@@ -50,10 +50,6 @@
           (let [new-belief (increased-belief-budget-by-goal belief-task-projected-to-goal goal)]
             (update-task-in-tasks state new-belief belief-task)))))))
 
-(defn conditionalprint [state st stru]
-  (when (= (:id @state) st)
-    (println stru)))
-
 (defn answer-based-budget-change [state belief-task questions]
   ;filter goals matching concept content
   ;project-to task time
@@ -78,7 +74,7 @@
           (let [new-belief (increased-belief-budget-by-question belief-task-projected-to-question question)]
             (update-task-in-tasks state new-belief belief-task)))))))
 
-(defn process-belief [state task]
+(defn process-belief [state task cnt]
   ;group-by :task-type tasks
   (let [tasks (get-tasks state)
         goals (filter #(= (:task-type %) :goal) tasks)
@@ -92,9 +88,10 @@
         (doseq [projected-anticipation (map #(project-eternalize-to (:occurrence task) % @nars-time) anticipations)]
           ;revise anticpation and add to tasks
           (add-to-tasks state (revise projected-anticipation task))))
-      (doseq [revisable (filter #(revisable? task %) projected-beliefs)]
-        ;revise beliefs and add to tasks
-        (process-belief state (revise task revisable))))
+      (when (< cnt 1)
+        (doseq [revisable (filter #(revisable? task %) projected-beliefs)]
+         ;revise beliefs and add to tasks
+         (process-belief state (revise task revisable) (inc cnt)))))
 
     (println "added")
     ;add task to bag

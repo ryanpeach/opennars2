@@ -13,7 +13,7 @@
     [narjure.debug-util :refer :all])
   (:refer-clojure :exclude [promise await]))
 
-(def max-evidence 10)
+(def max-evidence 50)
 
 (defn make-evidence [e1 e2]
   (take max-evidence (interleave e1 e2)))

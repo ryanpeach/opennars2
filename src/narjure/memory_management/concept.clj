@@ -27,15 +27,15 @@
   ""
   [from [_ task]]
   (debuglogger search display ["task processed:" task])
-  (try
+
     (let [tasks (apply vector (for [x (:priority-index (:tasks @state))]
                    (:id x)))]
       (case (:task-type task)
-        :belief (process-belief state task)
-        :goal (process-goal state task)
+        :belief (process-belief state task 0)
+        :goal (process-goal state task 0)
         :question (process-question state task)
         :quest (process-quest state task)))
-    (catch Exception e (debuglogger search display (str "local inference error " (.toString e)))))
+
 
   (try
     (let [concept-state @state

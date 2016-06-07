@@ -13,8 +13,8 @@
 (def display (atom '()))
 (def search (atom ""))
 
-(def max-derived-sentences 100)
-(def max-selections 50)
+(def max-derived-sentences 50)
+(def max-selections 10)
 
 (def bag (atom (b/default-bag max-derived-sentences)))
 
@@ -24,16 +24,16 @@
   (doseq [n (range (min max-selections (b/count-elements @bag)))]
     ;(info (str "selecting: " (min max-selections (b/count-elements @bag))))
     (let [[element bag'] (b/get-by-index @bag (selection-fn @bag))
-          msg [:derived-sentence-msg (:sentence element)]]
+          msg [:derived-sentence-msg [(:id element) (:budget (:id element)) (:evidence (:id element))]]]
       (reset! bag bag')
       (cast! (whereis :task-creator) msg)
-      (debuglogger search display [:forward msg])
-      )))
+(debuglogger search display [:forward msg])
+)))
 
 (defn derived-sentence-handler
   "adds sentence to input-bag and selects n senetences on system-time-tick"
   [from [msg sentence budget evidence]]
-  (let [elem {:id sentence :priority (first budget) :sentence [sentence budget evidence]}]
+  (let [elem {:id (assoc sentence :budget budget) :priority (first budget) :evidence evidence}]
     (debuglogger search display [:add elem])
     (swap! bag b/add-element elem)))
 

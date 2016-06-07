@@ -66,7 +66,7 @@
           (let [new-goal (increased-goal-budget-by-quest goal-task-projected-to-quest quest)]
             (update-task-in-tasks state new-goal goal-task)))))))
 
-(defn process-goal [state task]
+(defn process-goal [state task cnt]
   ;group-by :task-type tasks
   (let [tasks (get-tasks state)
         goals (filter #(= (:task-type %) :goal) tasks)
@@ -77,9 +77,10 @@
     ;(project to task time
     (let [projected-goals (map #(project-eternalize-to (:occurrence task) % @nars-time) (filter #(= (:statement %) (:statement task)) goals))]
       ;revise task with revisable goals
-      (doseq [revisable (filter #(revisable? task %) projected-goals)]
-        ;revise goals and add to tasks
-        (process-goal state (revise task revisable))))
+      (when (< cnt 1)
+        (doseq [revisable (filter #(revisable? task %) projected-goals)]
+         ;revise goals and add to tasks
+         (process-goal state (revise task revisable) (inc cnt)))))
 
     ;add task to bag
     (add-to-tasks state task)
