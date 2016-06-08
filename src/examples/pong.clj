@@ -25,6 +25,7 @@
 
 (def fieldmax 760)
 (def fieldmin 20)
+(def allow-continuous-feedback true)
 
 (defn update-pong
   [state]
@@ -39,10 +40,21 @@
     #_(nars-input-narsese (str "<{" (int (* 100 (quot @py 100))) "} --> barpos>. :|:" ))
       (if (and (>= (:ball-py state) @py)
                (<= (:ball-py state) (+ @py (:barheight state))))
-        (nars-input-narsese (str "<ballpos --> [equal]>. :|:" ))
+        (do (nars-input-narsese (str "<ballpos --> [equal]>. :|:"))
+            (when allow-continuous-feedback
+              (println "good NARS")
+              (nars-input-narsese "<{SELF} --> [good]>. :|: %1.0;0.9%")))
         (if (< (:ball-py state) @py)
-          (nars-input-narsese (str "<ballpos --> [below]>. :|:" ))
-          (nars-input-narsese (str "<ballpos --> [above]>. :|:" )))
+          (do
+            (nars-input-narsese (str "<ballpos --> [below]>. :|:"))
+            (when allow-continuous-feedback
+              (println "bad NARS")
+              (nars-input-narsese "<{SELF} --> [good]>. :|: %0.0;0.9%")))
+          (do
+            (nars-input-narsese (str "<ballpos --> [above]>. :|:"))
+            (when allow-continuous-feedback
+              (println "bad NARS")
+              (nars-input-narsese "<{SELF} --> [good]>. :|: %0.0;0.9%"))))
         )
     )
 
