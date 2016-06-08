@@ -1,7 +1,8 @@
 (ns narjure.general-inference.event-selector
   (:require
-    [co.paralleluniverse.pulsar.actors :refer [self ! whereis cast! Server gen-server register! shutdown! unregister! set-state! state]]
-    [narjure.actor.utils :refer [defactor]]
+    [co.paralleluniverse.pulsar
+     [core :refer :all]
+     [actors :refer :all]]
     [narjure.global-atoms :refer :all]
     [narjure.bag :as b]
     [clojure.math.numeric-tower :as math]

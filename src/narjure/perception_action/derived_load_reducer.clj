@@ -1,8 +1,8 @@
 (ns narjure.perception-action.derived-load-reducer
   (:require
-    [co.paralleluniverse.pulsar.actors :refer [! spawn gen-server register! cast! Server self whereis shutdown! unregister! set-state! state]]
-    [narjure.narsese :refer [parse2]]
-    ;[narjure.actor.utils :refer [defactor]]
+    [co.paralleluniverse.pulsar
+     [core :refer :all]
+     [actors :refer :all]]
     [taoensso.timbre :refer [debug info]]
     [narjure.bag :as b]
     [narjure.control-utils :refer :all]
@@ -15,16 +15,17 @@
 
 (def max-derived-sentences 50)                              ; task bag capacity
 (def max-selections 10)                                     ; max selections per cycle
-(def bag (atom (b/default-bag max-derived-sentences)))      ; task bag
+(def derivation-bag (atom (b/default-bag max-derived-sentences)))      ; task bag
 
 (defn system-time-tick-handler
   "select n sentences from input bag and post to :task-creator"
   []
-  (doseq [n (range (min max-selections (b/count-elements @bag)))]
-    (let [[element bag'] (b/get-by-index @bag (selection-fn @bag))
+  (doseq [n (range (min max-selections (b/count-elements @derivation-bag)))]
+    (let [[element derivation-bag'] (b/get-by-index @derivation-bag (selection-fn @derivation-bag))
           msg [:derived-sentence-msg [(:id element)]]]
-      (reset! bag bag')
-      (cast! (:task-creator @state) msg)
+      (reset! derivation-bag derivation-bag')
+      (cast! (whereis :task-creator) msg)
+      ;(cast! (:task-creator @state) msg) ; see register-task-creator-handler for comments
       (debuglogger search display [:forward msg]))))
 
 (defn derived-sentence-handler
@@ -32,8 +33,10 @@
   [from [msg sentence]]
   (let [elem {:id sentence :priority (first (:budget sentence))}]
     (debuglogger search display [:add elem])
-    (swap! bag b/add-element elem)))
+    (swap! derivation-bag b/add-element elem)))
 
+; causes sequencing issues with actor instantiation currenlty.
+; reverting to (whereis) in system-time-tick-handler
 (defn register-task-creator-handler
   "add task-creator reference to state"
   [from]
@@ -43,9 +46,9 @@
   "Initialises actor"
   [aname actor-ref]
   (reset! display '())
-  (register! aname actor-ref))
+  (register! aname actor-ref)
+  (reset! derivation-bag (b/default-bag max-derived-sentences)))
 
-(def display (atom '()))
 (defn msg-handler
   "Identifies message type and selects the correct message handler.
    if there is no match it generates a log message for the unhandled message "

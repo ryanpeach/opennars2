@@ -1,7 +1,8 @@
 (ns narjure.perception-action.task-creator
   (:require
-    [co.paralleluniverse.pulsar.actors :refer [! spawn gen-server register! cast! Server self whereis state set-state! shutdown! unregister!]]
-    [narjure.actor.utils :refer [defactor]]
+    [co.paralleluniverse.pulsar
+     [core :refer :all]
+     [actors :refer :all]]
     [taoensso.timbre :refer [debug info]]
     [clojure.set :as set]
     [narjure.global-atoms :refer :all]
@@ -124,7 +125,8 @@
   (register! aname actor-ref)
   ; caches task-dispatcher reference for performance
   (set-state! {:task-dispatcher (whereis :task-dispatcher)})
-  (cast! (whereis :derived-load-reducer) [:register-task-creator-msg]))
+  ;(cast! (whereis :derived-load-reducer) :register-task-creator-msg [])
+  )
 
 (defn task-creator
   "creates gen-server for task-creator. This is used by the system supervisor"

@@ -26,8 +26,8 @@
            (java.util.concurrent TimeUnit))
   (:gen-class))
 
-(def inference-tick-interval 500)
-(def system-tick-interval 500)
+(def inference-tick-interval 25)
+(def system-tick-interval 10)
 (def sentence-tick-interval 500)
 
 (defn inference-tick []
@@ -80,26 +80,25 @@
     ["2" :permanent 5 5 :sec 100 (general-inferencer)]
     ["3" :permanent 5 5 :sec 100 (concept-selector)]
     ["4" :permanent 5 5 :sec 100 (event-selector)]
-    ; ["5" :permanent 5 5 :sec 100 (event-buffer)]
-    ["6" :permanent 5 5 :sec 100 (concept-manager)]
-    ["7" :permanent 5 5 :sec 100 (task-dispatcher)]
-    ["8" :permanent 5 5 :sec 100 (task-creator)]
-    ["9" :permanent 5 5 :sec 100 (operator-executor)]
-    ["10" :permanent 5 5 :sec 100 (sentence-parser)]
+    ["5" :permanent 5 5 :sec 100 (concept-manager)]
+    ["6" :permanent 5 5 :sec 100 (task-dispatcher)]
+    ["7" :permanent 5 5 :sec 100 (task-creator)]
+    ["8" :permanent 5 5 :sec 100 (operator-executor)]
+    ["9" :permanent 5 5 :sec 100 (sentence-parser)]
     ))
 
 (def sup (atom '()))
 
 (defn run []
+  ; reset global bags
+  (reset! c-bag (b/default-bag max-concepts))
+  (reset! e-bag (b/default-bag max-events))
+
   (setup-logging)
   (info "NARS initialising...")
   (start-timers)
 
   (reset! output-display '())
-
-  ; reset global bags
-  (reset! c-bag (b/default-bag max-concepts))
-  (reset! e-bag (b/default-bag max-events))
 
   (reset! sup (spawn (supervisor :all-for-one child-specs)))
 

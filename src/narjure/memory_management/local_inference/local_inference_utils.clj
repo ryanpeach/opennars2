@@ -1,8 +1,8 @@
 (ns narjure.memory-management.local-inference.local-inference-utils
   (:require
-    [co.paralleluniverse.pulsar.actors
-     :refer [! spawn gen-server register! cast! Server self
-             shutdown! unregister! set-state! state whereis]]
+    [co.paralleluniverse.pulsar
+     [core :refer :all]
+     [actors :refer :all]]
     [taoensso.timbre :refer [debug info]]
     [narjure.bag :as b]
     [narjure.global-atoms :refer :all]

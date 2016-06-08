@@ -1,7 +1,8 @@
 (ns narjure.general-inference.general-inferencer
   (:require
-    [co.paralleluniverse.pulsar.actors :refer [self ! whereis cast! Server gen-server register! shutdown! unregister! set-state! state]]
-    [narjure.actor.utils :refer [defactor]]
+    [co.paralleluniverse.pulsar
+     [core :refer :all]
+     [actors :refer :all]]
     [nal.deriver :refer [inference]]
     [taoensso.timbre :refer [debug info]]
     [narjure.global-atoms :refer :all]

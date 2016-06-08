@@ -1,8 +1,8 @@
 (ns narjure.perception-action.operator-executor
   (:require
-    [co.paralleluniverse.pulsar.actors :refer [self ! whereis cast! Server gen-server register! shutdown! unregister! set-state!]]
-    [co.paralleluniverse.pulsar [core :refer [defsfn]]]
-    [narjure.actor.utils :refer [defactor]]
+    [co.paralleluniverse.pulsar
+     [core :refer :all]
+     [actors :refer :all]]
     [taoensso.timbre :refer [debug info]]
     [narjure.debug-util :refer :all]
     [narjure.global-atoms :refer :all])

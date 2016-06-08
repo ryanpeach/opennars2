@@ -1,6 +1,8 @@
 (ns narjure.perception-action.sentence-parser
   (:require
-    [co.paralleluniverse.pulsar.actors :refer [! spawn gen-server register! cast! Server self whereis shutdown! unregister! set-state! state]]
+    [co.paralleluniverse.pulsar
+     [core :refer :all]
+     [actors :refer :all]]
     [narjure.narsese :refer [parse2]]
     ;[narjure.actor.utils :refer [defactor]]
     [taoensso.timbre :refer [debug info]]

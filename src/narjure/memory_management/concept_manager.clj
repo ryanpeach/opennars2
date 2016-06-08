@@ -1,20 +1,19 @@
 (ns narjure.memory-management.concept-manager
   (:require
-    [co.paralleluniverse.pulsar.actors
-     :refer [! spawn gen-server register! cast! Server self
-             shutdown! unregister! set-state! state whereis]]
+    [co.paralleluniverse.pulsar
+     [core :refer :all]
+     [actors :refer :all]]
     [narjure.global-atoms :refer [c-bag]]
     [narjure.memory-management.concept :as c]
-    [narjure.actor.utils :refer [defactor]]
     [narjure.bag :as b]
     [taoensso.timbre :refer [debug info]]
     [narjure.debug-util :refer :all])
   (:refer-clojure :exclude [promise await]))
 
-(def aname :concept-manager)
-(def c-priority 0.5)
-(def display (atom '()))
-(def search (atom ""))
+(def aname :concept-manager)                                   ; actor name
+(def display (atom '()))                                    ; for lense output
+(def search (atom ""))                                      ; for lense output filtering
+(def c-priority 0.5)                                        ; default concept priority
 
 (defn make-general-concept
   "Create a concept, for the supplied term, and add to
@@ -63,14 +62,17 @@
   (register! aname actor-ref)                               ;a place where it can be done
   (set-state! {}))
 
-(defn clean-up
-  "Send :exit message to all concepts"
+(defn get-super-and-interfaces ""
   []
-  ;todo
-  (comment (doseq [{{actor-ref :ref} sym} (:elements-map @c-bag)]
-             (info (str "actor-ref" actor-ref))
-             (shutdown! actor-ref))))
+  (apply vector (for [x (:priority-index @c-bag)]
+                  (:id x)))
+  )
 
+(defn clean-up
+  "Shutdown all concept actors"
+  []
+  (doseq [[_ {actor-ref :ref}] (:elements-map @c-bag)]
+    (shutdown! actor-ref)))
 
 (defn msg-handler
   "Identifies message type and selects the correct message handler.
@@ -84,10 +86,20 @@
     :budget-update-msg (budget-update-handler from message)
     (debug aname (str "unhandled msg: " type))))
 
-(defn concept-manager []
+(defn initialise
+  "Initialises actor: registers actor and sets actor state"
+  [aname actor-ref]
+  (reset! c/display '())                                    ;we also reset concept display here
+  (reset! display '())                                      ;since concept actor startup is not
+  (register! aname actor-ref)                               ;a place where it can be done
+  (set-state! {}))
+
+(defn concept-manager
+  "creates gen-server for concept-manager. This is used by the system supervisor"
+  []
   (gen-server
     (reify Server
       (init [_] (initialise aname @self))
-      (terminate [_ cause] #_(info (str "cleaning up")))
-      (handle-cast [_ from id message] (msg-handler from message)))))
+      (terminate [_ _] (clean-up))
+      (handle-cast [_ from _ message] (msg-handler from message)))))
 

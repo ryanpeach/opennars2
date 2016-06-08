@@ -15,7 +15,7 @@
             [narjure.perception-action.operator-executor :as operator-executor]
             [narjure.perception-action.sentence-parser :as sentence-parser]
             [narjure.perception-action.task-creator :as task-creator]
-            [narjure.perception-action.input-load-reducer :as input-load-reducer]
+    ;[narjure.perception-action.input-load-reducer :as input-load-reducer]
             [narjure.perception-action.derived-load-reducer :as derived-load-reducer]
             [narjure.memory-management.concept :as concepts]
             [narjure.global-atoms :refer :all]
@@ -48,7 +48,7 @@
                    :concept-bag          [(fn [] (bagshow @c-bag concept-filter)) concept-filter]
                    :event-bag            [(fn [] (bagshow @e-bag event-filter)) event-filter]
                    :derived-load-reducer [(fn [] (deref derived-load-reducer/display)) derived-load-reducer/search]
-                   :input-load-reducer   [(fn [] (deref input-load-reducer/display)) input-load-reducer/search]
+                   ;:input-load-reducer   [(fn [] (deref input-load-reducer/display)) input-load-reducer/search]
                    :input                [(fn [] "") inputstr]
                    :output               [(fn [] (deref output-display)) output-search]})
 

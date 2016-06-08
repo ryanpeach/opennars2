@@ -1,8 +1,8 @@
 (ns narjure.general-inference.concept-selector
   (:require
-    [co.paralleluniverse.pulsar.actors :refer [self ! whereis cast! Server gen-server register! shutdown! unregister! set-state! state]]
-    [narjure.actor.utils :refer [defactor]]
-    [narjure.global-atoms :refer [c-bag lense-taskbags lense-termlinks]]
+    [co.paralleluniverse.pulsar
+     [core :refer :all]
+     [actors :refer :all]]    [narjure.global-atoms :refer [c-bag lense-taskbags lense-termlinks]]
     [narjure.bag :as b]
     [clojure.math.numeric-tower :as math]
     [taoensso.timbre :refer [debug info]]

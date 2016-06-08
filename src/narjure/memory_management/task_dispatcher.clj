@@ -1,6 +1,8 @@
 (ns narjure.memory-management.task-dispatcher
-  (:use [co.paralleluniverse.pulsar core actors])
   (:require
+    [co.paralleluniverse.pulsar
+     [core :refer :all]
+     [actors :refer :all]]
     [narjure.global-atoms :refer [c-bag e-bag]]
     [narjure.bag :as b]
     [taoensso.timbre :refer [debug info]]
@@ -37,7 +39,7 @@
           (when-let [{c-ref :ref} ((:elements-map @c-bag) term)]
             (cast! c-ref [:task-msg task])
             )))
-      (cast! (:concept-manager @state) [:create-concept-msg task]))))
+      (cast! (whereis :concept-manager) [:create-concept-msg task]))))
 
 (defn msg-handler
   "Identifies message type and selects the correct message handler.
@@ -55,9 +57,8 @@
   (reset! display '())
   (register! aname actor-ref)
   ; cache actor references for performance
-  (set-state! {:concept-manager (whereis :concept-manager)
-               ;:event-buffer    (whereis :event-buffer)
-               }))
+  ;(set-state! {:concept-manager (whereis :concept-manager)})
+  )
 
 (defn task-dispatcher
   "creates gen-server for task-dispatcher. This is used by the system supervisor"
