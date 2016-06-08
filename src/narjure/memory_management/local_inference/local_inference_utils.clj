@@ -53,8 +53,8 @@
 
 
 (defn reduced-goal-budget-by-belief [goal belief]                     ;by belief satisfied goal
-  (let [satisfaction (- 1.0 (Math/abs (- (expectation goal)
-                                         (expectation belief))))
+  (let [satisfaction (- 1.0 (Math/abs (- (expectation (:truth goal))
+                                         (expectation (:truth belief)))))
         budget (:budget goal)
         p (first budget)
         p-new (t-and p (- 1.0 satisfaction))]
