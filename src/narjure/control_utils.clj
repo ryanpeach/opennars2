@@ -28,11 +28,13 @@
         [true true] sofar
         [true false] (make-ev-helper [] (rest e2) (concat [r2] sofar))
         [false true] (make-ev-helper (rest e1) [] (concat [r1] sofar))
-        [false false] (make-ev-helper (rest e1) (rest e2) (concat [r1] [r2] sofar))))))
+        [false false] (make-ev-helper (rest e1) (rest e2) (concat [r1] [r2] sofar)))))
+
+  (defn make-evidence [e1 e2]
+    (take max-evidence (reverse (make-ev-helper e1 e2 []))))
+  )
 
 (def max-evidence 50)
-(defn make-evidence [e1 e2]
-  (take max-evidence (reverse (make-ev-helper e1 e2 []))))
 
 ; this does work
 ; (make-evidence [9 7 5 3 1] [18 16 14 12])
