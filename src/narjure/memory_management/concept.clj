@@ -26,15 +26,11 @@
   ""
   [from [_ task]]
   (debuglogger search display ["task processed:" task])
-
-    (let [tasks (apply vector (for [x (:priority-index (:tasks @state))]
-                   (:id x)))]
-      (case (:task-type task)
-        :belief (process-belief state task 0)
-        :goal (process-goal state task 0)
-        :question (process-question state task)
-        :quest (process-quest state task)))
-
+  (case (:task-type task)
+    :belief (process-belief state task 0)
+    :goal (process-goal state task 0)
+    :question (process-question state task)
+    :quest (process-quest state task))
 
   (try
     (let [concept-state @state

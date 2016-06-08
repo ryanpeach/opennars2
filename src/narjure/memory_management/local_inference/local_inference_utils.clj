@@ -105,5 +105,4 @@
   (decrease-question-budget-by-solution quest))
 
 (defn get-tasks [state]
-  (apply vector (for [x (:priority-index (:tasks @state))]
-                  (:id x))))
+  (vec (for [x (:priority-index (:tasks @state))] (:id x))))
