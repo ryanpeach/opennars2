@@ -7,7 +7,6 @@
     [narjure.global-atoms :refer :all]
     [narjure.memory-management
      [concept-manager :refer [concept-manager]]
-     [event-buffer :refer [event-buffer]]
      [task-dispatcher :refer [task-dispatcher]]]
     [narjure.general-inference
      [concept-selector :refer [concept-selector]]

@@ -11,7 +11,6 @@
             [narjure.general-inference.event-selector :as event-selector]
             [narjure.general-inference.general-inferencer :as general-inferencer]
             [narjure.memory-management.concept-manager :as concept-manager]
-            [narjure.memory-management.event-buffer :as event-buffer]
             [narjure.memory-management.task-dispatcher :as task-dispatcher]
             [narjure.perception-action.operator-executor :as operator-executor]
             [narjure.perception-action.sentence-parser :as sentence-parser]
