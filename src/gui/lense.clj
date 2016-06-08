@@ -40,7 +40,7 @@
                    :concept-selector     [(fn [] (deref concept-selector/display)) concept-selector/search]
                    :general-inferencer   [(fn [] (deref general-inferencer/display)) general-inferencer/search]
                    :concept-manager      [(fn [] (deref concept-manager/display)) concept-manager/search]
-                   :event-buffer         [(fn [] (deref event-buffer/display)) event-buffer/search]
+                   ;:event-buffer         [(fn [] (deref event-buffer/display)) event-buffer/search]
                    :task-dispatcher      [(fn [] (deref task-dispatcher/display)) task-dispatcher/search]
                    :operator-executor    [(fn [] (deref operator-executor/display)) operator-executor/search]
                    :sentence-parser      [(fn [] (deref sentence-parser/display)) sentence-parser/search]

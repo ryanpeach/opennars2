@@ -81,7 +81,7 @@
     ["2" :permanent 5 5 :sec 100 (general-inferencer)]
     ["3" :permanent 5 5 :sec 100 (concept-selector)]
     ["4" :permanent 5 5 :sec 100 (event-selector)]
-    ["5" :permanent 5 5 :sec 100 (event-buffer)]
+    ; ["5" :permanent 5 5 :sec 100 (event-buffer)]
     ["6" :permanent 5 5 :sec 100 (concept-manager)]
     ["7" :permanent 5 5 :sec 100 (task-dispatcher)]
     ["8" :permanent 5 5 :sec 100 (task-creator)]

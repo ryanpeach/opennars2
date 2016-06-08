@@ -12,7 +12,7 @@
             {:name :task-creator :px 400 :py -150}
             ;{:name :input-load-reducer :px 400 :py -325}
             {:name :operator-executor :px -350 :py -150}
-            {:name :event-buffer :px 200 :py 150}
+            ;{:name :event-buffer :px 200 :py 150}
             {:name :general-inferencer :px 400 :py 300}
             {:name :derived-load-reducer :px 400 :py 150}
             {:name :event-selector :px 600 :py 150}
@@ -23,7 +23,7 @@
 
 (def vertices [{:from :concept-manager :to :task-dispatcher :unidirectional false}
                {:from :concept-manager :to :concepts :unidirectional true}
-               {:from :task-dispatcher :to :event-buffer :unidirectional true}
+               ;{:from :task-dispatcher :to :event-buffer :unidirectional true}
                {:from :concepts :to :general-inferencer :unidirectional true}
                {:from :concepts :to :operator-executor :unidirectional true}
                {:from :operator-executor :to :task-creator :unidirectional true}

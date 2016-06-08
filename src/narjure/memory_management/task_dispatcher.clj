@@ -1,7 +1,7 @@
 (ns narjure.memory-management.task-dispatcher
   (:use [co.paralleluniverse.pulsar core actors])
   (:require
-    [narjure.global-atoms :refer [c-bag]]
+    [narjure.global-atoms :refer [c-bag e-bag]]
     [narjure.bag :as b]
     [taoensso.timbre :refer [debug info]]
     [narjure.debug-util :refer :all])
@@ -30,7 +30,8 @@
     (if (every? term-exists? terms)
       (do
         (when (event? task)
-          (cast! (:event-buffer @state) [:event-msg task])
+          (swap! e-bag b/add-element {:id task :priority (first (:budget task))})
+          ;(cast! (:event-buffer @state) [:event-msg task])
           )
         (doseq [term terms]
           (when-let [{c-ref :ref} ((:elements-map @c-bag) term)]
@@ -40,7 +41,7 @@
 
 (defn msg-handler
   "Identifies message type and selects the correct message handler.
-   if there is no match it generates a log message for the unhandled message "
+   if there is no match it generates a log message for the unhandled message"
   [from [type :as message]]
   (debuglogger search display message)
   (case type
@@ -55,7 +56,8 @@
   (register! aname actor-ref)
   ; cache actor references for performance
   (set-state! {:concept-manager (whereis :concept-manager)
-               :event-buffer    (whereis :event-buffer)}))
+               ;:event-buffer    (whereis :event-buffer)
+               }))
 
 (defn task-dispatcher
   "creates gen-server for task-dispatcher. This is used by the system supervisor"
@@ -65,3 +67,4 @@
       (init [_] (initialise aname @self))
       (terminate [_ _])
       (handle-cast [_ from _ message] (msg-handler from message)))))
+:event-buffer
