@@ -19,7 +19,7 @@
     [nal.deriver.projection-eternalization :refer [project-eternalize-to]])
   (:refer-clojure :exclude [promise await]))
 
-(def max-tasks 20)
+(def max-tasks 10)
 (def display (atom '()))
 (def search (atom ""))
 
@@ -83,7 +83,7 @@
              projected-beliefs (map #(project-eternalize-to (:occurrence task) (:id %) @nars-time)
                                 (filter #(and (= (:statement (:id %)) (:id @state))
                                               (= (:task-type (:id %)) :belief)) tasks))]
-     (when (not-empty projected-beliefs)
+     (if (not-empty projected-beliefs)
        ;(println projected-beliefs)
        (let [belief (apply max-key confidence projected-beliefs)]
          (debuglogger search display ["selected belief:" belief "§"])
@@ -114,7 +114,12 @@
                      (cast! c-ref [:solution-update-msg task newtask]))))))
            (catch Exception e (debuglogger search display (str "what-question error " (.toString e)))))
 
-         )))
+         ))
+     ;dummy? belief as "empty" termlink belief selection for structural inference
+     (let [belief {:statement (:id @state) :task-type :question :occurrence @nars-time}]
+       (debuglogger search display ["selected belief:" belief "§"])
+       (cast! (:general-inferencer @state) [:do-inference-msg [task belief]]))
+     )
        (catch Exception e (debuglogger search display (str "belief request error " (.toString e))))))
 
 (defn update-concept-budget []
