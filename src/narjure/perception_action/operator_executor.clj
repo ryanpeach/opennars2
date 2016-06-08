@@ -46,5 +46,5 @@
   (gen-server
     (reify Server
       (init [_] (initialise aname @self))
-      (terminate [_ cause])
-      (handle-cast [_ from id message] (msg-handler from message)))))
+      (terminate [_ _])
+      (handle-cast [_ from _ message] (msg-handler from message)))))

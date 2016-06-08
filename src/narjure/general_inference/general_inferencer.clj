@@ -44,7 +44,7 @@
         ; dont post if evidence is nil, saves multiple checks further down the pipe
         (when (not= evidence '())
           (doseq [derived derivations]
-            (cast! derived-load-reducer [:derived-sentence-msg derived budget evidence])))))
+            (cast! derived-load-reducer [:derived-sentence-msg (assoc derived :budget budget :evidence evidence)])))))
     (catch Exception e (debuglogger search display (str "inference error " (.toString e))))))
 
 (defn initialise

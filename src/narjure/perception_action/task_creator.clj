@@ -55,14 +55,14 @@
 (defn create-derived-task
   "Create a derived task with the provided sentence, budget and occurence time
    and default values for the remaining parameters"
-  [sentence budget evidence syntactic-complexity]
+  [sentence syntactic-complexity]
   (let [content (:statement sentence)]
     {:truth      (:truth sentence)
      :desire     (:desire sentence)
-     :budget     budget
+     :budget     (:budget sentence)
      :occurrence (:occurrence sentence)
      :source     :derived
-     :evidence   evidence
+     :evidence   (:evidence sentence)
      :sc         syntactic-complexity
      :terms      (termlink-subterms content)
      :solution   nil
@@ -95,8 +95,6 @@
        (when (< syntactic-complexity max-term-complexity)
          (let [derived-task (create-derived-task
                               sentence
-                              budget
-                              evidence
                               syntactic-complexity)]
 
            (cast! (:task-dispatcher @state) [:task-msg derived-task])
@@ -125,7 +123,8 @@
   (reset! display '())
   (register! aname actor-ref)
   ; caches task-dispatcher reference for performance
-  (set-state! {:task-dispatcher (whereis :task-dispatcher)}))
+  (set-state! {:task-dispatcher (whereis :task-dispatcher)})
+  (cast! (whereis :derived-load-reducer) [:register-task-creator-msg]))
 
 (defn task-creator
   "creates gen-server for task-creator. This is used by the system supervisor"
