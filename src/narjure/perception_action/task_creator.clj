@@ -11,36 +11,112 @@
     [nal.deriver.projection-eternalization :refer [eternalize]])
   (:refer-clojure :exclude [promise await]))
 
-(def aname :task-creator)
-
-(defn sentence [_ _]
-  (debug aname "process-sentence"))
-
-;(def nars-time (atom 0))
+(def aname :task-creator)                                   ; actor name
+(def display (atom '()))                                    ; for lense output
+(def search (atom ""))                                      ; for lense output filtering
 
 (defn system-time-tick-handler
   "inc :time value in global atom for each system-time-tick-msg"
   []
   (swap! nars-time inc))
 
-;(def nars-id (atom -1))
-
 (defn get-id
-  "inc the task :id in actor state and returns the value"
+  "inc :nars-id in global atom after each use"
   []
-  (set-state! (update @state :id inc))
-  (@state :id))
-
-(defn get-id []
   (swap! nars-id inc))
 
-(defn get-time
-  "return the current time from actor state"
-  []
-  (@state :time))
+(defn create-new-task
+  "create a new task with the provided sentence and default values
+   convert tense to occurrence time if applicable"
+  [sentence syntactic-complexity]
+  (let [occurrence (:occurrence sentence)
+        toc (case occurrence
+              :eternal :eternal
+              (+ occurrence @nars-time))
+        content (:statement sentence)
+        task-type (:task-type sentence)]
+    {:truth (:truth sentence)
+     :desire (:desire sentence)
+     :budget (:budget sentence)
+     :occurrence toc
+     :source :input
+     :evidence (list (get-id))
+     :sc syntactic-complexity
+     :terms (termlink-subterms content)
+     :solution nil
+     :task-type task-type
+     :statement content}))
 
-(def display (atom '()))
-(def search (atom ""))
+(defn create-eternal-task
+  "Create an eternal task from a non-eternal task"
+  [task]
+  (eternalize task))
+
+(defn create-derived-task
+  "Create a derived task with the provided sentence, budget and occurence time
+   and default values for the remaining parameters"
+  [sentence budget evidence syntactic-complexity]
+  (let [content (:statement sentence)]
+    {:truth      (:truth sentence)
+     :desire     (:desire sentence)
+     :budget     budget
+     :occurrence (:occurrence sentence)
+     :source     :derived
+     :evidence   evidence
+     :sc         syntactic-complexity
+     :terms      (termlink-subterms content)
+     :solution   nil
+     :task-type  (:task-type sentence)
+     :statement  content}))
+
+(defn event?
+  "tests whether the passed task sentence is an event"
+  [sentence]
+  (not= :eternal (:occurrence sentence)))
+
+(defn sentence-handler
+  "Processes a :sentence-msg and generates a task, and an eternal task
+   if the sentence is an event, and posts to task-dispatcher."
+  [from [_ sentence]]
+  (let [syntactic-complexity (syntactic-complexity (:statement sentence))]
+    (when (< syntactic-complexity max-term-complexity)
+      (let [new-task (create-new-task
+                       sentence
+                       syntactic-complexity)]
+        (cast! (:task-dispatcher @state) [:task-msg new-task])
+        (output-task :input new-task)
+        (when (event? sentence)
+          (cast! (:task-dispatcher @state) [:task-msg (create-eternal-task new-task)]))))))
+
+(defn derived-sentence-handler
+  "processes a :derived-sentence-msg and posts to task-dispatcher"
+  [from [msg [sentence budget evidence]]]
+  (let [syntactic-complexity (syntactic-complexity (:statement sentence))]
+       (when (< syntactic-complexity max-term-complexity)
+         (let [derived-task (create-derived-task
+                              sentence
+                              budget
+                              evidence
+                              syntactic-complexity)]
+
+           (cast! (:task-dispatcher @state) [:task-msg derived-task])
+           ; display task in output window
+           (output-task :derived derived-task)
+           (when (event? sentence)
+             (cast! (:task-dispatcher @state) [:task-msg (create-eternal-task derived-task)]))))))
+
+(defn msg-handler
+  "Identifies message type and selects the correct message handler.
+   if there is no match it generates a log message for the unhandled message "
+  [from [type :as message]]
+  ; don't output :system-time-tick-msg's to logger
+  (when (not= type :system-time-tick-msg) (debuglogger search display message))
+  (case type
+    :sentence-msg (sentence-handler from message)
+    :derived-sentence-msg (derived-sentence-handler from message)
+    :system-time-tick-msg (system-time-tick-handler)
+    ; unhandled case report to debug logger (console by default)
+    (debug aname (str "unhandled msg: " type))))
 
 (defn initialise
   "Initialises actor:
@@ -50,105 +126,11 @@
   (register! aname actor-ref)
   (set-state! {:task-dispatcher (whereis :task-dispatcher)}))
 
-(defn create-new-task
-  "create a new task with the provided sentence and default values
-   convert tense to occurrence time if applicable"
-  [sentence time id syntactic-complexity]
-  (let [occurrence (:occurrence sentence)
-        toc (case occurrence
-              :eternal :eternal
-              (+ occurrence time))
-        content (:statement sentence)
-        task-type (:task-type sentence)]
-    {:truth (:truth sentence)
-     :desire (:desire sentence)
-     :budget (:budget sentence)
-     ;:creation time
-     :occurrence toc
-     :source :input
-     ;:id id
-     :evidence (list id)
-     :sc syntactic-complexity
-     :terms (termlink-subterms content)
-     :solution nil
-     :task-type task-type
-     :statement content}))
-
-(defn create-eternal-task
-  "Create an etenrnal task from a non-eternal task, update id, evidence and occurrence"
-  [task]
-  (let [id (get-id)]
-    (eternalize (assoc task :evidence (list (:id task))))))
-
-(defn create-derived-task
-  "Create a derived task with the provided sentence, budget and occurence time
-   and default values for the remaining parameters"
-  [sentence budget time id evidence syntactic-complexity]
-  (let [content (:statement sentence)]
-    {:truth      (:truth sentence)
-     :desire     (:desire sentence)
-     :budget     budget
-     ;:creation   time
-     :occurrence (:occurrence sentence)
-     :source     :derived
-     ;:id         id
-     :evidence   evidence
-     :sc         syntactic-complexity
-     :terms      (termlink-subterms content)
-     :solution   nil
-     :task-type  (:task-type sentence)
-     :statement  content}))
-
-(defn event? [sentence] (not= :eternal (:occurrence sentence)))
-
-(defn sentence-handler
-  "Processes a :sentence-msg"
-  [from [_ sentence]]
-  (let [syntactic-complexity (syntactic-complexity (:statement sentence))]
-    (when (< syntactic-complexity max-term-complexity)
-      (let [new-task (create-new-task
-                       sentence
-                       @nars-time
-                       (get-id)
-                       syntactic-complexity)]
-        (cast! (:task-dispatcher @state) [:task-msg new-task])
-        (output-task :input new-task)
-        (when (event? sentence)
-          (cast! (:task-dispatcher @state) [:task-msg (create-eternal-task new-task)]))))))
-
-(defn derived-sentence-handler
-  "processes a :derived-sentence-msg"
-  [from [msg [sentence budget evidence]]]
-  (let [syntactic-complexity (syntactic-complexity (:statement sentence))]
-       (when (< syntactic-complexity max-term-complexity)
-         (let [derived-task (create-derived-task
-                              sentence
-                              budget
-                              @nars-time
-                              (get-id)
-                              evidence
-                              syntactic-complexity)]
-           (when (not= evidence '())
-             (cast! (:task-dispatcher @state) [:task-msg derived-task])
-             (output-task :derived derived-task)
-             (when (event? sentence)
-               (cast! (:task-dispatcher @state) [:task-msg (create-eternal-task derived-task)])))))))
-
-
-(defn msg-handler
-  "Identifies message type and selects the correct message handler.
-   if there is no match it generates a log message for the unhandled message "
-  [from [type :as message]]
-  (when (not= type :system-time-tick-msg) (debuglogger search display message))
-  (case type
-    :sentence-msg (sentence-handler from message)
-    :derived-sentence-msg (derived-sentence-handler from message)
-    :system-time-tick-msg (system-time-tick-handler)
-    (debug aname (str "unhandled msg: " type))))
-
-(defn task-creator []
+(defn task-creator
+  "creates gen-server for task-creator. This is used by the system supervisor"
+  []
   (gen-server
     (reify Server
       (init [_] (initialise aname @self))
-      (terminate [_ cause] #_(info (str aname " terminated.")))
-      (handle-cast [_ from id message] (msg-handler from message)))))
+      (terminate [_ _])
+      (handle-cast [_ from _ message] (msg-handler from message)))))

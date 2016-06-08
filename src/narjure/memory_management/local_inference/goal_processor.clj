@@ -96,10 +96,11 @@
                                        (filter #(= (:task-type %) :goal) ;re-getting the goals because we also want our just added goal
                                                (get-tasks state))))] ;needs new
      (if (not-empty projected-goals)
-       (let [goal (reduce #(max (confidence %)) projected-goals)]
+       (let [goal (apply max-key confidence projected-goals)]
          (when (and (operation? goal)
                     (= (:statement goal) (:id @state)))   ;execution really only in concept which is responsible for this goal!
            (when (execute? goal)
              (cast! (whereis :operator-executor) [:operator-execution-msg goal]))))))
 
     ))
+max-key
