@@ -15,3 +15,16 @@
         new-budget  [new-priority (second budget)]]
     (assoc el :priority new-priority
               :id (assoc (:id el) :budget new-budget))))
+
+(defn make-ev-helper [e2 e1 sofar]
+  (let [r1 (first e1)
+        r2 (first e2)]
+    (case [(= nil r1) (= nil r2)]
+      [true true] sofar
+      [true false] (make-ev-helper [] (rest e2) (concat [r2] sofar))
+      [false true] (make-ev-helper (rest e1) [] (concat [r1] sofar))
+      [false false] (make-ev-helper (rest e1) (rest e2) (concat [r1] [r2] sofar)))))
+
+(def max-evidence 50)
+(defn make-evidence [e1 e2]
+  (take max-evidence (reverse (make-ev-helper e1 e2 []))))

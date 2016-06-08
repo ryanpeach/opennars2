@@ -8,6 +8,7 @@
     [narjure.bag :as b]
     [narjure.debug-util :refer :all]
     [narjure.control-utils :refer :all]
+    [narjure.control-utils :refer [make-evidence]]
     [narjure.global-atoms :refer :all]
     [narjure.memory-management.local-inference.local-inference-utils :refer :all]
     [nal.deriver.truth :refer [t-or confidence frequency]]

@@ -6,6 +6,7 @@
     [taoensso.timbre :refer [debug info]]
     [narjure.global-atoms :refer :all]
     [narjure.debug-util :refer :all]
+    [narjure.control-utils :refer [make-evidence]]
     [nal.term_utils :refer [syntactic-complexity]]
     [nal.deriver.truth :refer [expectation]])
   (:refer-clojure :exclude [promise await]))
@@ -18,9 +19,6 @@
   (empty? (clojure.set/intersection (set e1) (set e2))))
 
 (def max-evidence 10)
-
-(defn make-evidence [e1 e2]
-  (take max-evidence (interleave e1 e2)))
 
 (defn occurrence-penalty-tr [occ]
   (let [k 0.01]

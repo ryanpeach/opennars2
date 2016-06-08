@@ -128,10 +128,11 @@
                               (get-id)
                               evidence
                               syntactic-complexity)]
-           (cast! (:task-dispatcher @state) [:task-msg derived-task])
-           (output-task :derived derived-task)
-           (when (event? sentence)
-             (cast! (:task-dispatcher @state) [:task-msg (create-eternal-task derived-task)]))))))
+           (when (not= evidence '())
+             (cast! (:task-dispatcher @state) [:task-msg derived-task])
+             (output-task :derived derived-task)
+             (when (event? sentence)
+               (cast! (:task-dispatcher @state) [:task-msg (create-eternal-task derived-task)])))))))
 
 
 (defn msg-handler

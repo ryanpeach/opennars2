@@ -6,17 +6,13 @@
     [taoensso.timbre :refer [debug info]]
     [narjure.bag :as b]
     [narjure.global-atoms :refer :all]
+    [narjure.control-utils :refer [make-evidence]]
     [narjure.perception-action.task-creator :refer :all]
     [nal.term_utils :refer :all]
     [nal.deriver.truth :refer [t-and t-or frequency confidence expectation]]
     [nal.deriver.projection-eternalization :refer [project-eternalize-to]]
     [narjure.debug-util :refer :all])
   (:refer-clojure :exclude [promise await]))
-
-(def max-evidence 50)
-
-(defn make-evidence [e1 e2]
-  (take max-evidence (interleave e1 e2)))
 
 (defn item [task]
   {:id task :priority (first (:budget task))})
