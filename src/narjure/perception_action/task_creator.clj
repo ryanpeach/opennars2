@@ -115,7 +115,7 @@
     :sentence-msg (sentence-handler from message)
     :derived-sentence-msg (derived-sentence-handler from message)
     :system-time-tick-msg (system-time-tick-handler)
-    ; unhandled case report to debug logger (console by default)
+    ; unhandled case - report to debug logger (console by default)
     (debug aname (str "unhandled msg: " type))))
 
 (defn initialise
@@ -124,6 +124,7 @@
   [aname actor-ref]
   (reset! display '())
   (register! aname actor-ref)
+  ; caches task-dispatcher reference for performance
   (set-state! {:task-dispatcher (whereis :task-dispatcher)}))
 
 (defn task-creator

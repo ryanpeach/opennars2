@@ -27,8 +27,8 @@
            (java.util.concurrent TimeUnit))
   (:gen-class))
 
-(def inference-tick-interval 25)
-(def system-tick-interval 10)
+(def inference-tick-interval 500)
+(def system-tick-interval 500)
 (def sentence-tick-interval 500)
 
 (defn inference-tick []
