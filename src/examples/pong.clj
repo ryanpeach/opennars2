@@ -10,6 +10,7 @@
 (defn setup-pong []
   (nars-input-narsese (str "<(*,{SELF}) --> op_up>!" ))
   (nars-input-narsese (str "<(*,{SELF}) --> op_down>!" ))
+  (nars-input-narsese "<{SELF} --> [good]>!")
   (q/frame-rate 30)
   (nars-register-operation 'op_up (fn [args]
                                     (reset! py (+ @py 100))))
@@ -29,12 +30,21 @@
   [state]
 
   (when (= (mod (:iteration state) 100) 0)
+    (nars-input-narsese "<{SELF} --> [good]>!")
     (nars-input-narsese (str "<(*,{SELF}) --> op_up>!" ))
     (nars-input-narsese (str "<(*,{SELF}) --> op_down>!" )))
 
   (when (= (mod (:iteration state) 10) 0)
-    (nars-input-narsese (str "<{" (int (* 100 (quot (:ball-py state) 100))) "} --> ballpos>. :|:" ))
-    (nars-input-narsese (str "<{" (int (* 100 (quot @py 100))) "} --> barpos>. :|:" )))
+    #_(nars-input-narsese (str "<{" (int (* 100 (quot (:ball-py state) 100))) "} --> ballpos>. :|:" ))
+    #_(nars-input-narsese (str "<{" (int (* 100 (quot @py 100))) "} --> barpos>. :|:" ))
+      (if (and (>= (:ball-py state) @py)
+               (<= (:ball-py state) (+ @py (:barheight state))))
+        (nars-input-narsese (str "<ballpos --> [equal]>. :|:" ))
+        (if (< (:ball-py state) @py)
+          (nars-input-narsese (str "<ballpos --> [below]>. :|:" ))
+          (nars-input-narsese (str "<ballpos --> [above]>. :|:" )))
+        )
+    )
 
   (let [kset-x (+ 0.6 (/ (Math/random) 2.0))
         kset-y (+ 0.6 (/ (Math/random) 2.0))
