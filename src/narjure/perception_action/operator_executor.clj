@@ -22,7 +22,7 @@
                                       :occurrence @nars-time
                                       :budget [0.9 0.8 0.5])
         operation (:statement operationgoal)
-        arguments (second operation)
+        arguments (rest (second operation))
         operator (nth operation 2)]
     (try (let [func (@registered-operator-functions operator)]
            (when (not= nil func)
