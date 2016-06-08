@@ -37,7 +37,7 @@
       (let [derivations (inference task belief)
             evidence (make-evidence (:evidence task) (:evidence belief))
             derived-load-reducer (whereis :derived-load-reducer)
-            budget [(* 1.0 ;(first (:budget task)) im not sure anymore whether task parent priority is good here
+            budget [(* (first (:budget task))               ;im not sure anymore whether task parent priority is good here
                        (if (= nil (:truth task)) ;needs discussing.
                          0.5
                          (expectation (:truth task)))
