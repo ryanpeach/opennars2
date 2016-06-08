@@ -37,12 +37,11 @@
             evidence (make-evidence (:evidence task) (:evidence belief))
             derived-load-reducer (whereis :derived-load-reducer)]
         (doseq [der derived]
-          (cast! derived-load-reducer [:derived-sentence-msg der [(* (first (:budget task))
-                                                                    (if (= nil (:truth task))
-                                                                       1.0
+          (cast! derived-load-reducer [:derived-sentence-msg der [(* 1.0 ;(first (:budget task)) im not sure anymore whether task parent priority is good here
+                                                                    (if (= nil (:truth task)) ;needs discussing.
+                                                                       0.5
                                                                        (expectation (:truth task)))
-                                                                     (/ 1.0 (syntactic-complexity (:statement task)))
-                                                                     (occurrence-penalty-tr (:occurrence task))) 0.8 0.0] evidence]))))
+                                                                     (occurrence-penalty-tr (:occurrence task))) (/ 1.0 (syntactic-complexity (:statement task))) 0.0] evidence]))))
     (catch Exception e (debuglogger search display (str "inference error " (.toString e))))))
 
 (defn initialise

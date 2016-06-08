@@ -6,8 +6,8 @@
 (def truth-value
   [belief-frequency belief-confidence])
 
-(def belief-priority 0.6)
-(def belief-durability 0.5)
+(def belief-priority 0.9)
+(def belief-durability 0.3)
 ;todo clarify this
 (def belief-quality 0.5)
 
@@ -15,7 +15,7 @@
   [belief-priority belief-durability belief-quality])
 
 (def question-priority 0.9)
-(def question-durability 0.7)
+(def question-durability 0.3)
 ;todo clarify this
 (def question-quality 0.5)
 
@@ -24,7 +24,7 @@
 
 (def goal-confidence 0.9)
 (def goal-priority 0.7)
-(def goal-durability 0.9)
+(def goal-durability 0.3)
 
 (def budgets
   {:belief belief-budget
