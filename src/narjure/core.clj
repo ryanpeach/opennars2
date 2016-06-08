@@ -115,7 +115,6 @@
   (stop-timers)
 
   (shutdown! @sup)
-  (join @sup)
 
   (info "System shutdown complete."))
 
