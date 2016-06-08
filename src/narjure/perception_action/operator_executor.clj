@@ -11,6 +11,7 @@
 (def aname :operator-executor)                              ; actor name
 (def display (atom '()))                                    ; for lense output
 (def search (atom ""))                                      ; for lense output filtering
+(def registered-operator-functions (atom {}))
 
 (defn operator-execution-handler
   "Processes an :operator-execution-msg:
@@ -19,7 +20,14 @@
   [from [msg operationgoal]]
   (let [feedback (assoc operationgoal :task-type :belief
                                       :occurrence @nars-time
-                                      :budget [0.9 0.8 0.5])]
+                                      :budget [0.9 0.8 0.5])
+        operation (:statement operationgoal)
+        arguments (second operation)
+        operator (nth operation 2)]
+    (try (let [func (@registered-operator-functions operator)]
+           (when (not= nil func)
+             (func arguments)))
+      (catch Exception e (debuglogger search display (str "operator execution error " (.toString e)))))
     (output-task :execution operationgoal)
     (cast! (whereis :task-creator) [:derived-sentence-msg [feedback (:budget feedback) (:evidence feedback)]]))) ;derived-sentence so we keep evidence trail
 
