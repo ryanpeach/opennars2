@@ -40,8 +40,7 @@
   (set-state! {:task-creator from}))
 
 (defn initialise
-  "Initialises actor:
-      registers actor and sets actor state"
+  "Initialises actor"
   [aname actor-ref]
   (reset! display '())
   (register! aname actor-ref))

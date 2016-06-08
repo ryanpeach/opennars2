@@ -7,7 +7,9 @@
     [narjure.debug-util :refer :all])
   (:refer-clojure :exclude [promise await]))
 
-(def aname :task-dispatcher)
+(def aname :task-dispatcher)                                ; actor name
+(def display (atom '()))                                    ; for lense output
+(def search (atom ""))                                      ; for lense output filtering
 
 (defn event?
   "return true if task is event otherwise false"
@@ -15,7 +17,7 @@
   (not= occurrence :eternal))
 
 (defn term-exists?
-  ""
+  "Returns true if concept bag contains term"
   [term]
   (b/exists? @c-bag term))
 
@@ -34,21 +36,7 @@
           (when-let [{c-ref :ref} ((:elements-map @c-bag) term)]
             (cast! c-ref [:task-msg task])
             )))
-      (cast! (:concept-manager @state) [:create-concept-msg task])
-      ))
-  )
-
-(def display (atom '()))
-(def search (atom ""))
-
-(defn initialise
-  "Initialises actor:
-    registers actor and sets actor state"
-  [aname actor-ref]
-  (reset! display '())
-  (register! aname actor-ref)
-  (set-state! {:concept-manager (whereis :concept-manager)
-               :event-buffer    (whereis :event-buffer)}))
+      (cast! (:concept-manager @state) [:create-concept-msg task]))))
 
 (defn msg-handler
   "Identifies message type and selects the correct message handler.
@@ -59,10 +47,21 @@
     :task-msg (task-handler from message)
     (debug aname (str "unhandled msg: " type))))
 
-(def s (reify Server
-         (init [_] (initialise aname @self))
-         (terminate [_ cause] #_(info (str aname " terminated.")))
-         (handle-cast [_ from id message] (msg-handler from message))))
+(defn initialise
+  "Initialises actor:
+    registers actor and sets actor state"
+  [aname actor-ref]
+  (reset! display '())
+  (register! aname actor-ref)
+  ; cache actor references for performance
+  (set-state! {:concept-manager (whereis :concept-manager)
+               :event-buffer    (whereis :event-buffer)}))
 
-(defn task-dispatcher []
-  (gen-server s))
+(defn task-dispatcher
+  "creates gen-server for task-dispatcher. This is used by the system supervisor"
+  []
+  (gen-server
+    (reify Server
+      (init [_] (initialise aname @self))
+      (terminate [_ _])
+      (handle-cast [_ from _ message] (msg-handler from message)))))
