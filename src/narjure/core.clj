@@ -90,9 +90,18 @@
 (def sup (atom '()))
 
 (defn run []
-  ; reset global bags
+
+  (info "Resetting concepts bagss:")
   (reset! c-bag (b/default-bag max-concepts))
+  (info "c-bag count: " (b/count-elements @c-bag))
   (reset! e-bag (b/default-bag max-events))
+  (info "e-bag count: " (b/count-elements @e-bag))
+
+  (info "Reset system Parameters:")
+  (reset! nars-id -1)
+  (info "nars-id: " @nars-id)
+  (reset! nars-time 0)
+  (info "nars-time: " @nars-time)
 
   (setup-logging)
   (info "NARS initialising...")

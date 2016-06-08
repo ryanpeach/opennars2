@@ -62,12 +62,6 @@
   (register! aname actor-ref)                               ;a place where it can be done
   (set-state! {}))
 
-(defn get-super-and-interfaces ""
-  []
-  (apply vector (for [x (:priority-index @c-bag)]
-                  (:id x)))
-  )
-
 (defn clean-up
   "Shutdown all concept actors"
   []

@@ -47,7 +47,8 @@
   (reset! display '())
   (register! aname actor-ref)
   ; cache task-creator reference for performance
-  (set-state! {:task-creator (whereis :task-creator)}))
+  ; (set-state! {:task-creator (whereis :task-creator)})
+  )
 
 (defn operator-executor []
   "creates gen-server for operator-executor. This is used by the system supervisor"

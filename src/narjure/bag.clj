@@ -80,8 +80,7 @@
           (do
             ;remove concept here
             (when (not (= ref nil))
-              (shutdown! ref)
-              (join ref))
+              (shutdown! ref))
             [element' (->DefaultBag priority-index' elements-map' capacity)]))
         [nil bag])))
 

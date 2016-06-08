@@ -83,11 +83,12 @@
     (when (< syntactic-complexity max-term-complexity)
       (let [new-task (create-new-task
                        sentence
-                       syntactic-complexity)]
-        (cast! (:task-dispatcher @state) [:task-msg new-task])
+                       syntactic-complexity)
+            task-dispatcher (whereis :task-dispatcher)]
+        (cast! task-dispatcher [:task-msg new-task])
         (output-task :input new-task)
         (when (event? sentence)
-          (cast! (:task-dispatcher @state) [:task-msg (create-eternal-task new-task)]))))))
+          (cast! task-dispatcher [:task-msg (create-eternal-task new-task)]))))))
 
 (defn derived-sentence-handler
   "processes a :derived-sentence-msg and posts to task-dispatcher"
@@ -96,13 +97,14 @@
        (when (< syntactic-complexity max-term-complexity)
          (let [derived-task (create-derived-task
                               sentence
-                              syntactic-complexity)]
+                              syntactic-complexity)
+               task-dispatcher (whereis :task-dispatcher)]
 
-           (cast! (:task-dispatcher @state) [:task-msg derived-task])
+           (cast! task-dispatcher [:task-msg derived-task])
            ; display task in output window
            (output-task :derived derived-task)
            (when (event? sentence)
-             (cast! (:task-dispatcher @state) [:task-msg (create-eternal-task derived-task)]))))))
+             (cast! task-dispatcher [:task-msg (create-eternal-task derived-task)]))))))
 
 (defn msg-handler
   "Identifies message type and selects the correct message handler.
@@ -124,7 +126,7 @@
   (reset! display '())
   (register! aname actor-ref)
   ; caches task-dispatcher reference for performance
-  (set-state! {:task-dispatcher (whereis :task-dispatcher)})
+  ;(set-state! {:task-dispatcher (whereis :task-dispatcher)})
   ;(cast! (whereis :derived-load-reducer) :register-task-creator-msg [])
   )
 
