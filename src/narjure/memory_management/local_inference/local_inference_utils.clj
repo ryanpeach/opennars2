@@ -46,7 +46,7 @@
 
 (defn better-solution [solution task]
   (let [projected-solution (project-eternalize-to (:occurrence task) solution @nars-time)
-        cur-solution (project-eternalize-to (:occurence task) (:solution task) @nars-time)]
+        cur-solution (project-eternalize-to (:occurrence task) (:solution task) @nars-time)]
     (or (= nil cur-solution)
         (> (confidence projected-solution)
            (confidence cur-solution)))))

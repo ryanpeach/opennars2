@@ -39,7 +39,8 @@
                     (coll? (second st))
                     (= (first (second st)) '*))
       (let [op (nth st 2)]
-        (and (clojure.string/starts-with? (name op) "op_")))
+        (and (not (coll? op))
+             (clojure.string/starts-with? (name op) "op_")))
       false)))
 
 (def decision-threshold 0.5)
