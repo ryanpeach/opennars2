@@ -123,16 +123,18 @@
                            a 20.0
                            id (:id elem)]
                        (when (.contains (str id) (deref concept-filter))
-                         {:name        (str "\n" (narsese-print id) "\n"
-                                            (bag-format
-                                              (limit-string (str (:priority-index (@lense-taskbags id))) 20000))) ;"\n" @lense-termlinks
-                          :px          (+ 2000 (* a ratio (Math/cos ratio)))
-                          :py          (+ 200 (* a ratio (Math/sin ratio)))
-                          :displaysize 1.0
-                          :backcolor   [(- 255 (* (:priority elem) 255.0)) 255 255]
-                          :titlesize   2.0
+                         {:name          (str "\n" (narsese-print id) "\n"
+                                              (bag-format
+                                                (limit-string (str (apply vector
+                                                                          (for [x (:priority-index (@lense-taskbags id))]
+                                                                            (assoc x :id (dissoc (:id x) :terms :desire))))) 20000))) ;"\n" @lense-termlinks
+                          :px            (+ 2000 (* a ratio (Math/cos ratio)))
+                          :py            (+ 200 (* a ratio (Math/sin ratio)))
+                          :displaysize   1.0
+                          :backcolor     [(- 255 (* (:priority elem) 255.0)) 255 255]
+                          :titlesize     2.0
                           :stroke-weight 0.5
-                          :id          id})))
+                          :id            id})))
              edges (for [n nodes
                          [k v] (@lense-termlinks (:id n))]
                      {:from (:id n) :to k :unidirectional true :stroke-weight 0.125})]

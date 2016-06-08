@@ -116,7 +116,7 @@
 
          ))
      ;dummy? belief as "empty" termlink belief selection for structural inference
-     (let [belief {:statement (:id @state) :task-type :question :occurrence @nars-time}]
+     (let [belief {:statement (:id @state) :task-type :question :occurrence @nars-time :evidence '()}]
        (debuglogger search display ["selected belief:" belief "§"])
        (cast! (:general-inferencer @state) [:do-inference-msg [task belief]]))
      )
