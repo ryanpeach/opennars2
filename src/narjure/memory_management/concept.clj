@@ -9,6 +9,7 @@
     [clojure.core.unify :refer [unifier]]
     [narjure.debug-util :refer :all]
     [narjure.control-utils :refer :all]
+    [narjure.defaults :refer [decay-rate]]
     [nal.term_utils :refer [syntactic-complexity]]
     [narjure.memory-management.local-inference.belief-processor :refer [process-belief]]
     [narjure.memory-management.local-inference.goal-processor :refer [process-goal]]
@@ -117,6 +118,28 @@
      )
        (catch Exception e (debuglogger search display (str "belief request error " (.toString e))))))
 
+
+(defn forget-element2 [el last-forgotten]
+  (let [budget (:budget (:id el))
+        ;new-priority (round2 4 (* (:priority el) (second budget)))
+        lambda (/ (- 1.0 (second budget)) decay-rate)
+        fr (Math/exp (* -1.0 (* lambda (- @nars-time last-forgotten))))
+        new-priority (round2 4 (* (:priority el) fr))
+        new-budget  [new-priority (second budget)]]
+    ;(println (str "nars-time: " @nars-time " last-forgotten: " last-forgotten " delta: " (- @nars-time last-forgotten)))
+    ;(println (str "l: " lambda " fr: " fr " old: " (first budget) " new: " new-priority))
+    (assoc el :priority new-priority
+              :id (assoc (:id el) :budget new-budget))))
+
+(defn forget-tasks []
+  (let [tasks (:priority-index (:tasks @state))
+        last-forgotten (:last-forgotten @state)]
+    (set-state! (assoc @state :tasks (b/default-bag max-tasks)))
+    (doseq [x tasks]
+      (let [el (forget-element2 x last-forgotten)]
+        (set-state! (assoc @state :tasks (b/add-element (:tasks @state) el)))))
+    (set-state! (assoc @state :last-forgotten @nars-time))))
+
 (defn update-concept-budget []
   "Update the concept budget"
   (let [concept-state @state
@@ -136,11 +159,10 @@
         task-bag (:tasks concept-state)]
     ; and sending budget update message to concept mgr
     (try
-      (when (> (b/count-elements task-bag) 0)
-        (let [[result1 bag1] (b/get-by-index task-bag (selection-fn task-bag))
-              bag2 (b/add-element bag1 (forget-element result1))]
-          (set-state! (merge concept-state {:tasks bag2}))
+      (when (pos? (b/count-elements task-bag))
+        (let [[result1] (b/lookup-by-index task-bag (selection-fn task-bag))]
           (update-concept-budget)
+          (forget-tasks)
           (debuglogger search display ["selected inference task:" result1])
           ;now search through termlinks, get the endpoint concepts, and form a bag of them
           (let [initbag (b/default-bag 10)
@@ -183,14 +205,15 @@
                :tasks (b/default-bag max-tasks)
                :termlinks {}
                :concept-manager (whereis :concept-manager)
-               :general-inferencer (whereis :general-inferencer)}))
+               :general-inferencer (whereis :general-inferencer)
+               :last-forgotten @nars-time}))
 
 (defn msg-handler
   "Identifies message type and selects the correct message handler.
    if there is no match it generates a log message for the unhandled message "
   [from [type :as message]]
   (debuglogger search display message)
-  (when (> debug-messages 0)
+  (when (pos? debug-messages)
     (swap! lense-taskbags
            (fn [dic]
              (assoc dic (:id @state) (:tasks @state))))

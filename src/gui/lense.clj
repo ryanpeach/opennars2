@@ -20,7 +20,8 @@
             [narjure.memory-management.concept :as concepts]
             [narjure.global-atoms :refer :all]
             [narjure.debug-util :refer :all]
-            [narjure.bag :as b]))
+            [narjure.bag :as b]
+            [narjure.defaults :refer [priority-threshold]]))
 
 (defn bag-format [st]
   (clojure.string/replace st "}" "}\n"))
@@ -121,7 +122,7 @@
                            ratio (* 30.0 (+ 0.10 (/ i (count elems))))
                            a 20.0
                            id (:id elem)]
-                       (when (.contains (str id) (deref concept-filter))
+                       (when (and (.contains (str id) (deref concept-filter)) (> (:priority elem) priority-threshold))
                          {:name          (str "\n" (narsese-print id) "\n"
                                               (bag-format
                                                 (limit-string (str (apply vector

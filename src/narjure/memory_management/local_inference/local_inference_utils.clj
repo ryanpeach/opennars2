@@ -18,15 +18,11 @@
   {:id task :priority (first (:budget task))})
 
 (defn add-to-tasks [state task]
-  ;(info (str "old time: " old-item))
   (set-state! (assoc @state :tasks (b/add-element (:tasks @state) {:id task :priority (first (:budget task))}))))
 
 (defn update-task-in-tasks [state task old-task]
-  ;(info (str "old time: " old-item))
   (let [[element bag] (b/get-by-id (:tasks @state) old-task)]
-    ;(info (str "have element " element))
     (when (not= nil element)
-      ;(info (str "in when"))
       (set-state! (assoc @state :tasks bag))))
   (add-to-tasks state task))
 

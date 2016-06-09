@@ -7,17 +7,17 @@
   [belief-frequency belief-confidence])
 
 (def belief-priority 0.9)
-(def belief-durability 0.3)
+(def belief-durability 0.5)
 ;todo clarify this
-(def belief-quality 0.5)
+(def belief-quality 0.0)
 
 (def belief-budget
   [belief-priority belief-durability belief-quality])
 
 (def question-priority 0.9)
-(def question-durability 0.3)
+(def question-durability 0.5)
 ;todo clarify this
-(def question-quality 0.5)
+(def question-quality 0.0)
 
 (def question-budget
   [belief-priority belief-durability belief-quality])
@@ -37,3 +37,9 @@
 (def temporal-window-duration 10)
 
 (def max-term-complexity 15)
+
+(def priority-threshold 0.001)                              ; concepts and tasks have to be above this to be processed
+(def decay-rate 50)                                        ; forgetting adjustment rate for concepts e^-lt where l = (1.0 - durabiity) / decay-rate
+                                                            ; durability of 0.5 and decay rate of 100 fully decays priority in 1000 cycles
+                                                            ; decay-rate of 10 would fully decay it in 100 cycles
+

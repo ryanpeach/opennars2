@@ -3,6 +3,12 @@
     [narjure.bag :as b]
     [clojure.math.numeric-tower :as math]))
 
+(defn round2
+  "Round a double to the given precision (number of significant digits)"
+  [precision d]
+  (let [factor (Math/pow 10 precision)]
+    (/ (Math/round (* d factor)) factor)))
+
 (def selection-parameter 3)
 (defn selection-fn
   ""

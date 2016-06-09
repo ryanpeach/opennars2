@@ -12,6 +12,10 @@
     ; Returns tuple of element and updated bag. If element with such index
     ; doesn't exist throws IndexOutOfBoundsException.
     [_ index])
+  (lookup-by-index
+    ; Returns element without changing bag. If element with such index
+    ; doesn't exist throws IndexOutOfBoundsException.
+    [_ index])
   (get-by-id
     ; Returns tuple of element and updated bag. If element with such id
     ; doesn't exist returns tuple of nil and bag without any changes.
@@ -63,6 +67,11 @@
           element-map' (dissoc elements-map id)]
       [element' (->DefaultBag priority-index' element-map' capacity)]))
 
+  (lookup-by-index [_ index]
+    (let [{:keys [id] :as element} (nth priority-index index)
+          element' (elements-map id)]
+      [element']))
+
   (get-by-id [bag id]
     (if-let [{:keys [priority] :as element'} (elements-map id)]
       (let [priority-index' (disj priority-index (el id priority))
@@ -77,11 +86,8 @@
               priority-index' (disj priority-index element)
               element' (elements-map id)
               elements-map' (dissoc elements-map id)]
-          (do
-            ;remove concept here
-            (when (not (= ref nil))
-              (shutdown! ref))
-            [element' (->DefaultBag priority-index' elements-map' capacity)]))
+          (when (not= ref nil) (shutdown! ref))             ;shutdown concept actor
+          [element' (->DefaultBag priority-index' elements-map' capacity)])
         [nil bag])))
 
   (update-element [_ {priority' :priority
