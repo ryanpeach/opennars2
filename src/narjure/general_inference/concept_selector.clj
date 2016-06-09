@@ -12,7 +12,7 @@
   (:refer-clojure :exclude [promise await]))
 
 (def aname :concept-selector)
-(def selection-count 5) ;don't set higher if not on a sumpercomputer, will cause trouble
+(def selection-count 10) ;don't set higher if not on a sumpercomputer, will cause trouble
 
 (def display (atom '()))
 (def search (atom ""))
