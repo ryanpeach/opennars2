@@ -11,24 +11,17 @@
     [narjure.control-utils :refer :all])
   (:refer-clojure :exclude [promise await]))
 
-(def aname :event-selector)
+(def aname :event-selector)                                 ; actor name
+(def max-event-selections 10)                               ; number of events to select per cycle
+(def display (atom '()))                                    ; for lense output
+(def search (atom ""))                                      ; for lense output filtering
 
-(def event-pairs 2)
-
-(defn pairs-to-get
-  ""
-  [n, bag]
-  ;if n >= count bag / 2
-  ; get n pairs
-  ;else
-  ;count bag /2 round down
-  )
-
-(def max-event-selections 10)
-(def display (atom '()))
-(def search (atom ""))
-
-(defn get-events [n events bag]
+(defn get-events
+  "recursively selects n events (or bag capaity if less)
+   and returns event collection and updated bag. An even
+   number of events is returned to allow pairs to be sent
+   to general inferencer"
+  [n events bag]
   (if (or (= n 0) (= 0 (b/count-elements bag)))
     (if (odd? (count events))
       [(pop events) bag]
@@ -37,7 +30,10 @@
           events' (conj events event)]
       (get-events (dec n) events' bag'))))
 
-(defn forget-events [events bag]
+(defn forget-events
+  "recursively 'forgets' the events after use and returns
+   them to the event bag. The updated bag is returned"
+  [events bag]
   (if (empty? events)
     bag
     (let [event (peek events)
@@ -45,7 +41,10 @@
           bag' (b/add-element bag (forget-element event))]
       (forget-events events' bag'))))
 
-(defn cast-display-events [[a b]]
+(defn cast-display-events
+  "takes a vector of two events and outputs them to lense
+  then posts them to :general-inferencer"
+  [[a b]]
   (debuglogger search display ["selected events:" a "§" b "§§"])
   (cast! (:general-inferencer @state) [:do-inference-msg [(:id a) (:id b)]]))
 
