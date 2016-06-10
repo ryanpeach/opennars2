@@ -157,11 +157,12 @@
   ""
   [from message]
   (let [concept-state @state
-        task-bag (:tasks concept-state)]
+        task-bag (:tasks concept-state)
+        concept-priority (first (:budget @state))]
     ; and sending budget update message to concept mgr
     (try
       (when (pos? (b/count-elements task-bag))
-        (let [[result1] (b/lookup-by-index task-bag (selection-fn task-bag))]
+        (let [[result1] (b/lookup-by-index task-bag (selection-fn2 task-bag (:priority (:budget @state))))]
           (update-concept-budget)
           (forget-tasks)
           (debuglogger search display ["selected inference task:" result1])

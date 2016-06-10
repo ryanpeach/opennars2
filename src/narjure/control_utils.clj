@@ -9,13 +9,26 @@
   (let [factor (Math/pow 10 precision)]
     (/ (Math/round (* d factor)) factor)))
 
-(def selection-parameter 3)
+(def concept-selection-parameter 3)
+(def task-selection-parameter 2)
+
 (defn selection-fn
   ""
   [bag]
-  (* (math/expt (rand) selection-parameter) (b/count-elements bag)))
+  (let [count (b/count-elements bag)
+        i (- (Math/ceil (* (math/expt (rand) concept-selection-parameter) count)) 1)]
+    ;(println (str "i: " i " count: " count))
+    i))
 
-(defn forget-element [el]                                   ;TODO put in control-utils
+(defn selection-fn2
+  ""
+  [bag concept-priority]
+  (let [count (b/count-elements bag)
+        selection-parameter' (+ 1.0 (* concept-priority task-selection-parameter))
+        i (- (Math/ceil (* (math/expt (rand) selection-parameter') count)) 1)]
+    i))
+
+(defn forget-element [el]
   (let [budget (:budget (:id el))
         new-priority (* (:priority el) (second budget))
         new-budget  [new-priority (second budget)]]

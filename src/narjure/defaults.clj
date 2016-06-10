@@ -39,7 +39,7 @@
 (def max-term-complexity 15)
 
 (def priority-threshold 0.001)                              ; concepts and tasks have to be above this to be processed
-(def decay-rate 50)                                        ; forgetting adjustment rate for concepts e^-lt where l = (1.0 - durabiity) / decay-rate
+(def decay-rate 10)                                        ; forgetting adjustment rate for concepts e^-lt where l = (1.0 - durabiity) / decay-rate
                                                             ; durability of 0.5 and decay rate of 100 fully decays priority in 1000 cycles
                                                             ; decay-rate of 10 would fully decay it in 100 cycles
 

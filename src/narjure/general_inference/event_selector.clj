@@ -24,23 +24,41 @@
   ;count bag /2 round down
   )
 
+(def max-event-selections 10)
 (def display (atom '()))
 (def search (atom ""))
+
+(defn get-events [n events bag]
+  (if (or (= n 0) (= 0 (b/count-elements bag)))
+    (if (odd? (count events))
+      [(pop events) bag]
+      [events bag])
+    (let [[event bag'] (b/get-by-index bag (selection-fn bag))
+          events' (conj events event)]
+      (get-events (dec n) events' bag'))))
+
+(defn forget-events [events bag]
+  (if (empty? events)
+    bag
+    (let [event (peek events)
+          events' (pop events)
+          bag' (b/add-element bag (forget-element event))]
+      (forget-events events' bag'))))
+
+(defn cast-display-events [[a b]]
+  (debuglogger search display ["selected events:" a "§" b "§§"])
+  (cast! (:general-inferencer @state) [:do-inference-msg [(:id a) (:id b)]]))
 
 (defn inference-tick-handler
   "Select n pairs of events events from event buffer for inference
    and post do-inference-msg to general inferencer"
-  [from [msg]]
-  ;todo
+  [_ [_]]
   (try
     (when (> (b/count-elements @e-bag) 1)
-     (let [[result1 bag1] (b/get-by-index @e-bag ((partial selection-fn @e-bag)))
-           [result2 bag2] (b/get-by-index bag1 ((partial selection-fn bag1)))
-           bag3 (b/add-element bag2 (forget-element result1))
-           bag4 (b/add-element bag3 (forget-element result2))]
-       (reset! e-bag bag4)
-       (debuglogger search display ["selected events:" result1 "§" result2 "§§"])
-       (cast! (:general-inferencer @state) [:do-inference-msg [(:id result1) (:id result2)]])))
+      (let [[events bag] (get-events max-event-selections [] @e-bag)]
+        (reset! e-bag (forget-events events bag))
+        (doseq [event-pair (partition 2 events)]
+          (cast-display-events (vec event-pair)))))
     (catch Exception e (debuglogger search display (str "event select error " (.toString e))))))
 
 (defn initialise
