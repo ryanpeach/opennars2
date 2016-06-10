@@ -11,7 +11,7 @@
   (nars-input-narsese (str "<(*,{SELF}) --> op_up>!" ))
   (nars-input-narsese (str "<(*,{SELF}) --> op_down>!" ))
   (nars-input-narsese "<{SELF} --> [good]>!")
-  (q/frame-rate 10)
+  (q/frame-rate 30)
   (nars-register-operation 'op_up (fn [args]
                                     (reset! py (+ @py 100))))
   (nars-register-operation 'op_down (fn [args]

@@ -20,6 +20,9 @@
 (defn add-to-tasks [state task]
   (set-state! (assoc @state :tasks (b/add-element (:tasks @state) {:id task :priority (first (:budget task))}))))
 
+(defn add-to-anticipations [state task]
+  (set-state! (assoc @state :anticipations (b/add-element (:anticipations @state) {:id task :priority (first (:budget task))}))))
+
 (defn update-task-in-tasks [state task old-task]
   (let [[element bag] (b/get-by-id (:tasks @state) old-task)]
     (when (not= nil element)
@@ -102,3 +105,6 @@
 
 (defn get-tasks [state]
   (vec (for [x (:priority-index (:tasks @state))] (:id x))))
+
+(defn get-anticipations [state]
+  (vec (for [x (:priority-index (:anticipations @state))] (:id x))))

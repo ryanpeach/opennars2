@@ -20,6 +20,7 @@
   (:refer-clojure :exclude [promise await]))
 
 (def max-tasks 10)
+(def max-anticipations 5)
 (def display (atom '()))
 (def search (atom ""))
 
@@ -204,6 +205,7 @@
                :budget {:priority 0 :quality 0}
                :tasks (b/default-bag max-tasks)
                :termlinks {}
+               :anticipations (b/default-bag max-anticipations)
                :concept-manager (whereis :concept-manager)
                :general-inferencer (whereis :general-inferencer)
                :last-forgotten @nars-time}))
