@@ -20,7 +20,7 @@
    the concept bag"
   [term]
   (let [concept-ref (spawn (c/concept term))]
-    (swap! c-bag b/add-element {:id term :priority c-priority :ref concept-ref})
+    (swap! c-bag b/add-element {:id term :priority c-priority :quality 0.0 :ref concept-ref})
     ;(info (str "concept count: " (b/count-elements @c-bag)))
     ))
 

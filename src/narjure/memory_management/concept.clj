@@ -125,6 +125,8 @@
      )
        (catch Exception e (debuglogger search display (str "belief request error " (.toString e))))))
 
+(defn concept-quality []
+  (:quality ((:elements-map @c-bag) (:id @state))))
 
 (defn forget-task [el last-forgotten]
   (let [budget (:budget (:id el))
@@ -132,7 +134,7 @@
         lambda (/ (- 1.0 (second budget)) decay-rate)
         fr (Math/exp (* -1.0 (* lambda (- @nars-time last-forgotten))))
         new-priority (Math/max (round2 4 (* (:priority el) fr))
-                          (/ (:quality @state) (+ 1.0 (count (:priority-index (:tasks @state)))))) ;dont fall below 1/N*quality
+                          (/ (concept-quality) (+ 1.0 (count (:priority-index (:tasks @state)))))) ;dont fall below 1/N*quality
         new-budget  [new-priority (second budget)]]
     ;(println (str "nars-time: " @nars-time " last-forgotten: " last-forgotten " delta: " (- @nars-time last-forgotten)))
     ;(println (str "l: " lambda " fr: " fr " old: " (first budget) " new: " new-priority))
@@ -154,14 +156,11 @@
         budget (:budget concept-state)
         tasks (:priority-index (:tasks concept-state))
         priority-sum (reduce t-or (for [x tasks] (:priority x)))
-        state-update (assoc concept-state :budget (assoc budget :priority priority-sum))
         quality-rescale 0.1]
-    (set-state! (merge concept-state state-update))
-    (println (:quality concept-state))
     ;update c-bag directly instead of message passing
     (swap! c-bag b/add-element {:id (:id @state)
                                 :priority priority-sum
-                                :quality (Math/max (:quality @state) (* quality-rescale priority-sum))
+                                :quality (Math/max (concept-quality) (* quality-rescale priority-sum))
                                 :ref @self}))
   )
 
