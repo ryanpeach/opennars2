@@ -169,8 +169,8 @@
     (try
       (when (pos? (b/count-elements task-bag))
         (let [[result1] (b/lookup-by-index task-bag (selection-fn task-bag))]
-          (update-concept-budget)
           (forget-tasks)
+          (update-concept-budget)
           (debuglogger search display ["selected inference task:" result1])
           ;now search through termlinks, get the endpoint concepts, and form a bag of them
           (let [initbag (b/default-bag 10)
