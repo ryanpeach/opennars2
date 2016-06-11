@@ -9,10 +9,18 @@
   (let [factor (Math/pow 10 precision)]
     (/ (Math/round (* d factor)) factor)))
 
-(def concept-selection-parameter 3)
-(def task-selection-parameter 2)
+(def concept-selection-parameter 2)
+(def task-selection-parameter 1)
 
 (defn selection-fn
+  ""
+  [bag]
+  (let [count (b/count-elements bag)
+        i (Math/abs (- (* (+ (rand) (rand)) count) count))]
+    ;(println (str "i: " i " count: " count))
+    i))
+
+(defn selection-fn-old
   ""
   [bag]
   (let [count (b/count-elements bag)
