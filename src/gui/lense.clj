@@ -86,26 +86,26 @@
                             (:name n)
                             (:id n)))]
     (doseq [c edges]
-     (when (and (some #(= (:from c) (prefer-id %)) nodes)
-                (some #(= (:to c) (prefer-id %)) nodes))
-       (let [left (first (filter #(= (:from c) (prefer-id %)) nodes))
-             right (first (filter #(= (:to c) (prefer-id %)) nodes))
-             middle {:px (/ (+ (:px left) (:px right)) 2.0)
-                     :py (/ (+ (:py left) (:py right)) 2.0)}
-             pxtransform (fn [x] (+ (:px x) (/ node-width 2.0)))
-             pytransform (fn [y] (+ (:py y) (/ node-height 2.0)))
-             target (if (not= true (:unidirectional c))
-                      right middle)
-             weight (if (not= nil (:stroke-weight c))
-                      (:stroke-weight c)
-                      0.5)]
-         (q/stroke-weight (* weight 2.0))
-         (q/line (pxtransform left) (pytransform left)
-                 (pxtransform target) (pytransform target))
-         (when (:unidirectional c)
-           (q/stroke-weight weight)
-           (q/line (pxtransform right) (pytransform right)
-                   (pxtransform middle) (pytransform middle)))))))
+      (when (and (some #(= (:from c) (prefer-id %)) nodes)
+                 (some #(= (:to c) (prefer-id %)) nodes))
+        (let [left (first (filter #(= (:from c) (prefer-id %)) nodes))
+              right (first (filter #(= (:to c) (prefer-id %)) nodes))
+              middle {:px (/ (+ (:px left) (:px right)) 2.0)
+                      :py (/ (+ (:py left) (:py right)) 2.0)}
+              pxtransform (fn [x] (+ (:px x) (/ node-width 2.0)))
+              pytransform (fn [y] (+ (:py y) (/ node-height 2.0)))
+              target (if (not= true (:unidirectional c))
+                       right middle)
+              weight (if (not= nil (:stroke-weight c))
+                       (:stroke-weight c)
+                       0.5)]
+          (q/stroke-weight (* weight 2.0))
+          (q/line (pxtransform left) (pytransform left)
+                  (pxtransform target) (pytransform target))
+          (when (:unidirectional c)
+            (q/stroke-weight weight)
+            (q/line (pxtransform right) (pytransform right)
+                    (pxtransform middle) (pytransform middle)))))))
   (doseq [a nodes]
     (draw-actor a node-width node-height)))
 
@@ -121,9 +121,11 @@
                      (let [elem (elems i)
                            ratio (* 30.0 (+ 0.10 (/ i (count elems))))
                            a 20.0
-                           id (:id elem)]
-                       (when (and (.contains (str id) (deref concept-filter)) (> (:priority elem) priority-threshold))
-                         {:name          (str "\n" (narsese-print id) "\n"
+                           id (:id elem)
+                           priority (:priority elem)
+                           quality (:quality ((:elements-map (deref c-bag)) id))]
+                       (when (and (.contains (str id) (deref concept-filter)) (> priority priority-threshold))
+                         {:name          (str "\n" (narsese-print id) "\npriority: " priority " " "quality: " quality "\n"
                                               (bag-format
                                                 (limit-string (str (apply vector
                                                                           (for [x (:priority-index (@lense-taskbags id))]
@@ -131,14 +133,14 @@
                           :px            (+ 2000 (* a ratio (Math/cos ratio)))
                           :py            (+ 200 (* a ratio (Math/sin ratio)))
                           :displaysize   1.0
-                          :backcolor     [(- 255 (* (:priority elem) 255.0)) 255 255]
+                          :backcolor     [(- 255 (* priority 255.0)) 255 255]
                           :titlesize     2.0
                           :stroke-weight 0.5
                           :id            id})))
              edges (for [n nodes
                          [k v] (@lense-termlinks (:id n))]
                      {:from (:id n) :to k :unidirectional true :stroke-weight 0.125})]
-     (draw-graph [(filter #(not= % nil) nodes) edges 10 10]))
+         (draw-graph [(filter #(not= % nil) nodes) edges 10 10]))
        (catch Exception e (println e)))
   )
 

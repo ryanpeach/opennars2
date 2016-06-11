@@ -47,13 +47,6 @@
   (info (str "in load-state-handler"))
   )
 
-(defn budget-update-handler
-  "all we have to do is re-adding the new item"
-  [from [_ item]]                                            ;use add-element and not update here for the case that
-  (try
-    (swap! c-bag b/add-element item)
-       (catch Exception e (debuglogger search display (str "budget update error " (.toString e))))))   ;it doesnt exist anymore
-
 (defn initialise
   "Initialises actor: registers actor and sets actor state"
   [aname actor-ref]
@@ -77,7 +70,6 @@
     :create-concept-msg (create-concept-handler from message)
     :persist-state-msg (persist-state-handler from message)
     :load-state-msg (load-state-handler from message)
-    :budget-update-msg (budget-update-handler from message)
     (debug aname (str "unhandled msg: " type))))
 
 (defn initialise

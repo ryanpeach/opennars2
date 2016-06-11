@@ -48,7 +48,6 @@
   (add-element [bag {:keys [id priority] :as element}]
     (let [cnt (count priority-index)]
       (if (exists? bag id)
-        ;todo returned bag from update-element not used ????
         (update-element bag element)
         (if (>= cnt capacity)
           (if (<= (:priority (nth priority-index (dec cnt)));if same priority, still prefer the new one.

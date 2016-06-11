@@ -126,12 +126,13 @@
        (catch Exception e (debuglogger search display (str "belief request error " (.toString e))))))
 
 
-(defn forget-element2 [el last-forgotten]
+(defn forget-task [el last-forgotten]
   (let [budget (:budget (:id el))
         ;new-priority (round2 4 (* (:priority el) (second budget)))
         lambda (/ (- 1.0 (second budget)) decay-rate)
         fr (Math/exp (* -1.0 (* lambda (- @nars-time last-forgotten))))
-        new-priority (round2 4 (* (:priority el) fr))
+        new-priority (Math/max (round2 4 (* (:priority el) fr))
+                          (/ (:quality @state) (+ 1.0 (count (:priority-index (:tasks @state)))))) ;dont fall below 1/N*quality
         new-budget  [new-priority (second budget)]]
     ;(println (str "nars-time: " @nars-time " last-forgotten: " last-forgotten " delta: " (- @nars-time last-forgotten)))
     ;(println (str "l: " lambda " fr: " fr " old: " (first budget) " new: " new-priority))
@@ -143,7 +144,7 @@
         last-forgotten (:last-forgotten @state)]
     (set-state! (assoc @state :tasks (b/default-bag max-tasks)))
     (doseq [x tasks]
-      (let [el (forget-element2 x last-forgotten)]
+      (let [el (forget-task x last-forgotten)]
         (set-state! (assoc @state :tasks (b/add-element (:tasks @state) el)))))
     (set-state! (assoc @state :last-forgotten @nars-time))))
 
@@ -153,10 +154,15 @@
         budget (:budget concept-state)
         tasks (:priority-index (:tasks concept-state))
         priority-sum (reduce t-or (for [x tasks] (:priority x)))
-        state-update (assoc concept-state :budget (assoc budget :priority priority-sum))]
+        state-update (assoc concept-state :budget (assoc budget :priority priority-sum))
+        quality-rescale 0.1]
     (set-state! (merge concept-state state-update))
+    (println (:quality concept-state))
     ;update c-bag directly instead of message passing
-    (swap! c-bag b/add-element {:id (:id @state) :priority priority-sum :ref @self}))
+    (swap! c-bag b/add-element {:id (:id @state)
+                                :priority priority-sum
+                                :quality (Math/max (:quality @state) (* quality-rescale priority-sum))
+                                :ref @self}))
   )
 
 (defn inference-request-handler
@@ -209,7 +215,7 @@
   "Initialises actor: registers actor and sets actor state"
   [name]
   (set-state! {:id name
-               :budget {:priority 0 :quality 0}
+               :quality 0.0
                :tasks (b/default-bag max-tasks)
                :termlinks {}
                :anticipations (b/default-bag max-anticipations)
