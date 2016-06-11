@@ -15,11 +15,11 @@
          (q/height))
        (catch Exception e init-size)))
 
-(defn mouse-to-world-coord-x [x zoom difx]
-  (* (/ 1.0 zoom) (+ x (- difx) (- (/ (width) 2.0)))))
+(defn mouse-to-world-coord-x [state x]
+  (* (/ 1.0 (:zoom state)) (+ x (- (:difx state)) (- (/ (width) 2.0)))))
 
-(defn mouse-to-world-coord-y [y zoom dify]
-  (* (/ 1.0 zoom) (+ y (- dify) (- (/ (height) 2.0)))))
+(defn mouse-to-world-coord-y [state y]
+  (* (/ 1.0 (:zoom state)) (+ y (- (:dify state)) (- (/ (height) 2.0)))))
 
 (defn transform [{:keys [difx dify zoom]}]
   (q/translate (+ difx (* 0.5 (width)))
@@ -32,8 +32,8 @@
     (doseq [v V]
       (let [px (:px v)
             py (:py v)
-            mousex (mouse-to-world-coord-x (:x event) (:zoom state) (:difx state))
-            mousey (mouse-to-world-coord-y (:y event) (:zoom state) (:dify state))]
+            mousex (mouse-to-world-coord-x state (:x event))
+            mousey (mouse-to-world-coord-y state (:y event))]
         (when (and (> mousex px) (> mousey py)
                    (< mousex (+ px w)) (< mousey (+ py h)))
           (when (not (= (:onclick v) nil))

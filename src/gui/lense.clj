@@ -82,33 +82,51 @@
                                          ((first (debugmessage name)))) #"§" "\n")
             (+ px 5) (+ py 20))))
 
-(defn draw-graph [[nodes edges node-width node-height]]
+(defn in-picture [state p]
+  (if (and (> (:px p) (hnav/mouse-to-world-coord-x state 0))
+           (< (:px p) (hnav/mouse-to-world-coord-x state (hnav/width)))
+           (> (:py p) (hnav/mouse-to-world-coord-y state 0))
+           (< (:py p) (hnav/mouse-to-world-coord-y state (hnav/height))))
+    true
+    false))
+
+(defn draw-graph [state [nodes edges node-width node-height]]
   (let [prefer-id (fn [n] (if (= nil (:id n))
                             (:name n)
                             (:id n)))]
     (doseq [c edges]
       (when (and (some #(= (:from c) (prefer-id %)) nodes)
                  (some #(= (:to c) (prefer-id %)) nodes))
-        (let [left (first (filter #(= (:from c) (prefer-id %)) nodes))
+        (let [pxtransform (fn [x] (+ (:px x) (/ node-width 2.0)))
+              pytransform (fn [y] (+ (:py y) (/ node-height 2.0)))
+              left (first (filter #(= (:from c) (prefer-id %)) nodes))
               right (first (filter #(= (:to c) (prefer-id %)) nodes))
               middle {:px (/ (+ (:px left) (:px right)) 2.0)
                       :py (/ (+ (:py left) (:py right)) 2.0)}
-              pxtransform (fn [x] (+ (:px x) (/ node-width 2.0)))
-              pytransform (fn [y] (+ (:py y) (/ node-height 2.0)))
               target (if (not= true (:unidirectional c))
                        right middle)
               weight (if (not= nil (:stroke-weight c))
                        (:stroke-weight c)
-                       0.5)]
-          (q/stroke-weight (* weight 2.0))
-          (q/line (pxtransform left) (pytransform left)
-                  (pxtransform target) (pytransform target))
-          (when (:unidirectional c)
-            (q/stroke-weight weight)
-            (q/line (pxtransform right) (pytransform right)
-                    (pxtransform middle) (pytransform middle)))))))
+                       0.5)
+              left-x (pxtransform left) left-y (pytransform left)
+              right-x (pxtransform right) right-y (pytransform right)
+              target-x (pxtransform target) target-y (pytransform target)
+              middle-x (pxtransform middle) middle-y (pytransform middle)
+              pointf (fn [a b] {:px a :py b})]
+          (when (or (in-picture state (pointf left-x left-y))
+                    (in-picture state (pointf right-x right-y)))
+            (q/stroke-weight (* weight 2.0))
+            (q/line left-x left-y
+                    target-x target-y)
+            (when (:unidirectional c)
+              (q/stroke-weight weight)
+              (q/line right-x right-y
+                      middle-x middle-y)
+              ))))))
   (doseq [a nodes]
-    (draw-actor a node-width node-height)))
+    (when (in-picture state (assoc a :px (+ (:px a) (/ node-width 2.0))
+                                     :py (+ (:py a) (/ node-height 2.0))))
+      (draw-actor a node-width node-height))))
 
 (def selected-concept (atom []))
 (defn draw [state]
@@ -116,7 +134,7 @@
   (q/reset-matrix)
   (hnav/transform state)
   (doseq [g @graphs]
-    (draw-graph g))
+    (draw-graph state g))
   ;concept graph
   (try (let [elems (apply vector (:priority-index (deref c-bag)))
              nodes (for [i (range (count elems))]
@@ -145,7 +163,7 @@
                                            (reset! selected-concept id))})))
              edges (for [n nodes
                          [k v] (@lense-termlinks (:id n))]
-                     {:from (:id n) :to k :unidirectional true :stroke-weight 0.125})
+                     {:from (:id n) :to k :unidirectional true :stroke-weight 0.1})
              concept-graph [(filter #(not= % nil) nodes) edges 10 10]]
          (reset! graphs (concat static-graphs [concept-graph])))
        (catch Exception e (println e)))
