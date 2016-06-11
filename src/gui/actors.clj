@@ -11,8 +11,8 @@
 (def gui-color [240 240 255])
 
 (def nodes [{:name :concept-manager :px 75 :py 0 :backcolor concept-color}
-            {:name :concepts :px -100 :py 300 :backcolor concept-color}
-            {:name :task-dispatcher :px 300 :py 0 :backcolor task-color}
+            {:name :concepts :px -100 :py 150 :backcolor concept-color}
+            {:name :task-dispatcher :px 600 :py 0 :backcolor task-color}
             {:name :input :px 400 :py -400 :displaysize 10.0 :backcolor gui-color} ;-600
             {:name :sentence-parser :px 400 :py -300 :backcolor util-color}       ;-500
             {:name :task-creator :px 400 :py -150 :backcolor util-color}
@@ -23,8 +23,8 @@
             {:name :derived-load-reducer :px 400 :py 150 :backcolor util-color}
             {:name :event-selector :px 600 :py 150 :backcolor task-color}
             {:name :event-bag :px 775 :py 150 :backcolor task-color}
-            {:name :concept-selector :px -100 :py 450 :backcolor concept-color}
-            {:name :concept-bag :px 75 :py 450 :backcolor concept-color}
+            {:name :concept-selector :px -100 :py 300 :backcolor concept-color}
+            {:name :concept-bag :px 75 :py 300 :backcolor concept-color}
             {:name :output :px 600 :py -400 :backcolor gui-color}])
 
 (def vertices [{:from :concept-manager :to :task-dispatcher :unidirectional false}
