@@ -57,7 +57,8 @@
                    :derived-load-reducer [(fn [] (deref derived-load-reducer/display)) derived-load-reducer/search]
                    ;:input-load-reducer   [(fn [] (deref input-load-reducer/display)) input-load-reducer/search]
                    :input                [(fn [] "") inputstr]
-                   :output               [(fn [] (deref output-display)) output-search]})
+                   :output               [(fn [] (deref output-display)) output-search]
+                   :+prioThres [(fn [] (deref prio-threshold))]})
 
 (def static-graphs [graph-actors graph-gui])
 (def graphs (atom static-graphs))
@@ -81,11 +82,7 @@
   (q/text (nameof name) (+ px 5) (+ py (if (= nil titlesize) 10.0 titlesize)))
   (q/text-size (if (= displaysize nil) 2.0 displaysize))
   (when (contains? debugmessage name)
-    (q/text (clojure.string/replace (str (if (> (count (debugmessage name)) 1)
-                                           (if (not= "" (deref (second (debugmessage name))))
-                                             (str (deref (second (debugmessage name))) "\n"))
-                                           "")
-                                         ((first (debugmessage name)))) #"§" "\n")
+    (q/text (hnav/display-string debugmessage name)
             (+ px 5) (+ py 20))))
 
 (defn in-picture [state p]
@@ -151,7 +148,9 @@
                            id (:id elem)
                            priority (:priority elem)
                            quality (:quality ((:elements-map (deref c-bag)) id))]
-                       (when (and (.contains (str id) (deref concept-filter)) (> priority priority-threshold))
+                       (when (and (.contains (str id) (deref concept-filter))
+                                  (> priority priority-threshold)
+                                  (> priority @prio-threshold))
                          {:name          (str "\n" (narsese-print id) "\npriority: " priority " " "quality: " quality "\n"
                                               (if (= id @selected-concept)
                                                 (bag-format
