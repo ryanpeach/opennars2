@@ -66,11 +66,17 @@
   [from [_ oldtask newtask]]
   (try
     (let [concept-state @state
-          [_ bag2] (b/get-by-id (:tasks @state) {:id oldtask :priority (first (:budget oldtask))})
-          bag3 (b/add-element bag2 newtask)]
-    (set-state! (merge concept-state {:tasks bag3})))
-    (catch Exception e (debuglogger search display (str "solution update error " (.toString e)))))
-  )
+          element (first (filter (fn [a] (let [it (:id a)]
+                                           (and (= (:statement it) (:statement oldtask))
+                                                (= (:occurrence it) (:occurrence oldtask))
+                                                (= (:task-type it) (:task-type oldtask))
+                                                (= (:solution it) (:solution oldtask)))))
+                                 (:priority-index (:tasks @state))))]
+      (when (not= nil element)
+        (let [[_ bag2] (b/get-by-id (:tasks @state) element)
+              bag3 (b/add-element bag2 newtask)]
+          (set-state! (merge concept-state {:tasks bag3})))))
+    (catch Exception e (debuglogger search display (str "solution update error " (.toString e))))))
 
 (defn belief-request-handler
   ""
