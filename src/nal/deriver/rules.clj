@@ -54,13 +54,13 @@
 
 (defn question?
   "Return true if rule allows only question as task."
-  [{:keys [pre]}]
-  true)                                                     ;all rules can be used for question generation
+  [{:keys [pre] [{post :post}] :conclusions}]
+  (some #{:question?} pre))                                ;all rules that allow backward can be used for question generation
 
 (defn quest?
   "Return true if rule allows only quest as task."
   [{:keys [pre] [{post :post}] :conclusions}]
-  true)                                                     ;all rules can be used for quests and goals
+  (some #{:question?} pre))                                ;all rules that allow backward can be used for quests and goals
 
 (defn goal?
   "Return true if rule allows only goal as task."

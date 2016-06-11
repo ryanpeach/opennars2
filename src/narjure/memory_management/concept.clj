@@ -71,9 +71,9 @@
                                                 (= (:occurrence it) (:occurrence oldtask))
                                                 (= (:task-type it) (:task-type oldtask))
                                                 (= (:solution it) (:solution oldtask)))))
-                                 (:priority-index (:tasks @state))))]
+                                 (:priority-index (:tasks concept-state))))]
       (when (not= nil element)
-        (let [[_ bag2] (b/get-by-id (:tasks @state) element)
+        (let [[_ bag2] (b/get-by-id (:tasks concept-state) element)
               bag3 (b/add-element bag2 newtask)]
           (set-state! (merge concept-state {:tasks bag3})))))
     (catch Exception e (debuglogger search display (str "solution update error " (.toString e))))))
