@@ -118,6 +118,16 @@
               pointf (fn [a b] {:px a :py b})]
           (when (or (in-picture state (pointf left-x left-y))
                     (in-picture state (pointf right-x right-y)))
+
+            (let [eval-color (if (= nil (:link-color c) )
+                               (invert-color [0 0 0])
+                               (invert-color (:link-color c)))
+                  col eval-color
+                  r (first col)
+                  g (second col)
+                  b (nth col 2)]
+              (q/stroke r g b))
+
             (q/stroke-weight (* weight 2.0))
             (q/line left-x left-y
                     target-x target-y)
@@ -168,8 +178,11 @@
                           :onclick       (fn [state]
                                            (reset! selected-concept id))})))
              edges (for [n nodes
-                         [k v] (@lense-termlinks (:id n))]
-                     {:from (:id n) :to k :unidirectional true :stroke-weight 0.1})
+                         [k [freq conf]] (@lense-termlinks (:id n))]
+                     (let [disttomiddle (Math/abs (- 0.5 freq))
+                           rterm (if (>= freq 0.5) (* 510.0 disttomiddle) 0.0)
+                           bterm (if (< freq 0.5) (* 510.0 disttomiddle) 0.0)]
+                       {:from (:id n) :to k :unidirectional true :stroke-weight (* 0.5 conf) :link-color [(- 255.0 rterm) (- 255.0 0) (- 255.0 bterm)]}))
              concept-graph [(filter #(not= % nil) nodes) edges 10 10]]
          (reset! graphs (concat static-graphs [concept-graph])))
        (catch Exception e (println e)))

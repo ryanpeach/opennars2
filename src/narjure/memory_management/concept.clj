@@ -15,7 +15,7 @@
     [narjure.memory-management.local-inference.goal-processor :refer [process-goal]]
     [narjure.memory-management.local-inference.quest-processor :refer [process-quest]]
     [narjure.memory-management.local-inference.question-processor :refer [process-question]]
-    [nal.deriver.truth :refer [t-or confidence frequency expectation]]
+    [nal.deriver.truth :refer [t-or t-and confidence frequency expectation revision]]
     [nal.deriver.projection-eternalization :refer [project-eternalize-to]])
   (:refer-clojure :exclude [promise await]))
 
@@ -39,7 +39,7 @@
           task-bag (:tasks concept-state)
           newbag (b/add-element task-bag {:id task :priority (first (:budget task))})]
       (let [newtermlinks (merge (apply merge (for [tl (:terms task)] ;prefer existing termlinks strengths
-                                               {tl [0.5 0.5]})) (:termlinks concept-state))]
+                                               {tl [1.0 0.01]})) (:termlinks concept-state))]
         (set-state! (merge concept-state {;:tasks     newbag
                                           :termlinks (select-keys newtermlinks
                                                                   (filter #(b/exists? @c-bag %) (keys newtermlinks))) ;only these keys which exist in concept bag
@@ -78,9 +78,17 @@
           (set-state! (merge concept-state {:tasks bag3})))))
     (catch Exception e (debuglogger search display (str "solution update error " (.toString e))))))
 
-; (defn update_termlink []
-; (let [prio_me (:priority @state)
-; prio_other]))
+(defn update-termlink [tl]                                  ;term
+ (let [
+       prio-me (:priority ((:elements-map @c-bag) (:id @state)))
+       old-truth ((:termlinks @state) tl)
+       prio-other (:priority ((:elements-map @c-bag) tl))
+       association (t-and prio-me prio-other)
+       disassocation (t-and prio-me (- 1.0 prio-other))
+       associative (max 0 (- association disassocation))
+       newstrength (revision old-truth [associative 0.01])]
+   (set-state! (assoc @state :termlinks (assoc (:termlinks @state)
+                                               tl newstrength)))))
 
 (defn belief-request-handler
   ""
@@ -94,6 +102,9 @@
            ;(println projected-beliefs)
            (let [belief (apply max-key confidence projected-beliefs)]
              (debuglogger search display ["selected belief:" belief "§"])
+             (try
+               #_(update-termlink (:statement task))          ;task concept here
+               (catch Exception e (debuglogger search display (str "belief side termlink strength error " (.toString e)))))
              (cast! (:general-inferencer @state) [:do-inference-msg [task belief]])
 
              (try
@@ -157,9 +168,8 @@
 (defn update-concept-budget []
   "Update the concept budget"
   (let [concept-state @state
-        budget (:budget concept-state)
         tasks (:priority-index (:tasks concept-state))
-        priority-sum (reduce + (for [x tasks] (:priority x)))
+        priority-sum (reduce t-or (for [x tasks] (:priority x)))
         quality-rescale 0.1]
     ;update c-bag directly instead of message passing
     (swap! c-bag b/add-element {:id       (:id @state)
@@ -190,6 +200,9 @@
                 [beliefconcept bag1] (b/get-by-index resbag (selection-fn resbag))]
             ;and create a belief request message
             (when-let [{c-ref :ref} ((:elements-map @c-bag) (:id beliefconcept))]
+              (try
+                (update-termlink (:id beliefconcept))          ;belief concept here
+                (catch Exception e (debuglogger search display (str "task side termlink strength error " (.toString e)))))
               (cast! c-ref [:belief-request-msg (:id result1)])
               ))))
       (catch Exception e (debuglogger search display (str "inference request error " (.toString e)))))
