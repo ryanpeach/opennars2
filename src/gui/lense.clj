@@ -154,7 +154,7 @@
              nodes (for [i (range (count elems))]
                      (let [elem (elems i)
                            ratio (* 30.0 (+ 0.10 (/ i (count elems))))
-                           a 20.0
+                           a 50.0
                            id (:id elem)
                            priority (:priority elem)
                            quality (:quality ((:elements-map (deref c-bag)) id))]
@@ -168,7 +168,7 @@
                                                                            (for [x (:priority-index (@lense-taskbags id))]
                                                                              (assoc x :id (dissoc (:id x) :terms :desire))))) 20000))
                                                 "")) ;"\n" @lense-termlinks
-                          :px            (+ 2000 (* a ratio (Math/cos ratio)))
+                          :px            (+ 3000 (* a ratio (Math/cos ratio)))
                           :py            (+ 200 (* a ratio (Math/sin ratio)))
                           :displaysize   1.0
                           :backcolor     [(- 255 (* priority 255.0)) 255 255]
