@@ -23,6 +23,12 @@
             [narjure.bag :as b]
             [narjure.defaults :refer [priority-threshold]]))
 
+(defn invert-color
+  [[colr colg colb]]
+   (if (= (deref invert-colors) true)
+     [(- 255 colr) (- 255 colg) (- 255 colb)]
+     [colr colg colb]))
+
 (defn bag-format [st]
   (clojure.string/replace st "}" "}\n"))
 
@@ -68,9 +74,9 @@
 
 (defn draw-actor [{:keys [name px py backcolor frontcolor displaysize titlesize stroke-weight]} node-width node-height]
   (q/stroke-weight (if (= nil stroke-weight) 1.0 stroke-weight))
-  (apply q/fill (if (= backcolor nil) [255 255 255] backcolor))
+  (apply q/fill (invert-color (if (= backcolor nil) [255 255 255] backcolor)))
   (q/rect px py node-width node-height)
-  (apply q/fill (if (= frontcolor nil) [0 0 0] frontcolor))
+  (apply q/fill (invert-color (if (= frontcolor nil) [0 0 0] frontcolor)))
   (q/text-size (if (= nil titlesize) 10.0 titlesize))
   (q/text (nameof name) (+ px 5) (+ py (if (= nil titlesize) 10.0 titlesize)))
   (q/text-size (if (= displaysize nil) 2.0 displaysize))
@@ -123,6 +129,7 @@
               (q/line right-x right-y
                       middle-x middle-y)
               ))))))
+  (q/stroke (first (invert-color [0 0 0])))
   (doseq [a nodes]
     (when (in-picture state (assoc a :px (+ (:px a) (/ node-width 2.0))
                                      :py (+ (:py a) (/ node-height 2.0))))
@@ -130,7 +137,7 @@
 
 (def selected-concept (atom []))
 (defn draw [state]
-  (q/background 255)
+  (q/background (first (invert-color [255 255 255])))
   (q/reset-matrix)
   (hnav/transform state)
   (doseq [g @graphs]

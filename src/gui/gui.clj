@@ -30,6 +30,10 @@
              :backcolor backcolor}
             {:name :start :px 700 :py -525 :onclick (fn [state]
                                                        (run))
+             :backcolor backcolor}
+
+            {:name :inv-col :px 1000 :py -525 :onclick (fn [state]
+                                                      (reset! invert-colors (not @invert-colors)))
              :backcolor backcolor}])
 
 (def graph-gui [nodes [] gui-width gui-height])
