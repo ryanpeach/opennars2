@@ -40,7 +40,7 @@
           newbag (b/add-element task-bag {:id task :priority (first (:budget task))})]
       (let [newtermlinks (merge (apply merge (for [tl (:terms task)] ;prefer existing termlinks strengths
                                                {tl [0.5 0.5]})) (:termlinks concept-state))]
-        (set-state! (merge concept-state {                  ;:tasks     newbag
+        (set-state! (merge concept-state {;:tasks     newbag
                                           :termlinks (select-keys newtermlinks
                                                                   (filter #(b/exists? @c-bag %) (keys newtermlinks))) ;only these keys which exist in concept bag
                                           }))))
@@ -78,51 +78,55 @@
           (set-state! (merge concept-state {:tasks bag3})))))
     (catch Exception e (debuglogger search display (str "solution update error " (.toString e))))))
 
+; (defn update_termlink []
+; (let [prio_me (:priority @state)
+; prio_other]))
+
 (defn belief-request-handler
   ""
   [from [_ task]]
   ;todo get a belief which has highest confidence when projected to task time
   (try (let [tasks (:priority-index (:tasks @state))
              projected-beliefs (map #(project-eternalize-to (:occurrence task) (:id %) @nars-time)
-                                (filter #(and (= (:statement (:id %)) (:id @state))
-                                              (= (:task-type (:id %)) :belief)) tasks))]
-     (if (not-empty projected-beliefs)
-       ;(println projected-beliefs)
-       (let [belief (apply max-key confidence projected-beliefs)]
-         (debuglogger search display ["selected belief:" belief "§"])
-         (cast! (:general-inferencer @state) [:do-inference-msg [task belief]])
+                                    (filter #(and (= (:statement (:id %)) (:id @state))
+                                                  (= (:task-type (:id %)) :belief)) tasks))]
+         (if (not-empty projected-beliefs)
+           ;(println projected-beliefs)
+           (let [belief (apply max-key confidence projected-beliefs)]
+             (debuglogger search display ["selected belief:" belief "§"])
+             (cast! (:general-inferencer @state) [:do-inference-msg [task belief]])
 
-         (try
-           ;1. check whether belief matches by unifying the question vars in task
-           (when (and (= (:task-type task) :question)
-                      (some #{'qu-var} (flatten (:statement task)))
-                      (question-unifies (:statement task) (:statement belief)))
-             ;2. if it unifies, check whether it is a better solution than the solution we have
-             (let [answer-fqual (fn [answer] (if (= nil answer)
-                                               0
-                                               (/ (expectation (:truth answer)) (syntactic-complexity (:statement answer)))))
-                   newqual (answer-fqual (project-eternalize-to (:occurence task) belief @nars-time))
-                   oldqual (answer-fqual (project-eternalize-to (:occurrence task) (:solution task) @nars-time))]        ;PROJECT!!
-               (when (> newqual oldqual)
-                 ;3. if it is a better solution, set belief as solution of task
-                 (let [budget (:budget task)
-                       new-prio (* (- 1.0 (expectation (:truth belief))) (first budget))
-                       new-budget [new-prio (second budget)]
-                       newtask (assoc task :solution belief :priority new-prio :budget new-budget)]
-                   ;4. print our result
-                   (output-task [:answer-to (str (narsese-print (:statement task)) "?")] (:solution newtask))
-                   ;5. send answer-update-msg OLD NEW to the task concept so that it can remove the old task bag entry
-                   ;and replace it with the one having the better solution. (reducing priority here though according to solution before send)
-                   (when-let [{c-ref :ref} ((:elements-map @c-bag) (:statement task))]
-                     (cast! c-ref [:solution-update-msg task newtask]))))))
-           (catch Exception e (debuglogger search display (str "what-question error " (.toString e)))))
+             (try
+               ;1. check whether belief matches by unifying the question vars in task
+               (when (and (= (:task-type task) :question)
+                          (some #{'qu-var} (flatten (:statement task)))
+                          (question-unifies (:statement task) (:statement belief)))
+                 ;2. if it unifies, check whether it is a better solution than the solution we have
+                 (let [answer-fqual (fn [answer] (if (= nil answer)
+                                                   0
+                                                   (/ (expectation (:truth answer)) (syntactic-complexity (:statement answer)))))
+                       newqual (answer-fqual (project-eternalize-to (:occurence task) belief @nars-time))
+                       oldqual (answer-fqual (project-eternalize-to (:occurrence task) (:solution task) @nars-time))] ;PROJECT!!
+                   (when (> newqual oldqual)
+                     ;3. if it is a better solution, set belief as solution of task
+                     (let [budget (:budget task)
+                           new-prio (* (- 1.0 (expectation (:truth belief))) (first budget))
+                           new-budget [new-prio (second budget)]
+                           newtask (assoc task :solution belief :priority new-prio :budget new-budget)]
+                       ;4. print our result
+                       (output-task [:answer-to (str (narsese-print (:statement task)) "?")] (:solution newtask))
+                       ;5. send answer-update-msg OLD NEW to the task concept so that it can remove the old task bag entry
+                       ;and replace it with the one having the better solution. (reducing priority here though according to solution before send)
+                       (when-let [{c-ref :ref} ((:elements-map @c-bag) (:statement task))]
+                         (cast! c-ref [:solution-update-msg task newtask]))))))
+               (catch Exception e (debuglogger search display (str "what-question error " (.toString e)))))
 
-         ))
-     ;dummy? belief as "empty" termlink belief selection for structural inference
-     (let [belief {:statement (:id @state) :task-type :question :occurrence @nars-time :evidence '()}]
-       (debuglogger search display ["selected belief:" belief "§"])
-       (cast! (:general-inferencer @state) [:do-inference-msg [task belief]]))
-     )
+             ))
+         ;dummy? belief as "empty" termlink belief selection for structural inference
+         (let [belief {:statement (:id @state) :task-type :question :occurrence @nars-time :evidence '()}]
+           (debuglogger search display ["selected belief:" belief "§"])
+           (cast! (:general-inferencer @state) [:do-inference-msg [task belief]]))
+         )
        (catch Exception e (debuglogger search display (str "belief request error " (.toString e))))))
 
 (defn concept-quality []
@@ -134,8 +138,8 @@
         lambda (/ (- 1.0 (second budget)) decay-rate)
         fr (Math/exp (* -1.0 (* lambda (- @nars-time last-forgotten))))
         new-priority (Math/max (round2 4 (* (:priority el) fr))
-                          (/ (concept-quality) (+ 1.0 (count (:priority-index (:tasks @state)))))) ;dont fall below 1/N*quality
-        new-budget  [new-priority (second budget)]]
+                               (/ (concept-quality) (+ 1.0 (count (:priority-index (:tasks @state)))))) ;dont fall below 1/N*quality
+        new-budget [new-priority (second budget)]]
     ;(println (str "nars-time: " @nars-time " last-forgotten: " last-forgotten " delta: " (- @nars-time last-forgotten)))
     ;(println (str "l: " lambda " fr: " fr " old: " (first budget) " new: " new-priority))
     (assoc el :priority new-priority
@@ -155,13 +159,13 @@
   (let [concept-state @state
         budget (:budget concept-state)
         tasks (:priority-index (:tasks concept-state))
-        priority-sum (reduce t-or (for [x tasks] (:priority x)))
+        priority-sum (reduce + (for [x tasks] (:priority x)))
         quality-rescale 0.1]
     ;update c-bag directly instead of message passing
-    (swap! c-bag b/add-element {:id (:id @state)
+    (swap! c-bag b/add-element {:id       (:id @state)
                                 :priority priority-sum
-                                :quality (Math/max (concept-quality) (* quality-rescale priority-sum))
-                                :ref @self}))
+                                :quality  (Math/max (concept-quality) (* quality-rescale priority-sum))
+                                :ref      @self}))
   )
 
 (defn inference-request-handler
@@ -213,14 +217,14 @@
 (defn initialise
   "Initialises actor: registers actor and sets actor state"
   [name]
-  (set-state! {:id name
-               :quality 0.0
-               :tasks (b/default-bag max-tasks)
-               :termlinks {}
-               :anticipations (b/default-bag max-anticipations)
-               :concept-manager (whereis :concept-manager)
+  (set-state! {:id                 name
+               :quality            0.0
+               :tasks              (b/default-bag max-tasks)
+               :termlinks          {}
+               :anticipations      (b/default-bag max-anticipations)
+               :concept-manager    (whereis :concept-manager)
                :general-inferencer (whereis :general-inferencer)
-               :last-forgotten @nars-time}))
+               :last-forgotten     @nars-time}))
 
 (defn msg-handler
   "Identifies message type and selects the correct message handler.

@@ -28,7 +28,7 @@
 
 ;HNAV implementation
 (defn mouse-pressed [graphs debugmessage state event]                           ;also HGUI click check here
-  (doseq [[V E w h] graphs]
+  (doseq [[V E w h] @graphs]
     (doseq [v V]
       (let [px (:px v)
             py (:py v)
@@ -38,10 +38,11 @@
                    (< mousex (+ px w)) (< mousey (+ py h)))
           (when (not (= (:onclick v) nil))
             ((:onclick v) state))
-          (let [debugentry ((:name v) debugmessage)]
-            (when (and (not= nil debugentry)
-                       (> (count debugentry) 1))
-             (reset! input-string (second debugentry))))))))
+          (when (contains? debugmessage (:name v))
+            (let [debugentry ((:name v) debugmessage)]
+             (when (and (not= nil debugentry)
+                        (> (count debugentry) 1))
+               (reset! input-string (second debugentry)))))))))
   (assoc state :savepx (:x event) :savepy (:y event) :md true))
 
 (defn mouse-dragged [state event]

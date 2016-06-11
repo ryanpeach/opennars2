@@ -53,7 +53,8 @@
                    :input                [(fn [] "") inputstr]
                    :output               [(fn [] (deref output-display)) output-search]})
 
-(def graphs [graph-actors graph-gui])
+(def static-graphs [graph-actors graph-gui])
+(def graphs (atom static-graphs))
 
 (defn setup []
   (q/frame-rate 30)
@@ -109,11 +110,12 @@
   (doseq [a nodes]
     (draw-actor a node-width node-height)))
 
+(def selected-concept (atom []))
 (defn draw [state]
   (q/background 255)
   (q/reset-matrix)
   (hnav/transform state)
-  (doseq [g graphs]
+  (doseq [g @graphs]
     (draw-graph g))
   ;concept graph
   (try (let [elems (apply vector (:priority-index (deref c-bag)))
@@ -126,21 +128,26 @@
                            quality (:quality ((:elements-map (deref c-bag)) id))]
                        (when (and (.contains (str id) (deref concept-filter)) (> priority priority-threshold))
                          {:name          (str "\n" (narsese-print id) "\npriority: " priority " " "quality: " quality "\n"
-                                              (bag-format
-                                                (limit-string (str (apply vector
-                                                                          (for [x (:priority-index (@lense-taskbags id))]
-                                                                            (assoc x :id (dissoc (:id x) :terms :desire))))) 20000))) ;"\n" @lense-termlinks
+                                              (if (= id @selected-concept)
+                                                (bag-format
+                                                 (limit-string (str (apply vector
+                                                                           (for [x (:priority-index (@lense-taskbags id))]
+                                                                             (assoc x :id (dissoc (:id x) :terms :desire))))) 20000))
+                                                "")) ;"\n" @lense-termlinks
                           :px            (+ 2000 (* a ratio (Math/cos ratio)))
                           :py            (+ 200 (* a ratio (Math/sin ratio)))
                           :displaysize   1.0
                           :backcolor     [(- 255 (* priority 255.0)) 255 255]
                           :titlesize     2.0
                           :stroke-weight 0.5
-                          :id            id})))
+                          :id            id
+                          :onclick       (fn [state]
+                                           (reset! selected-concept id))})))
              edges (for [n nodes
                          [k v] (@lense-termlinks (:id n))]
-                     {:from (:id n) :to k :unidirectional true :stroke-weight 0.125})]
-         (draw-graph [(filter #(not= % nil) nodes) edges 10 10]))
+                     {:from (:id n) :to k :unidirectional true :stroke-weight 0.125})
+             concept-graph [(filter #(not= % nil) nodes) edges 10 10]]
+         (reset! graphs (concat static-graphs [concept-graph])))
        (catch Exception e (println e)))
   )
 
