@@ -180,8 +180,8 @@
   (let [name (name (:key event))
         code (:key-code event)]
     (swap! (deref input-string) (fn [inputstr] (str (if (not (= code 8))
-                                                      inputstr "")
-                                                    (if (not (= name "shift"))
+                                                      inputstr (subs inputstr 0 (max 0 (dec (count inputstr)))))
+                                                    (if (not (> (count name) 1))
                                                       (if (not (= code 8))
                                                         name "") ""))))
     state))
