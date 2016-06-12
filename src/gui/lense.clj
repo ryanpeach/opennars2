@@ -106,6 +106,8 @@
               right (first (filter #(= (:to c) (prefer-id %)) nodes))
               middle {:px (/ (+ (:px left) (:px right)) 2.0)
                       :py (/ (+ (:py left) (:py right)) 2.0)}
+              namepos {:px (/ (+ (* 0.6 (:px left)) (* 0.4 (:px right))) 1.0)
+                       :py (+ 3 (/ (+ (* 0.6 (:py left)) (* 0.4 (:py right))) 1.0))}
               target (if (not= true (:unidirectional c))
                        right middle)
               weight (if (not= nil (:stroke-weight c))
@@ -115,10 +117,12 @@
               right-x (pxtransform right) right-y (pytransform right)
               target-x (pxtransform target) target-y (pytransform target)
               middle-x (pxtransform middle) middle-y (pytransform middle)
-              pointf (fn [a b] {:px a :py b})]
+              namepos-x (pxtransform namepos) namepos-y (pytransform namepos)
+              pointf (fn [a b] {:px a :py b})
+              name (:name c)]
           (when (or (in-picture state (pointf left-x left-y))
-                    (in-picture state (pointf right-x right-y)))
-
+                    (in-picture state (pointf right-x right-y))
+                    (in-picture state (pointf namepos-x namepos-y)))
             (let [eval-color (if (= nil (:link-color c) )
                                (invert-color [0 0 0])
                                (invert-color (:link-color c)))
@@ -127,15 +131,15 @@
                   g (second col)
                   b (nth col 2)]
               (q/stroke r g b))
-
             (q/stroke-weight (* weight 2.0))
             (q/line left-x left-y
                     target-x target-y)
             (when (:unidirectional c)
               (q/stroke-weight weight)
               (q/line right-x right-y
-                      middle-x middle-y)
-              ))))))
+                      middle-x middle-y))
+            (when (not= nil name)
+              (q/text (str name) namepos-x namepos-y)))))))
   (q/stroke (first (invert-color [0 0 0])))
   (doseq [a nodes]
     (when (in-picture state (assoc a :px (+ (:px a) (/ node-width 2.0))
@@ -183,56 +187,14 @@
                      (let [disttomiddle (Math/abs (- 0.5 freq))
                            rterm (if (>= freq 0.5) (* 510.0 disttomiddle) 0.0)
                            bterm (if (< freq 0.5) (* 510.0 disttomiddle) 0.0)]
-                       {:from (:id n) :to k :unidirectional true :stroke-weight (* 0.5 conf) :link-color [(- 255.0 rterm) (- 255.0 0) (- 255.0 bterm)]}))
+                       {:from (:id n)
+                        :to k :unidirectional true
+                        :stroke-weight (* 0.5 conf)
+                        :link-color [(- 255.0 rterm) (- 255.0 0) (- 255.0 bterm)]
+                        :name [freq conf]}))
              concept-graph [(filter #(not= % nil) nodes) edges 10 10]]
          (reset! graphs (concat static-graphs [concept-graph])))
-       (catch Exception e (println e)))
-  )
-
-(defn draw2 [state]
-  (q/background (first (invert-color [255 255 255])))
-  (q/reset-matrix)
-  (hnav/transform state)
-  (doseq [g @graphs]
-    (draw-graph state g))
-  ;concept graph
-  (try (let [elems (apply vector (:priority-index (deref c-bag)))
-             nodes (for [i (range (count elems))]
-                     (let [elem (elems i)
-                           ratio (* 30.0 (+ 0.10 (/ i (count elems))))
-                           a 50.0
-                           id (:id elem)
-                           priority (:priority elem)
-                           quality (:quality ((:elements-map (deref c-bag)) id))]
-                       (when (and (.contains (str id) (deref concept-filter))
-                                  (> priority priority-threshold)
-                                  (> priority @prio-threshold))
-                         {:name          (str "\n" (narsese-print id) "\npriority: " priority " " "quality: " quality "\n"
-                                              (if (= id @selected-concept)
-                                                (bag-format
-                                                  (limit-string (str (apply vector
-                                                                            (for [x (:priority-index (@lense-taskbags id))]
-                                                                              (assoc x :id (dissoc (:id x) :terms :desire))))) 20000))
-                                                "")) ;"\n" @lense-termlinks
-                          :px            (+ 3000 (* a ratio (Math/cos ratio)))
-                          :py            (+ 200 (* a ratio (Math/sin ratio)))
-                          :displaysize   1.0
-                          :backcolor     [(- 255 (* priority 255.0)) 255 255]
-                          :titlesize     2.0
-                          :stroke-weight 0.5
-                          :id            id
-                          :onclick       (fn [state]
-                                           (reset! selected-concept id))})))
-             edges (for [n nodes
-                         [k [freq conf]] (@lense-termlinks (:id n))]
-                     (let [disttomiddle (Math/abs (- 0.5 freq))
-                           rterm (if (>= freq 0.5) (* 510.0 disttomiddle) 0.0)
-                           bterm (if (< freq 0.5) (* 510.0 disttomiddle) 0.0)]
-                       {:from (:id n) :to k :unidirectional true :stroke-weight (* 0.5 conf) :link-color [(- 255.0 rterm) (- 255.0 0) (- 255.0 bterm)]}))
-             concept-graph [(filter #(not= % nil) nodes) edges 10 10]]
-         (reset! graphs (concat static-graphs [concept-graph])))
-       (catch Exception e (println e)))
-  )
+       (catch Exception e (println e))))
 
 (defn key-pressed [state event]
   (let [name (name (:key event))
