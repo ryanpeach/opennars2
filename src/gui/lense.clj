@@ -122,7 +122,8 @@
               name (:name c)]
           (when (or (in-picture state (pointf left-x left-y))
                     (in-picture state (pointf right-x right-y))
-                    (in-picture state (pointf namepos-x namepos-y)))
+                    (in-picture state (pointf namepos-x namepos-y))
+                    (in-picture state (pointf middle-x middle-y)))
             (let [eval-color (if (= nil (:link-color c) )
                                (invert-color [0 0 0])
                                (invert-color (:link-color c)))
@@ -133,8 +134,9 @@
               (q/stroke r g b))
             (q/stroke-weight (* weight 2.0))
             (q/line left-x left-y
-                    target-x target-y)
-            (when (:unidirectional c)
+                    middle-x target-y)
+            (when (and (:unidirectional c)
+                       (not (:opposite-edge-exists c)))
               (q/stroke-weight weight)
               (q/line right-x right-y
                       middle-x middle-y))
@@ -191,7 +193,8 @@
                         :to k :unidirectional true
                         :stroke-weight (* 0.5 conf)
                         :link-color [(- 255.0 rterm) (- 255.0 0) (- 255.0 bterm)]
-                        :name [freq conf]}))
+                        :name [freq conf]
+                        :opposite-edge-exists true}))
              concept-graph [(filter #(not= % nil) nodes) edges 10 10]]
          (reset! graphs (concat static-graphs [concept-graph])))
        (catch Exception e (println e))))
