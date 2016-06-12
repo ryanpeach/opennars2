@@ -73,11 +73,11 @@
   (let [tasks (get-tasks state)
         goals (filter #(= (:task-type %) :goal) tasks)
         beliefs (filter #(= (:task-type %) :belief) tasks)
-        anticipations (get-anticipations state)
-        questions (filter #(= (:task-type %) :question ) tasks)]
+        questions (filter #(= (:task-type %) :question ) tasks)
+        anticipations (get-anticipations state)]
 
     ;also allow revision in subterm concepts! this is why statement is compared to task statement, not to ID!!
-    (let [projected-beliefs (map #(project-eternalize-to (:occurrence task) (:task %) @nars-time) (filter #(= (:statement %) (:statement task)) beliefs))]
+    (let [projected-beliefs (map #(project-eternalize-to (:occurrence task) % @nars-time) (filter #(= (:statement %) (:statement task)) beliefs))]
       (when (= (:source task) :input)
         (when (not-empty anticipations)
           (doseq [projected-anticipation (map #(project-eternalize-to (:occurrence task) % @nars-time) anticipations)]

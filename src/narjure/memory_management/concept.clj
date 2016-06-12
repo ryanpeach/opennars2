@@ -73,9 +73,10 @@
                                                 (= (:task-type it) (:task-type oldtask))
                                                 (= (:solution it) (:solution oldtask)))))
                                  (:elements-map (:tasks concept-state))))]
+      (println "in solution-update-handler")
       (when (not= nil task)
         (let [[_ bag2] (b/get-by-id (:tasks concept-state) (get-task-id task)) ;todo merge old and new tasks?
-              bag3 (b/add-element bag2 newtask)]
+              bag3 (b/add-element bag2 {:id (get-task-id newtask) :priority (first (:budget newtask)) :task newtask})]
           (set-state! (assoc concept-state :tasks bag3)))))
     (catch Exception e (debuglogger search display (str "solution update error " (.toString e))))))
 
@@ -108,13 +109,13 @@
                #_(update-termlink (:statement task))          ;task concept here
                (catch Exception e (debuglogger search display (str "belief side termlink strength error " (.toString e)))))
              (cast! (:general-inferencer @state) [:do-inference-msg [task belief]])
-             (println (str "cast done: b " belief))
-
              (try
+               (println "in try: " belief)
                ;1. check whether belief matches by unifying the question vars in task
                (when (and (= (:task-type task) :question)
                           (some #{'qu-var} (flatten (:statement task)))
                           (question-unifies (:statement task) (:statement belief)))
+                 (println "in when: 1.0")
                  ;2. if it unifies, check whether it is a better solution than the solution we have
                  (let [answer-fqual (fn [answer] (if (= nil answer)
                                                    0
@@ -244,7 +245,7 @@
 
 (defn msg-handler
   "Identifies message type and selects the correct message handler.
-   if there is no match it generates a log message for the unhandled message "
+   if there is no match it generates a log message for the unhandled message"
   [from [type :as message]]
   (debuglogger search display message)
   (when (pos? debug-messages)
