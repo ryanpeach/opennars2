@@ -195,7 +195,7 @@
                         :link-color           (if @invert-colors
                                                 (invert-color [rterm 0.0 bterm])
                                                 [0.0 (* 0.5 rterm) (* 0.5 bterm)])
-                        :name                 [freq conf]
+                        :name                 (when @link-labels [freq conf])
                         :opposite-edge-exists true}))
              concept-graph [(filter #(not= % nil) nodes) edges 10 10]]
          (reset! graphs (concat static-graphs [concept-graph])))

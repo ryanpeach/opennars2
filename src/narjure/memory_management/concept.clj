@@ -87,9 +87,15 @@
        association (t-and prio-me prio-other)
        disassocation (t-and prio-me (- 1.0 prio-other))
        associative (min 1 (max 0 (- association disassocation)))
-       newstrength (revision old-truth [associative 0.01])]
-   (set-state! (assoc @state :termlinks (assoc (:termlinks @state)
-                                               tl newstrength)))))
+       association-evidence-amount 0.01
+       newstrength (revision old-truth [associative association-evidence-amount])
+       concept-max-termlinks 5                              ;no kill off happens when below
+       kill-off-expectation-threshold 0.4]                  ;only context allows higher termlink amount
+   (if (or (> (expectation newstrength) kill-off-expectation-threshold)
+           (<= (count (:termlinks @state)) concept-max-termlinks))                    ;link became too negative?
+     (set-state! (assoc @state :termlinks (assoc (:termlinks @state)
+                                           tl newstrength)))
+     (set-state! (assoc @state :termlinks (dissoc (:termlinks @state) tl))))))
 
 (defn belief-request-handler
   ""

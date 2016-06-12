@@ -48,6 +48,9 @@
              :backcolor backcolor}
             {:name :-prioThres :px 1200 :py -525 :onclick (fn [state]
                                                             (reset! prio-threshold (- @prio-threshold 0.1)))
+             :backcolor backcolor}
+            {:name :linkLabels :px 1300 :py -525 :onclick (fn [state]
+                                                       (reset! link-labels (not @link-labels)))
              :backcolor backcolor}])
 
 (def graph-gui [nodes [] gui-width gui-height])

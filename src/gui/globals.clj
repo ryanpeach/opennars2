@@ -4,6 +4,7 @@
 (def input-string (atom (atom "")))
 (def invert-colors (atom true))
 (def prio-threshold (atom 0.0))
+(def link-labels (atom false))
 
 (defn get-clipboard []
   (.getSystemClipboard (java.awt.Toolkit/getDefaultToolkit)))
