@@ -99,6 +99,7 @@
       (when (expired? anticipation)
         (let [neg-confirmation (create-negative-confirmation-task anticipation)]
           ;add to tasks
+          (set-state! (assoc @state :anticipations (b/get-by-id (:anticipations @state) anticipation)))
           (add-to-tasks state neg-confirmation))))
 
     ;when task is confirmable and observabnle
