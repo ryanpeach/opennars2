@@ -95,6 +95,9 @@
   ""
   [from [_ task]]
   ;todo get a belief which has highest confidence when projected to task time
+  (try                                                      ;update termlinks at first
+    (update-termlink (:statement task))          ;task concept here
+    (catch Exception e (debuglogger search display (str "belief side termlink strength error " (.toString e)))))
   (try (let [tasks (get-tasks state)
              beliefs (filter #(and (= (:statement %) (:id @state))
                                    (= (:task-type %) :belief)) tasks)
@@ -104,9 +107,6 @@
            ;(println "not empty pb: " projected-beliefs)
            (let [belief (apply max-key confidence projected-beliefs)]
              (debuglogger search display ["selected belief:" belief "§"])
-             (try
-               (update-termlink (:statement task))          ;task concept here
-               (catch Exception e (debuglogger search display (str "belief side termlink strength error " (.toString e)))))
              (cast! (:general-inferencer @state) [:do-inference-msg [task belief]])
              (try
                ;1. check whether belief matches by unifying the question vars in task
