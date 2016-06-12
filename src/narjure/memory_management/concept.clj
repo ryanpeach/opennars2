@@ -110,18 +110,17 @@
                (catch Exception e (debuglogger search display (str "belief side termlink strength error " (.toString e)))))
              (cast! (:general-inferencer @state) [:do-inference-msg [task belief]])
              (try
-               (println "in try: " belief)
                ;1. check whether belief matches by unifying the question vars in task
                (when (and (= (:task-type task) :question)
                           (some #{'qu-var} (flatten (:statement task)))
                           (question-unifies (:statement task) (:statement belief)))
-                 (println "in when: 1.0")
                  ;2. if it unifies, check whether it is a better solution than the solution we have
                  (let [answer-fqual (fn [answer] (if (= nil answer)
                                                    0
                                                    (/ (expectation (:truth answer)) (syntactic-complexity (:statement answer)))))
                        newqual (answer-fqual (project-eternalize-to (:occurence task) belief @nars-time))
                        oldqual (answer-fqual (project-eternalize-to (:occurrence task) (:solution task) @nars-time))] ;PROJECT!!
+                   (println "before when")
                    (when (> newqual oldqual)
                      (println "in when: ")
                      ;3. if it is a better solution, set belief as solution of task

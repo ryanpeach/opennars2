@@ -83,25 +83,25 @@ So these rules are for bringing NAL-statements into a different, implied and mor
 
           ; A belief b <f c> is equal to --b <1-f c>  which is the negation rule:
           ;;Negation (resolve by letting termlink be the term on its own for derivation)
-          #R[(A --> B) A |- --(A --> B) :post (:t/negation :d/negation :allow-backward)]
-          #R[(A --> B) B |- --(A --> B) :post (:t/negation :d/negation :allow-backward)]
-          #R[--(A --> B) A |- (A --> B) :post (:t/negation :d/negation :allow-backward)]
-          #R[--(A --> B) B |- (A --> B) :post (:t/negation :d/negation :allow-backward)]
+          ;#R[(A --> B) A |- --(A --> B) :post (:t/negation :d/negation :allow-backward)]
+          ;#R[(A --> B) B |- --(A --> B) :post (:t/negation :d/negation :allow-backward)]
+          ;#R[--(A --> B) A |- (A --> B) :post (:t/negation :d/negation :allow-backward)]
+          ;#R[--(A --> B) B |- (A --> B) :post (:t/negation :d/negation :allow-backward)]
 
-          #R[(A <-> B) A |- --(A <-> B) :post (:t/negation :d/negation :allow-backward)]
-          #R[(A <-> B) B |- --(A <-> B) :post (:t/negation :d/negation :allow-backward)]
-          #R[--(A <-> B) A |- (A <-> B) :post (:t/negation :d/negation :allow-backward)]
-          #R[--(A <-> B) B |- (A <-> B) :post (:t/negation :d/negation :allow-backward)]
+          ;#R[(A <-> B) A |- --(A <-> B) :post (:t/negation :d/negation :allow-backward)]
+          ;#R[(A <-> B) B |- --(A <-> B) :post (:t/negation :d/negation :allow-backward)]
+          ;#R[--(A <-> B) A |- (A <-> B) :post (:t/negation :d/negation :allow-backward)]
+          ;#R[--(A <-> B) B |- (A <-> B) :post (:t/negation :d/negation :allow-backward)]
 
-          #R[(A ==> B) A |- --(A ==> B) :post (:t/negation :d/negation :allow-backward :order-for-all-same)]
-          #R[(A ==> B) B |- --(A ==> B) :post (:t/negation :d/negation :allow-backward :order-for-all-same)]
-          #R[--(A ==> B) A |- (A ==> B) :post (:t/negation :d/negation :allow-backward :order-for-all-same)]
-          #R[--(A ==> B) B |- (A ==> B) :post (:t/negation :d/negation :allow-backward :order-for-all-same)]
+          ;#R[(A ==> B) A |- --(A ==> B) :post (:t/negation :d/negation :allow-backward :order-for-all-same)]
+          ;#R[(A ==> B) B |- --(A ==> B) :post (:t/negation :d/negation :allow-backward :order-for-all-same)]
+          ;#R[--(A ==> B) A |- (A ==> B) :post (:t/negation :d/negation :allow-backward :order-for-all-same)]
+          ;#R[--(A ==> B) B |- (A ==> B) :post (:t/negation :d/negation :allow-backward :order-for-all-same)]
 
-          #R[(A <=> B) A |- --(A <=> B) :post (:t/negation :d/negation :allow-backward :order-for-all-same)]
-          #R[(A <=> B) B |- --(A <=> B) :post (:t/negation :d/negation :allow-backward :order-for-all-same)]
-          #R[--(A <=> B) A |- (A <=> B) :post (:t/negation :d/negation :allow-backward :order-for-all-same)]
-          #R[--(A <=> B) B |- (A <=> B) :post (:t/negation :d/negation :allow-backward :order-for-all-same)]
+          ;#R[(A <=> B) A |- --(A <=> B) :post (:t/negation :d/negation :allow-backward :order-for-all-same)]
+          ;#R[(A <=> B) B |- --(A <=> B) :post (:t/negation :d/negation :allow-backward :order-for-all-same)]
+          ;#R[--(A <=> B) A |- (A <=> B) :post (:t/negation :d/negation :allow-backward :order-for-all-same)]
+          ;#R[--(A <=> B) B |- (A <=> B) :post (:t/negation :d/negation :allow-backward :order-for-all-same)]
           )
 
 (defrules nal1-nal2-inheritance-related-syllogisms

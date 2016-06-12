@@ -144,6 +144,7 @@
 
 (def selected-concept (atom []))
 
+;copy of draw below marked as draw2
 (defn draw [state]
   (q/background (first (invert-color [255 255 255])))
   (q/reset-matrix)
@@ -166,8 +167,10 @@
                                               (if (= id @selected-concept)
                                                 (bag-format
                                                   (limit-string (str (apply vector
-                                                                            (for [x (:priority-index (@lense-taskbags id))]
-                                                                              (assoc x :id (dissoc (:id x) :terms :desire))))) 20000))
+                                                                            (for [x (:elements-map (@lense-taskbags id))]
+                                                                              (let [task (:task (val x))]
+                                                                                (assoc x :task (dissoc task :terms :desire)))
+                                                                              ))) 20000))
                                                 "")) ;"\n" @lense-termlinks
                           :px            (+ 3000 (* a ratio (Math/cos ratio)))
                           :py            (+ 200 (* a ratio (Math/sin ratio)))
