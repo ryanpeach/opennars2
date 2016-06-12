@@ -99,12 +99,15 @@
       (when (expired? anticipation)
         (let [neg-confirmation (create-negative-confirmation-task anticipation)]
           ;add to tasks
-          (set-state! (assoc @state :anticipations (b/get-by-id (:anticipations @state) anticipation)))
+          ;(println (str "before: " (vec (:anticpations @state))))
+          ;(set-state! (assoc @state :anticipations (b/get-by-id (:anticipations @state) anticipation)))
+          ;(println (str "after: " (vec (:anticpations @state))))
           (add-to-tasks state neg-confirmation))))
 
     ;when task is confirmable and observabnle
     ;add an anticipation tasks to tasks
     (when (confirmable-observable? task)
       (let [anticipated-task (create-anticipation-task task)]
+        (println (str "anticipated: " anticipated-task))
         (add-to-anticipations state anticipated-task))))
   )
