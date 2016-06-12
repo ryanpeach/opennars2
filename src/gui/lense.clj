@@ -167,10 +167,7 @@
                                               (if (= id @selected-concept)
                                                 (bag-format
                                                   (limit-string (str (apply vector
-                                                                            (for [x (:elements-map (@lense-taskbags id))]
-                                                                              (let [task (:task (val x))]
-                                                                                (assoc x :task (dissoc task :terms :desire)))
-                                                                              ))) 20000))
+                                                                            (:elements-map (@lense-taskbags id)))) 20000))
                                                 "")) ;"\n" @lense-termlinks
                           :px            (+ 3000 (* a ratio (Math/cos ratio)))
                           :py            (+ 200 (* a ratio (Math/sin ratio)))
