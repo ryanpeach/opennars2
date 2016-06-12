@@ -73,15 +73,16 @@
   (let [tasks (get-tasks state)
         goals (filter #(= (:task-type %) :goal) tasks)
         beliefs (filter #(= (:task-type %) :belief) tasks)
-        anticipations (filter #(= (:task-type %) :anticipation) (get-anticipations state))
+        anticipations (get-anticipations state)
         questions (filter #(= (:task-type %) :question ) tasks)]
 
     ;also allow revision in subterm concepts! this is why statement is compared to task statement, not to ID!!
-    (let [projected-beliefs (map #(project-eternalize-to (:occurrence task) % @nars-time) (filter #(= (:statement %) (:statement task)) beliefs))]
+    (let [projected-beliefs (map #(project-eternalize-to (:occurrence task) (:task %) @nars-time) (filter #(= (:statement (:task %)) (:statement task)) beliefs))]
       (when (= (:source task) :input)
-        (doseq [projected-anticipation (map #(project-eternalize-to (:occurrence task) % @nars-time) anticipations)]
-          ;revise anticpation and add to tasks
-          (add-to-anticipations state (revise projected-anticipation task))))
+        (when (not-empty anticipations)
+          (doseq [projected-anticipation (map #(project-eternalize-to (:occurrence task) % @nars-time) anticipations)]
+           ;revise anticpation and add to tasks
+           (add-to-anticipations state (revise projected-anticipation task)))))
       (when (< cnt 1)
         (doseq [revisable (filter #(revisable? task %) projected-beliefs)]
          ;revise beliefs and add to tasks
@@ -95,19 +96,18 @@
 
       ;generate neg confirmation for expired anticipations
     ;and add to tasks
-    (doseq [anticipation anticipations]
-      (when (expired? anticipation)
-        (let [neg-confirmation (create-negative-confirmation-task anticipation)]
-          ;add to tasks
-          ;(println (str "before: " (vec (:anticpations @state))))
-          ;(set-state! (assoc @state :anticipations (b/get-by-id (:anticipations @state) anticipation)))
-          ;(println (str "after: " (vec (:anticpations @state))))
-          (add-to-tasks state neg-confirmation))))
+    (when (not-empty anticipations)
+      (doseq [anticipation anticipations]
+       (when (expired? anticipation)
+         (let [neg-confirmation (create-negative-confirmation-task anticipation)]
+           ;add neg-confirmation to tasks bag and remove anticiptaion from anticipation bag
+           (remove-anticipation state anticipation)
+           ;(set-state! (assoc @state :anticipations (b/get-by-id (:anticipations @state) anticipation)))
+           (add-to-tasks state neg-confirmation)))))
 
     ;when task is confirmable and observabnle
     ;add an anticipation tasks to tasks
     (when (confirmable-observable? task)
       (let [anticipated-task (create-anticipation-task task)]
-        (println (str "anticipated: " anticipated-task))
-        (add-to-anticipations state anticipated-task))))
-  )
+        (when (not (b/exists? (:anticipations @state) (get-task-id anticipated-task)))
+          (add-to-anticipations state anticipated-task))))))

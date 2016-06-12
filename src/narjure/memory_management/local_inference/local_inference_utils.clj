@@ -18,10 +18,25 @@
   {:id task :priority (first (:budget task))})
 
 (defn add-to-tasks [state task]
-  (set-state! (assoc @state :tasks (b/add-element (:tasks @state) {:id task :priority (first (:budget task))}))))
+  (let [bag (:tasks @state)
+        el {:id task :priority (first (:budget task))}
+        bag' (b/add-element bag el)]
+    (set-state! (assoc @state :tasks bag'))))
+
+(defn get-task-id [task]
+  [(:statement task) (:evidence task) (:task-type task) (:occurrence task) (:truth task)])
 
 (defn add-to-anticipations [state task]
-  (set-state! (assoc @state :anticipations (b/add-element (:anticipations @state) {:id task :priority (first (:budget task))}))))
+  (let [bag (:anticipations @state)
+        el {:id (get-task-id task) :priority (first (:budget task)) :task task}
+        bag' (b/add-element bag el)]
+    (set-state! (assoc @state :anticipations bag'))))
+
+(defn remove-anticipation [state anticipation]
+  (let [bag (:anticipations @state)
+        id (get-task-id anticipation)
+        [_ bag'] (b/get-by-id bag id)]
+    (set-state! (assoc @state :anticipations bag'))))
 
 (defn update-task-in-tasks [state task old-task]
   (let [[element bag] (b/get-by-id (:tasks @state) old-task)]
@@ -107,4 +122,4 @@
   (vec (for [x (:priority-index (:tasks @state))] (:id x))))
 
 (defn get-anticipations [state]
-  (vec (for [x (:priority-index (:anticipations @state))] (:id x))))
+  (vec (for [x (:elements-map (:anticipations @state))] (:task (second x)))))
