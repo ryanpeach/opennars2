@@ -189,11 +189,11 @@
                      (let [disttomiddle (Math/abs (- 0.5 freq))
                            rterm (if (>= freq 0.5) (* 510.0 disttomiddle) 0.0)
                            bterm (if (< freq 0.5) (* 510.0 disttomiddle) 0.0)]
-                       {:from (:id n)
-                        :to k :unidirectional true
-                        :stroke-weight (* 0.5 conf)
-                        :link-color [(- 255.0 rterm) (- 255.0 0) (- 255.0 bterm)]
-                        :name [freq conf]
+                       {:from                 (:id n)
+                        :to                   k :unidirectional true
+                        :stroke-weight        (* 0.5 conf)
+                        :link-color           (invert-color [rterm 0.0 bterm])
+                        :name                 [freq conf]
                         :opposite-edge-exists true}))
              concept-graph [(filter #(not= % nil) nodes) edges 10 10]]
          (reset! graphs (concat static-graphs [concept-graph])))
