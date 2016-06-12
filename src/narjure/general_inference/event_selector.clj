@@ -46,7 +46,7 @@
   then posts them to :general-inferencer"
   [[a b]]
   (debuglogger search display ["selected events:" a "§" b "§§"])
-  (cast! (:general-inferencer @state) [:do-inference-msg [(:id a) (:id b)]]))
+  (cast! (:general-inferencer @state) [:do-inference-msg [(:task a) (:task b)]]))
 
 (defn inference-tick-handler
   "Select n pairs of events events from event buffer for inference

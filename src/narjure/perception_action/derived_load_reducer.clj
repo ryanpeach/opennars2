@@ -6,6 +6,7 @@
     [taoensso.timbre :refer [debug info]]
     [narjure.bag :as b]
     [narjure.control-utils :refer :all]
+    [narjure.memory-management.local-inference.local-inference-utils :refer [get-task-id]]
     [narjure.debug-util :refer :all])
   (:refer-clojure :exclude [promise await]))
 
@@ -22,7 +23,7 @@
   []
   (doseq [n (range (min max-selections (b/count-elements @derivation-bag)))]
     (let [[element derivation-bag'] (b/get-by-index @derivation-bag (selection-fn @derivation-bag))
-          msg [:derived-sentence-msg [(:id element)]]]
+          msg [:derived-sentence-msg [(:task element)]]]
       (reset! derivation-bag derivation-bag')
       (cast! (whereis :task-creator) msg)
       ;(cast! (:task-creator @state) msg) ; see register-task-creator-handler for comments
@@ -31,7 +32,7 @@
 (defn derived-sentence-handler
   "adds sentence to input-bag and selects n senetences on system-time-tick"
   [from [msg sentence]]
-  (let [elem {:id sentence :priority (first (:budget sentence))}]
+  (let [elem {:id (get-task-id sentence) :priority (first (:budget sentence)) :task sentence}]
     (debuglogger search display [:add elem])
     (swap! derivation-bag b/add-element elem)))
 

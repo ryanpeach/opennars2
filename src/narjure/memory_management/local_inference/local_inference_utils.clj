@@ -14,17 +14,17 @@
     [narjure.debug-util :refer :all])
   (:refer-clojure :exclude [promise await]))
 
+(defn get-task-id [task]
+  [(:statement task) (:evidence task) (:task-type task) (:occurrence task) (:truth task)])
+
 (defn item [task]
-  {:id task :priority (first (:budget task))})
+  {:id (get-task-id task) :priority (first (:budget task))})
 
 (defn add-to-tasks [state task]
   (let [bag (:tasks @state)
-        el {:id task :priority (first (:budget task))}
+        el {:id (get-task-id task) :priority (first (:budget task)) :task task}
         bag' (b/add-element bag el)]
     (set-state! (assoc @state :tasks bag'))))
-
-(defn get-task-id [task]
-  [(:statement task) (:evidence task) (:task-type task) (:occurrence task) (:truth task)])
 
 (defn add-to-anticipations [state task]
   (let [bag (:anticipations @state)
@@ -119,7 +119,9 @@
   (decrease-question-budget-by-solution quest))
 
 (defn get-tasks [state]
-  (vec (for [x (:priority-index (:tasks @state))] (:id x))))
+  (let [tasks (vec (for [x (:elements-map (:tasks @state))] (:task (val x))))]
+    ;(println (str "count: "  (count (:elements-map (:tasks @state))) " gt tasks: " tasks))
+    tasks))
 
 (defn get-anticipations [state]
-  (vec (for [x (:elements-map (:anticipations @state))] (:task (second x)))))
+  (vec (for [x (:elements-map (:anticipations @state))] (:task (val x)))))

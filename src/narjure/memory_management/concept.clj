@@ -11,6 +11,7 @@
     [narjure.control-utils :refer :all]
     [narjure.defaults :refer [decay-rate]]
     [nal.term_utils :refer [syntactic-complexity]]
+    [narjure.memory-management.local-inference.local-inference-utils :refer [get-task-id get-tasks]]
     [narjure.memory-management.local-inference.belief-processor :refer [process-belief]]
     [narjure.memory-management.local-inference.goal-processor :refer [process-goal]]
     [narjure.memory-management.local-inference.quest-processor :refer [process-quest]]
@@ -37,7 +38,7 @@
   (try
     (let [concept-state @state
           task-bag (:tasks concept-state)
-          newbag (b/add-element task-bag {:id task :priority (first (:budget task))})]
+          newbag (b/add-element task-bag {:id (get-task-id task) :priority (first (:budget task))})]
       (let [newtermlinks (merge (apply merge (for [tl (:terms task)] ;prefer existing termlinks strengths
                                                {tl [1.0 0.01]})) (:termlinks concept-state))]
         (set-state! (merge concept-state {;:tasks     newbag
@@ -66,16 +67,16 @@
   [from [_ oldtask newtask]]
   (try
     (let [concept-state @state
-          element (first (filter (fn [a] (let [it (:id a)]
+          task (first (filter (fn [a] (let [it (:task (second a))]
                                            (and (= (:statement it) (:statement oldtask))
                                                 (= (:occurrence it) (:occurrence oldtask))
                                                 (= (:task-type it) (:task-type oldtask))
                                                 (= (:solution it) (:solution oldtask)))))
-                                 (:priority-index (:tasks concept-state))))]
-      (when (not= nil element)
-        (let [[_ bag2] (b/get-by-id (:tasks concept-state) element)
+                                 (:elements-map (:tasks concept-state))))]
+      (when (not= nil task)
+        (let [[_ bag2] (b/get-by-id (:tasks concept-state) (get-task-id task)) ;todo merge old and new tasks?
               bag3 (b/add-element bag2 newtask)]
-          (set-state! (merge concept-state {:tasks bag3})))))
+          (set-state! (assoc concept-state :tasks bag3)))))
     (catch Exception e (debuglogger search display (str "solution update error " (.toString e))))))
 
 (defn update-termlink [tl]                                  ;term
@@ -94,18 +95,20 @@
   ""
   [from [_ task]]
   ;todo get a belief which has highest confidence when projected to task time
-  (try (let [tasks (:priority-index (:tasks @state))
-             projected-beliefs (map #(project-eternalize-to (:occurrence task) (:id %) @nars-time)
-                                    (filter #(and (= (:statement (:id %)) (:id @state))
-                                                  (= (:task-type (:id %)) :belief)) tasks))]
+  (try (let [tasks (get-tasks state)
+             beliefs (filter #(and (= (:statement %) (:id @state))
+                                   (= (:task-type %) :belief)) tasks)
+             projected-beliefs (map #(project-eternalize-to (:occurrence task) % @nars-time) beliefs)]
          (if (not-empty projected-beliefs)
            ;(println projected-beliefs)
+           ;(println "not empty pb: " projected-beliefs)
            (let [belief (apply max-key confidence projected-beliefs)]
              (debuglogger search display ["selected belief:" belief "§"])
              (try
                #_(update-termlink (:statement task))          ;task concept here
                (catch Exception e (debuglogger search display (str "belief side termlink strength error " (.toString e)))))
              (cast! (:general-inferencer @state) [:do-inference-msg [task belief]])
+             (println (str "cast done: b " belief))
 
              (try
                ;1. check whether belief matches by unifying the question vars in task
@@ -119,6 +122,7 @@
                        newqual (answer-fqual (project-eternalize-to (:occurence task) belief @nars-time))
                        oldqual (answer-fqual (project-eternalize-to (:occurrence task) (:solution task) @nars-time))] ;PROJECT!!
                    (when (> newqual oldqual)
+                     (println "in when: ")
                      ;3. if it is a better solution, set belief as solution of task
                      (let [budget (:budget task)
                            new-prio (* (- 1.0 (expectation (:truth belief))) (first budget))
@@ -144,39 +148,38 @@
   (:quality ((:elements-map @c-bag) (:id @state))))
 
 (defn forget-task [el last-forgotten]
-  (let [budget (:budget (:id el))
+  (let [budget (:budget (:task el))
         ;new-priority (round2 4 (* (:priority el) (second budget)))
         lambda (/ (- 1.0 (second budget)) decay-rate)
         fr (Math/exp (* -1.0 (* lambda (- @nars-time last-forgotten))))
         new-priority (Math/max (round2 4 (* (:priority el) fr))
-                               (/ (concept-quality) (+ 1.0 (count (:priority-index (:tasks @state)))))) ;dont fall below 1/N*quality
+                               (/ (concept-quality) (+ 1.0 (b/count-elements (:tasks @state))))) ;dont fall below 1/N*quality
         new-budget [new-priority (second budget)]]
-    ;(println (str "nars-time: " @nars-time " last-forgotten: " last-forgotten " delta: " (- @nars-time last-forgotten)))
-    ;(println (str "l: " lambda " fr: " fr " old: " (first budget) " new: " new-priority))
-    (assoc el :priority new-priority
-              :id (assoc (:id el) :budget new-budget))))
+    (let [updated-task (assoc (:task el) :budget new-budget)]
+      (assoc el :priority new-priority
+                :task updated-task))))
 
 (defn forget-tasks []
-  (let [tasks (:priority-index (:tasks @state))
+  (let [tasks (:elements-map (:tasks @state))
         last-forgotten (:last-forgotten @state)]
     (set-state! (assoc @state :tasks (b/default-bag max-tasks)))
-    (doseq [x tasks]
-      (let [el (forget-task x last-forgotten)]
-        (set-state! (assoc @state :tasks (b/add-element (:tasks @state) el)))))
+    (doseq [[_ el] tasks]
+      (let [el' (forget-task el last-forgotten)]
+        (set-state! (assoc @state :tasks (b/add-element (:tasks @state) el')))))
     (set-state! (assoc @state :last-forgotten @nars-time))))
 
 (defn update-concept-budget []
   "Update the concept budget"
   (let [concept-state @state
-        tasks (:priority-index (:tasks concept-state))
+        tasks (:priority-index (:tasks concept-state))      ; :priority-index ok here
         priority-sum (reduce t-or (for [x tasks] (:priority x)))
-        quality-rescale 0.1]
+        quality-rescale 0.1
+        el {:id       (:id @state)
+            :priority priority-sum
+            :quality  (Math/max (concept-quality) (* quality-rescale priority-sum))
+            :ref      @self}]
     ;update c-bag directly instead of message passing
-    (swap! c-bag b/add-element {:id       (:id @state)
-                                :priority priority-sum
-                                :quality  (Math/max (concept-quality) (* quality-rescale priority-sum))
-                                :ref      @self}))
-  )
+    (swap! c-bag b/add-element el)))
 
 (defn inference-request-handler
   ""
@@ -187,10 +190,10 @@
     ; and sending budget update message to concept mgr
     (try
       (when (pos? (b/count-elements task-bag))
-        (let [[result1] (b/lookup-by-index task-bag (selection-fn task-bag))]
+        (let [[el] (b/lookup-by-index task-bag (selection-fn task-bag))]
           (forget-tasks)
           (update-concept-budget)
-          (debuglogger search display ["selected inference task:" result1])
+          (debuglogger search display ["selected inference task:" el])
           ;now search through termlinks, get the endpoint concepts, and form a bag of them
           (let [initbag (b/default-bag 10)
                 resbag (reduce (fn [a b] (b/add-element a b)) initbag (for [[k v] (:termlinks @state)]
@@ -203,7 +206,7 @@
               (try
                 (update-termlink (:id beliefconcept))          ;belief concept here
                 (catch Exception e (debuglogger search display (str "task side termlink strength error " (.toString e)))))
-              (cast! c-ref [:belief-request-msg (:id result1)])
+              (cast! c-ref [:belief-request-msg (:task el)])
               ))))
       (catch Exception e (debuglogger search display (str "inference request error " (.toString e)))))
     )

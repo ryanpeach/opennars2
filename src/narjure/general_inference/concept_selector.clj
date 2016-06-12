@@ -36,7 +36,7 @@
          (when (> (:priority selected) priority-threshold)
            (cast! ref [:inference-request-msg (:id selected)])
            ;(info (str "Concept selected: " [:id (:id selected) :priority (:priority selected)]))
-           (debuglogger search display (str "Concept selected: " [:id (:id selected) :priority (:priority selected)]))))))
+           (debuglogger search display (str "Concept selected: " [:task selected :priority (:priority selected)]))))))
        (catch Exception e (debuglogger search display (str "concept select error " (.toString e))))))
 
 (defn initialise

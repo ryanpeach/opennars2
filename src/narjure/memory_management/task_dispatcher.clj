@@ -4,6 +4,7 @@
      [core :refer :all]
      [actors :refer :all]]
     [narjure.global-atoms :refer [c-bag e-bag]]
+    [narjure.memory-management.local-inference.local-inference-utils :refer [get-task-id]]
     [narjure.bag :as b]
     [taoensso.timbre :refer [debug info]]
     [narjure.debug-util :refer :all])
@@ -32,7 +33,7 @@
     (if (every? term-exists? terms)
       (do
         (when (event? task)
-          (swap! e-bag b/add-element {:id task :priority (first (:budget task))})
+          (swap! e-bag b/add-element {:id (get-task-id task) :priority (first (:budget task)) :task task})
           ;(cast! (:event-buffer @state) [:event-msg task])
           )
         (doseq [term terms]

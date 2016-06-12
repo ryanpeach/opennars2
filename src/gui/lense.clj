@@ -143,6 +143,7 @@
       (draw-actor a node-width node-height))))
 
 (def selected-concept (atom []))
+
 (defn draw [state]
   (q/background (first (invert-color [255 255 255])))
   (q/reset-matrix)
@@ -164,9 +165,54 @@
                          {:name          (str "\n" (narsese-print id) "\npriority: " priority " " "quality: " quality "\n"
                                               (if (= id @selected-concept)
                                                 (bag-format
-                                                 (limit-string (str (apply vector
-                                                                           (for [x (:priority-index (@lense-taskbags id))]
-                                                                             (assoc x :id (dissoc (:id x) :terms :desire))))) 20000))
+                                                  (limit-string (str (apply vector
+                                                                            (for [x (:priority-index (@lense-taskbags id))]
+                                                                              (assoc x :id (dissoc (:id x) :terms :desire))))) 20000))
+                                                "")) ;"\n" @lense-termlinks
+                          :px            (+ 3000 (* a ratio (Math/cos ratio)))
+                          :py            (+ 200 (* a ratio (Math/sin ratio)))
+                          :displaysize   1.0
+                          :backcolor     [(- 255 (* priority 255.0)) 255 255]
+                          :titlesize     2.0
+                          :stroke-weight 0.5
+                          :id            id
+                          :onclick       (fn [state]
+                                           (reset! selected-concept id))})))
+             edges (for [n nodes
+                         [k [freq conf]] (@lense-termlinks (:id n))]
+                     (let [disttomiddle (Math/abs (- 0.5 freq))
+                           rterm (if (>= freq 0.5) (* 510.0 disttomiddle) 0.0)
+                           bterm (if (< freq 0.5) (* 510.0 disttomiddle) 0.0)]
+                       {:from (:id n) :to k :unidirectional true :stroke-weight (* 0.5 conf) :link-color [(- 255.0 rterm) (- 255.0 0) (- 255.0 bterm)]}))
+             concept-graph [(filter #(not= % nil) nodes) edges 10 10]]
+         (reset! graphs (concat static-graphs [concept-graph])))
+       (catch Exception e (println e)))
+  )
+
+(defn draw2 [state]
+  (q/background (first (invert-color [255 255 255])))
+  (q/reset-matrix)
+  (hnav/transform state)
+  (doseq [g @graphs]
+    (draw-graph state g))
+  ;concept graph
+  (try (let [elems (apply vector (:priority-index (deref c-bag)))
+             nodes (for [i (range (count elems))]
+                     (let [elem (elems i)
+                           ratio (* 30.0 (+ 0.10 (/ i (count elems))))
+                           a 50.0
+                           id (:id elem)
+                           priority (:priority elem)
+                           quality (:quality ((:elements-map (deref c-bag)) id))]
+                       (when (and (.contains (str id) (deref concept-filter))
+                                  (> priority priority-threshold)
+                                  (> priority @prio-threshold))
+                         {:name          (str "\n" (narsese-print id) "\npriority: " priority " " "quality: " quality "\n"
+                                              (if (= id @selected-concept)
+                                                (bag-format
+                                                  (limit-string (str (apply vector
+                                                                            (for [x (:priority-index (@lense-taskbags id))]
+                                                                              (assoc x :id (dissoc (:id x) :terms :desire))))) 20000))
                                                 "")) ;"\n" @lense-termlinks
                           :px            (+ 3000 (* a ratio (Math/cos ratio)))
                           :py            (+ 200 (* a ratio (Math/sin ratio)))

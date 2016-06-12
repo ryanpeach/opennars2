@@ -37,11 +37,11 @@
     i))
 
 (defn forget-element [el]
-  (let [budget (:budget (:id el))
+  (let [budget (:budget (:task el))
         new-priority (* (:priority el) (second budget))
         new-budget  [new-priority (second budget)]]
     (assoc el :priority new-priority
-              :id (assoc (:id el) :budget new-budget))))
+              :task (assoc (:task el) :budget new-budget))))
 
 (def max-evidence 50)
 
