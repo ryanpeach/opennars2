@@ -192,7 +192,9 @@
                        {:from                 (:id n)
                         :to                   k :unidirectional true
                         :stroke-weight        (* 0.5 conf)
-                        :link-color           (invert-color [rterm 0.0 bterm])
+                        :link-color           (if @invert-colors
+                                                (invert-color [rterm 0.0 bterm])
+                                                [0.0 (* 0.5 rterm) (* 0.5 bterm)])
                         :name                 [freq conf]
                         :opposite-edge-exists true}))
              concept-graph [(filter #(not= % nil) nodes) edges 10 10]]

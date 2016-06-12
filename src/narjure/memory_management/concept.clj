@@ -81,13 +81,12 @@
     (catch Exception e (debuglogger search display (str "solution update error " (.toString e))))))
 
 (defn update-termlink [tl]                                  ;term
- (let [
-       prio-me (:priority ((:elements-map @c-bag) (:id @state)))
+ (let [prio-me (:priority ((:elements-map @c-bag) (:id @state)))
        old-truth ((:termlinks @state) tl)
        prio-other (:priority ((:elements-map @c-bag) tl))
        association (t-and prio-me prio-other)
        disassocation (t-and prio-me (- 1.0 prio-other))
-       associative (max 0 (- association disassocation))
+       associative (min 1 (max 0 (- association disassocation)))
        newstrength (revision old-truth [associative 0.01])]
    (set-state! (assoc @state :termlinks (assoc (:termlinks @state)
                                                tl newstrength)))))
@@ -106,7 +105,7 @@
            (let [belief (apply max-key confidence projected-beliefs)]
              (debuglogger search display ["selected belief:" belief "§"])
              (try
-               #_(update-termlink (:statement task))          ;task concept here
+               (update-termlink (:statement task))          ;task concept here
                (catch Exception e (debuglogger search display (str "belief side termlink strength error " (.toString e)))))
              (cast! (:general-inferencer @state) [:do-inference-msg [task belief]])
              (try
