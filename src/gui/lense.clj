@@ -198,14 +198,14 @@
              edges (for [n nodes
                          [k [freq conf]] (@lense-termlinks (:id n))]
                      (let [disttomiddle (Math/abs (- 0.5 freq))
-                           rterm (if (>= freq 0.5) (* 510.0 disttomiddle) 0.0)
-                           bterm (if (< freq 0.5) (* 510.0 disttomiddle) 0.0)]
+                           rterm (/ (if (>= freq 0.5) (* 510.0 disttomiddle) 0.0) 2.0)
+                           bterm (/ (if (< freq 0.5) (* 510.0 disttomiddle) 0.0) 2.0)]
                        {:from                 (:id n)
                         :to                   k :unidirectional true
                         :stroke-weight        (* 0.5 conf)
                         :link-color           (if @invert-colors
-                                                (invert-color [rterm 0.0 bterm])
-                                                [0.0 (* 0.5 rterm) (* 0.5 bterm)])
+                                                (invert-color [(+ 128.0 rterm) 128.0 (+ 128.0 bterm)])
+                                                [0.0 (+ 0 rterm) (+ 0 bterm)])
                         :name                 (when @link-labels [freq conf])
                         :opposite-edge-exists (some (fn [[tl2 _]]
                                                       (= tl2 (:id n)))
