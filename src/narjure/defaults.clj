@@ -43,3 +43,6 @@
                                                             ; durability of 0.5 and decay rate of 100 fully decays priority in 1000 cycles
                                                             ; decay-rate of 10 would fully decay it in 100 cycles
 
+(def termlink-single-sample-evidence-amount 0.01)
+
+(def concept-max-termlinks 5)

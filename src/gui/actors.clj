@@ -21,8 +21,8 @@
             ;{:name :event-buffer :px 200 :py 150}
             {:name :general-inferencer :px 400 :py 300 :backcolor derived-task-color}
             {:name :derived-load-reducer :px 400 :py 150 :backcolor util-color}
-            {:name :event-selector :px 600 :py 150 :backcolor task-color}
-            {:name :event-bag :px 775 :py 150 :backcolor task-color}
+            #_{:name :event-selector :px 600 :py 150 :backcolor task-color}
+            #_{:name :event-bag :px 775 :py 150 :backcolor task-color}
             {:name :concept-selector :px -100 :py 300 :backcolor concept-color}
             {:name :concept-bag :px 75 :py 300 :backcolor concept-color}
             {:name :output :px 600 :py -400 :backcolor gui-color}])
@@ -33,7 +33,7 @@
             {:name "              :do-inference-msg" :from :concepts :to :general-inferencer :unidirectional true}
             {:name ":operator-execution-msg" :from :concepts :to :operator-executor :unidirectional true}
             {:name ":derived-sentence-msg" :from :operator-executor :to :task-creator :unidirectional true}
-            {:name ":do-inference-msg" :from :event-selector :to :general-inferencer :unidirectional true}
+            #_{:name ":do-inference-msg" :from :event-selector :to :general-inferencer :unidirectional true}
             {:name ":narsese-string-msg" :from :sentence-parser :to :task-creator :unidirectional true}
                ;{:from :sentence-parser :to :input-load-reducer}
                ;{:from :input-load-reducer :to :task-creator}
@@ -43,6 +43,6 @@
             {:name ":inference-request-msg" :from :concept-selector :to :concepts :unidirectional true}
             {:name "add element" :from :concept-manager :to :concept-bag :unidirectional true}
             {:name ":task-msg" :from :task-dispatcher :to :concepts :unidirectional true}
-            {:name "         add element" :from :task-dispatcher :to :event-bag :unidirectional true}])
+            #_{:name "         add element" :from :task-dispatcher :to :event-bag :unidirectional true}])
 
 (def graph-actors [nodes edges actor-level-width actor-level-height])

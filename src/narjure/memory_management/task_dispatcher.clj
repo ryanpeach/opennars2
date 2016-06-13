@@ -32,9 +32,9 @@
   (let [terms (:terms task)]
     (if (every? term-exists? terms)
       (do
-        (when (event? task)
-          (swap! e-bag b/add-element {:id (get-task-id task) :priority (first (:budget task)) :task task})
-          ;(cast! (:event-buffer @state) [:event-msg task])
+        #_(when (event? task)
+          ;(swap! e-bag b/add-element {:id (get-task-id task) :priority (first (:budget task)) :task task})
+          ;;(cast! (:event-buffer @state) [:event-msg task])
           )
         (doseq [term terms]
           (when-let [{c-ref :ref} ((:elements-map @c-bag) term)]

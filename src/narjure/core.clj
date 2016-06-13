@@ -32,7 +32,8 @@
 
 (defn inference-tick []
   (cast! (whereis :concept-selector) [:inference-tick-msg])
-  (cast! (whereis :event-selector) [:inference-tick-msg]))
+  ;(cast! (whereis :event-selector) [:inference-tick-msg])
+  )
 
 (defn system-tick []
   (cast! (whereis :task-creator) [:system-time-tick-msg])
@@ -79,7 +80,7 @@
     ["1" :permanent 5 5 :sec 100 (derived-load-reducer)]
     ["2" :permanent 5 5 :sec 100 (general-inferencer)]
     ["3" :permanent 5 5 :sec 100 (concept-selector)]
-    ["4" :permanent 5 5 :sec 100 (event-selector)]
+    ; ["4" :permanent 5 5 :sec 100 (event-selector)]
     ["5" :permanent 5 5 :sec 100 (concept-manager)]
     ["6" :permanent 5 5 :sec 100 (task-dispatcher)]
     ["7" :permanent 5 5 :sec 100 (task-creator)]

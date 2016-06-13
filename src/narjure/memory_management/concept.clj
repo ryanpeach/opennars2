@@ -9,7 +9,7 @@
     [clojure.core.unify :refer [unifier]]
     [narjure.debug-util :refer :all]
     [narjure.control-utils :refer :all]
-    [narjure.defaults :refer [decay-rate]]
+    [narjure.defaults :refer :all]
     [nal.term_utils :refer [syntactic-complexity]]
     [narjure.memory-management.local-inference.local-inference-utils :refer [get-task-id get-tasks]]
     [narjure.memory-management.local-inference.belief-processor :refer [process-belief]]
@@ -24,6 +24,7 @@
 (def max-anticipations 5)
 (def display (atom '()))
 (def search (atom ""))
+
 
 (defn task-handler
   ""
@@ -40,7 +41,7 @@
           task-bag (:tasks concept-state)
           newbag (b/add-element task-bag {:id (get-task-id task) :priority (first (:budget task))})]
       (let [newtermlinks (merge (apply merge (for [tl (:terms task)] ;prefer existing termlinks strengths
-                                               {tl [1.0 0.01]})) (:termlinks concept-state))]
+                                               {tl [1.0 termlink-single-sample-evidence-amount]})) (:termlinks concept-state))]
         (set-state! (merge concept-state {;:tasks     newbag
                                           :termlinks (select-keys newtermlinks
                                                                   (filter #(b/exists? @c-bag %) (keys newtermlinks))) ;only these keys which exist in concept bag
@@ -87,9 +88,7 @@
        association (t-and prio-me prio-other)
        disassocation (t-and prio-me (- 1.0 prio-other))
        frequency (+ 0.5 (/ (- association disassocation) 2.0))
-       sample-evidence-amount 0.01
-       concept-max-termlinks 5
-       newstrength (revision old-truth [frequency sample-evidence-amount])]
+       newstrength (revision old-truth [frequency termlink-single-sample-evidence-amount])]
    (if (<= (count (:termlinks @state)) concept-max-termlinks)             ;link became too negative?
      (set-state! (assoc @state :termlinks (assoc (:termlinks @state)
                                            tl newstrength)))
@@ -216,6 +215,12 @@
     )
   )
 
+(defn termlink-create-handler
+  ""
+  [from [_ [term]]]
+  ;todo get a belief which has highest confidence when projected to task time
+  (set-state! (assoc @state :termlinks (assoc (:termlinks @state) term [1.0 termlink-single-sample-evidence-amount]))))
+
 (defn concept-state-handler
   "Sends a copy of the actor state to requesting actor"
   [from _]
@@ -259,6 +264,7 @@
            (fn [dic]
              (assoc dic (:id @state) (:termlinks @state)))))
   (case type
+    :termlink-create-msg (termlink-create-handler from message)
     :task-msg (task-handler from message)
     :belief-request-msg (belief-request-handler from message)
     :inference-request-msg (inference-request-handler from message)
