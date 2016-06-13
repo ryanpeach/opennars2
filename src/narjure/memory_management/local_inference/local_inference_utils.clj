@@ -44,18 +44,20 @@
       (set-state! (assoc @state :tasks bag))))
   (add-to-tasks state task))
 
-(defn revisable? [t1 t2]
-  (empty? (clojure.set/intersection (set (:evidence t1)) (set (:evidence t2)))))
-
 (defn create-revised-task
   "create a revised task with the provided sentence, truth and default value"
   [sentence truth evidence]
   ;todo budget should be updated
   (assoc sentence :truth truth :evidence evidence))
 
-(defn revise [t1 t2]
+(defn no-duplicate [M]
+  (= (count (set M)) (count M)))
+
+(defn revise [t1 t2 kw]
   (let [revised-truth (nal.deriver.truth/revision (:truth t1) (:truth t2))
         evidence (make-evidence (:evidence t1) (:evidence t2))]
+    (when-not (no-duplicate evidence)
+      (println (str "nope " kw)))
     (create-revised-task t1 revised-truth evidence)))
 
 (defn better-solution [solution task]
@@ -92,10 +94,6 @@
 
 (defn increased-goal-budget-by-quest [goal quest]                     ;useful goal, answered a quest
   (increased-belief-budget-by-question goal quest))
-
-
-(defn project-eternalize-to-with-old [target-time task cur-time]
-  [task (project-eternalize-to target-time task cur-time)])
 
 (defn increased-belief-budget-by-goal [belief goal]                     ;by belief satisfied goal
   (increased-belief-budget-by-question belief goal))

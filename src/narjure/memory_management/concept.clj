@@ -25,6 +25,15 @@
 (def display (atom '()))
 (def search (atom ""))
 
+(defn forget-termlinks []
+  (while (> (count (:termlinks @state)) concept-max-termlinks)
+    (let [worst (apply max-key (comp expectation second) (:termlinks @state))]
+      (set-state! (assoc @state :termlinks (dissoc (:termlinks @state) (first worst)))))))
+
+(defn add-termlink [tl strength]
+  (set-state! (assoc @state :termlinks (assoc (:termlinks @state)
+                                         tl strength)))
+  (forget-termlinks))
 
 (defn task-handler
   ""
@@ -47,7 +56,7 @@
                                                                   (filter #(b/exists? @c-bag %) (keys newtermlinks))) ;only these keys which exist in concept bag
                                           }))))
     (catch Exception e (debuglogger search display (str "task add error " (.toString e)))))
-  )
+  (forget-termlinks))
 
 (defn unifies [b a]
   (= a (unifier a b)))
@@ -89,11 +98,7 @@
        disassocation (t-and prio-me (- 1.0 prio-other))
        frequency (+ 0.5 (/ (- association disassocation) 2.0))
        newstrength (revision old-truth [frequency termlink-single-sample-evidence-amount])]
-   (if (<= (count (:termlinks @state)) concept-max-termlinks)             ;link became too negative?
-     (set-state! (assoc @state :termlinks (assoc (:termlinks @state)
-                                           tl newstrength)))
-     (let [worst (apply max-key (comp expectation second) (:termlinks @state))]
-       (set-state! (assoc @state :termlinks (dissoc (:termlinks @state) (first worst))))))))
+   (add-termlink tl newstrength)))
 
 (defn belief-request-handler
   ""
@@ -105,13 +110,13 @@
   (try (let [tasks (get-tasks state)
              beliefs (filter #(and (= (:statement %) (:id @state))
                                    (= (:task-type %) :belief)) tasks)
-             projected-beliefs (map #(project-eternalize-to (:occurrence task) % @nars-time) beliefs)]
-         (if (not-empty projected-beliefs)
+             projected-belief-tuples (map (fn [z] [z (project-eternalize-to (:occurrence task) z @nars-time)]) beliefs)]
+         (if (not-empty projected-belief-tuples)
            ;(println projected-beliefs)
            ;(println "not empty pb: " projected-beliefs)
-           (let [belief (apply max-key confidence projected-beliefs)]
+           (let [[not-projected-belief belief] (apply max-key (comp confidence second) projected-belief-tuples)]
              (debuglogger search display ["selected belief:" belief "§"])
-             (cast! (:general-inferencer @state) [:do-inference-msg [task belief]])
+             (cast! (:general-inferencer @state) [:do-inference-msg [task not-projected-belief]])
              (try
                ;1. check whether belief matches by unifying the question vars in task
                (when (and (= (:task-type task) :question)
@@ -123,9 +128,7 @@
                                                    (/ (expectation (:truth answer)) (syntactic-complexity (:statement answer)))))
                        newqual (answer-fqual (project-eternalize-to (:occurence task) belief @nars-time))
                        oldqual (answer-fqual (project-eternalize-to (:occurrence task) (:solution task) @nars-time))] ;PROJECT!!
-                   (println "before when")
                    (when (> newqual oldqual)
-                     (println "in when: ")
                      ;3. if it is a better solution, set belief as solution of task
                      (let [budget (:budget task)
                            new-prio (* (- 1.0 (expectation (:truth belief))) (first budget))
@@ -219,7 +222,9 @@
   ""
   [from [_ [term]]]
   ;todo get a belief which has highest confidence when projected to task time
-  (set-state! (assoc @state :termlinks (assoc (:termlinks @state) term [1.0 termlink-single-sample-evidence-amount]))))
+
+  (when-not ((:termlinks @state) term)
+    (set-state! (assoc @state :termlinks (assoc (:termlinks @state) term [1.0 termlink-single-sample-evidence-amount])))))
 
 (defn concept-state-handler
   "Sends a copy of the actor state to requesting actor"

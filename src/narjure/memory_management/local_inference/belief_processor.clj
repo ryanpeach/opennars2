@@ -7,7 +7,6 @@
     [narjure.bag :as b]
     [narjure.debug-util :refer :all]
     [narjure.control-utils :refer :all]
-    [narjure.control-utils :refer [make-evidence]]
     [narjure.global-atoms :refer :all]
     [narjure.memory-management.local-inference.local-inference-utils :refer :all]
     [nal.deriver.truth :refer [t-or confidence frequency]]
@@ -76,17 +75,20 @@
         questions (filter #(= (:task-type %) :question ) tasks)
         anticipations (get-anticipations state)]
 
+    ; processing revised anticipations
+    (when (= (:source task) :input)
+      (when (not-empty anticipations)
+        (doseq [projected-anticipation (map #(project-eternalize-to (:occurrence task) % @nars-time) anticipations)]
+          ;revise anticpation and add to tasks
+          (when (non-overlapping-evidence? (:evidence task) (:evidence projected-anticipation))
+            (add-to-anticipations state (revise projected-anticipation task :anticipation))))))
+
     ;also allow revision in subterm concepts! this is why statement is compared to task statement, not to ID!!
     (let [projected-beliefs (map #(project-eternalize-to (:occurrence task) % @nars-time) (filter #(= (:statement %) (:statement task)) beliefs))]
-      (when (= (:source task) :input)
-        (when (not-empty anticipations)
-          (doseq [projected-anticipation (map #(project-eternalize-to (:occurrence task) % @nars-time) anticipations)]
-           ;revise anticpation and add to tasks
-           (add-to-anticipations state (revise projected-anticipation task)))))
       (when (< cnt 1)
-        (doseq [revisable (filter #(revisable? task %) projected-beliefs)]
+        (doseq [revisable (filter #(non-overlapping-evidence? (:evidence task) (:evidence %)) projected-beliefs)]
          ;revise beliefs and add to tasks
-         (process-belief state (revise task revisable) (inc cnt)))))
+         (process-belief state (revise task revisable :belief) (inc cnt)))))
 
     ;add task to bag
     (add-to-tasks state task)

@@ -29,7 +29,7 @@
              (func arguments)))
       (catch Exception e (debuglogger search display (str "operator execution error " (.toString e)))))
     (output-task :execution operationgoal)
-    (cast! (whereis :task-creator) [:derived-sentence-msg [feedback (:budget feedback) (:evidence feedback)]]))) ;derived-sentence so we keep evidence trail
+    (cast! (whereis :task-creator) [:derived-sentence-msg [feedback (:budget feedback) (:evidence operationgoal)]]))) ;derived-sentence so we keep evidence trail
 
 (defn msg-handler
   "Identifies message type and selects the correct message handler.

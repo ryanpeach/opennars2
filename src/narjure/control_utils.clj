@@ -12,7 +12,7 @@
 (def concept-selection-parameter 2)
 (def task-selection-parameter 1)
 
-(defn selection-fn
+(defn selection-fn-old
   ""
   [bag]
   (let [count (b/count-elements bag)
@@ -20,7 +20,7 @@
     ;(println (str "i: " i " count: " count))
     i))
 
-(defn selection-fn-old
+(defn selection-fn
   ""
   [bag]
   (let [count (b/count-elements bag)
@@ -56,3 +56,6 @@
 
 (defn make-evidence [e1 e2]
   (take max-evidence (reverse (make-ev-helper e1 e2 []))))
+
+(defn non-overlapping-evidence? [e1 e2]
+  (empty? (clojure.set/intersection (set e1) (set e2))))

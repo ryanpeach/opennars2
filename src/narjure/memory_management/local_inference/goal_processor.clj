@@ -78,9 +78,9 @@
     (let [projected-goals (map #(project-eternalize-to (:occurrence task) % @nars-time) (filter #(= (:statement %) (:statement task)) goals))]
       ;revise task with revisable goals
       (when (< cnt 1)
-        (doseq [revisable (filter #(revisable? task %) projected-goals)]
+        (doseq [revisable (filter #(non-overlapping-evidence? (:evidence task) (:evidence %)) projected-goals)]
          ;revise goals and add to tasks
-         (process-goal state (revise task revisable) (inc cnt)))))
+         (process-goal state (revise task revisable :goal) (inc cnt)))))
 
     ;add task to bag
     (add-to-tasks state task)
