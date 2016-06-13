@@ -11,14 +11,14 @@
 (defn setup-pong []
   (nars-input-narsese (str "<(*,{SELF}) --> op_up>!" ))
   (nars-input-narsese (str "<(*,{SELF}) --> op_down>!" ))
-  (nars-input-narsese (str "<(*,{SELF}) --> op_stop>!" ))
+  #_(nars-input-narsese (str "<(*,{SELF}) --> op_stop>!" ))
   (nars-input-narsese "<{SELF} --> [good]>!")
   (q/frame-rate 30)
   (nars-register-operation 'op_up (fn [args]
                                     (reset! direction 1)))
   (nars-register-operation 'op_down (fn [args]
                                       (reset! direction -1)))
-  (nars-register-operation 'op_stop (fn [args]
+  #_(nars-register-operation 'op_stop (fn [args]
                                       (reset! direction 0)))
   (merge hnav/states {:ball-px 80
                       :ball-py 280
@@ -42,7 +42,7 @@
     (nars-input-narsese "<{SELF} --> [good]>!")
     (nars-input-narsese (str "<(*,{SELF}) --> op_up>!" ))
     (nars-input-narsese (str "<(*,{SELF}) --> op_down>!" ))
-    (nars-input-narsese (str "<(*,{SELF}) --> op_stop>!" )))
+    #_(nars-input-narsese (str "<(*,{SELF}) --> op_stop>!" )))
 
   (when (= (mod (:iteration state) 10) 0)
     #_(nars-input-narsese (str "<{" (int (* 100 (quot (:ball-py state) 100))) "} --> ballpos>. :|:" ))
