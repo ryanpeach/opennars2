@@ -35,7 +35,7 @@
   [from [msg [task belief]]]
   (try
     (when (non-overlapping-evidence? (:evidence task) (:evidence belief))
-      (let [derivations (inference task belief)
+      (let [derivations (filter #(not= (:statement %) (:parent-statement task)) (inference task belief))
             evidence (make-evidence (:evidence task) (:evidence belief))
             derived-load-reducer (whereis :derived-load-reducer)
             budget [(* (first (:budget task))               ;im not sure anymore whether task parent priority is good here
@@ -47,7 +47,9 @@
         ; dont post if evidence is nil, saves multiple checks further down the pipe
         (when (and (not= evidence '()) (> (first budget) priority-threshold))
           (doseq [derived derivations]
-            (cast! derived-load-reducer [:derived-sentence-msg (assoc derived :budget [(round2 4 (first budget)) (round2 4 (second budget)) 0.0] :evidence evidence)])))))
+            (cast! derived-load-reducer [:derived-sentence-msg (assoc derived :budget [(round2 4 (first budget)) (round2 4 (second budget)) 0.0]
+                                                                              :parent-statement (:statement task)
+                                                                              :evidence evidence)])))))
     (catch Exception e (debuglogger search display (str "inference error " (.toString e))))))
 
 (defn initialise

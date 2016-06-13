@@ -68,7 +68,8 @@
      :terms      (termlink-subterms content)
      :solution   nil
      :task-type  (:task-type sentence)
-     :statement  content}))
+     :statement  content
+     :parent-statement (:parent-statement sentence)}))
 
 (defn event?
   "tests whether the passed task sentence is an event"
