@@ -149,7 +149,6 @@
                   (q/stroke-weight 0.009))
                 (do
                   (q/stroke-weight weight)))
-              (q/stroke-weight weight)
               (q/line right-x right-y
                       middle-x middle-y))
             (when (not= nil name)
