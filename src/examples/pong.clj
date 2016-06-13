@@ -6,16 +6,20 @@
             [narjure.sensorimotor :refer :all]))
 
 (def py (atom 50))
+(def direction (atom 0))
 
 (defn setup-pong []
   (nars-input-narsese (str "<(*,{SELF}) --> op_up>!" ))
   (nars-input-narsese (str "<(*,{SELF}) --> op_down>!" ))
+  (nars-input-narsese (str "<(*,{SELF}) --> op_stop>!" ))
   (nars-input-narsese "<{SELF} --> [good]>!")
   (q/frame-rate 30)
   (nars-register-operation 'op_up (fn [args]
-                                    (reset! py (+ @py 100))))
+                                    (reset! direction 1)))
   (nars-register-operation 'op_down (fn [args]
-                                      (reset! py (- @py 100))))
+                                      (reset! direction -1)))
+  (nars-register-operation 'op_stop (fn [args]
+                                      (reset! direction 0)))
   (merge hnav/states {:ball-px 80
                       :ball-py 280
                       :direction-x 1
@@ -25,15 +29,20 @@
 
 (def fieldmax 760)
 (def fieldmin 20)
-(def allow-continuous-feedback true)
+(def allow-continuous-feedback false)
 
 (defn update-pong
   [state]
 
+  (when (= @direction -1)
+    (reset! py (+ @py -1)))
+  (when (= @direction 1)
+    (reset! py (+ @py 1)))
   (when (= (mod (:iteration state) 100) 0)
     (nars-input-narsese "<{SELF} --> [good]>!")
     (nars-input-narsese (str "<(*,{SELF}) --> op_up>!" ))
-    (nars-input-narsese (str "<(*,{SELF}) --> op_down>!" )))
+    (nars-input-narsese (str "<(*,{SELF}) --> op_down>!" ))
+    (nars-input-narsese (str "<(*,{SELF}) --> op_stop>!" )))
 
   (when (= (mod (:iteration state) 10) 0)
     #_(nars-input-narsese (str "<{" (int (* 100 (quot (:ball-py state) 100))) "} --> ballpos>. :|:" ))
