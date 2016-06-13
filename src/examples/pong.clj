@@ -5,7 +5,7 @@
             [narjure.core :as nar]
             [narjure.sensorimotor :refer :all]))
 
-(def py (atom 50))
+(def py (atom 280))
 (def direction (atom 0))
 
 (defn setup-pong []
@@ -24,20 +24,20 @@
                       :ball-py 280
                       :direction-x 1
                       :direction-y 1
-                      :barheight 100
+                      :barheight 200
                       :iteration 0}))
 
 (def fieldmax 760)
 (def fieldmin 20)
-(def allow-continuous-feedback false)
+(def allow-continuous-feedback true)
 
 (defn update-pong
   [state]
 
   (when (= @direction -1)
-    (reset! py (+ @py -1)))
+    (reset! py (+ @py -5)))
   (when (= @direction 1)
-    (reset! py (+ @py 1)))
+    (reset! py (+ @py 5)))
   (when (= (mod (:iteration state) 100) 0)
     (nars-input-narsese "<{SELF} --> [good]>!")
     (nars-input-narsese (str "<(*,{SELF}) --> op_up>!" ))
@@ -107,8 +107,9 @@
                    (assoc state6 :direction-x kset-x))
                  state6)]
 
-    (when (> @py fieldmax)
-      (reset! py fieldmax))
+    (println (str @py " " fieldmax))
+    (when (> @py (- fieldmax (:barheight state6) (- fieldmin)))
+      (reset! py (- fieldmax (:barheight state6) (- fieldmin))))
     (when (< @py fieldmin)
       (reset! py fieldmin))
 

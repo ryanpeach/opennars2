@@ -36,24 +36,25 @@
 
 ;HNAV implementation
 (defn mouse-pressed [graphs debugmessage state event]                           ;also HGUI click check here
-  (doseq [[V E w h] @graphs]
-    (doseq [v V]
-      (let [px (:px v)
-            py (:py v)
-            mousex (mouse-to-world-coord-x state (:x event))
-            mousey (mouse-to-world-coord-y state (:y event))]
-        (when (and (> mousex px) (> mousey py)
-                   (< mousex (+ px w)) (< mousey (+ py h)))
-          (when (not (= (:onclick v) nil))
-            ((:onclick v) state))
-          (when (not= nil (:name v))
-            (spit-clipboard (str (:name v))))
-          (when (contains? debugmessage (:name v))
-            (let [debugentry ((:name v) debugmessage)]
-              (when (not= nil debugentry)
-                (spit-clipboard (str (slurp-clipboard) (display-string debugmessage (:name v))))
-                (when (> (count debugentry) 1)
-                 (reset! input-string (second debugentry))))))))))
+  (when (not= [] graphs)
+    (doseq [[V E w h] @graphs]
+     (doseq [v V]
+       (let [px (:px v)
+             py (:py v)
+             mousex (mouse-to-world-coord-x state (:x event))
+             mousey (mouse-to-world-coord-y state (:y event))]
+         (when (and (> mousex px) (> mousey py)
+                    (< mousex (+ px w)) (< mousey (+ py h)))
+           (when (not (= (:onclick v) nil))
+             ((:onclick v) state))
+           (when (not= nil (:name v))
+             (spit-clipboard (str (:name v))))
+           (when (contains? debugmessage (:name v))
+             (let [debugentry ((:name v) debugmessage)]
+               (when (not= nil debugentry)
+                 (spit-clipboard (str (slurp-clipboard) (display-string debugmessage (:name v))))
+                 (when (> (count debugentry) 1)
+                   (reset! input-string (second debugentry)))))))))))
   (assoc state :savepx (:x event) :savepy (:y event) :md true))
 
 (defn mouse-dragged [state event]
