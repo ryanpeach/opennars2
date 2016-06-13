@@ -86,10 +86,10 @@
        prio-other (:priority ((:elements-map @c-bag) tl))
        association (t-and prio-me prio-other)
        disassocation (t-and prio-me (- 1.0 prio-other))
-       associative (min 1 (max 0 (- association disassocation)))
-       association-evidence-amount 0.01
+       frequency (+ 0.5 (/ (- association disassocation) 2.0))
+       sample-evidence-amount 0.01
        concept-max-termlinks 5
-       newstrength (revision old-truth [associative association-evidence-amount])]
+       newstrength (revision old-truth [frequency sample-evidence-amount])]
    (if (<= (count (:termlinks @state)) concept-max-termlinks)             ;link became too negative?
      (set-state! (assoc @state :termlinks (assoc (:termlinks @state)
                                            tl newstrength)))
