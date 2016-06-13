@@ -1,11 +1,9 @@
 (ns narjure.global-atoms
   (:require
-    [narjure.bag :as b]))
+    [narjure.bag :as b]
+    [narjure.defaults :refer :all]))
 
-(def max-concepts 1000) ;do not make too small (less than 50) as causes cyclic issue between task-dispatcher and concept-manager
 (def c-bag (atom (b/default-bag max-concepts)))
-
-(def max-events 50)
 (def e-bag (atom (b/default-bag max-events)))
 
 (def nars-time (atom 0))

@@ -4,7 +4,7 @@
      [core :refer :all]
      [actors :refer :all]]    [narjure.global-atoms :refer [c-bag lense-taskbags lense-termlinks]]
     [narjure.bag :as b]
-    [narjure.defaults :refer [priority-threshold]]
+    [narjure.defaults :refer [priority-threshold selection-count]]
     [clojure.math.numeric-tower :as math]
     [taoensso.timbre :refer [debug info]]
     [narjure.debug-util :refer :all]
@@ -12,8 +12,6 @@
   (:refer-clojure :exclude [promise await]))
 
 (def aname :concept-selector)
-(def selection-count 10) ;don't set higher if not on a sumpercomputer, will cause trouble
-
 (def display (atom '()))
 (def search (atom ""))
 

@@ -6,6 +6,7 @@
     [taoensso.timbre :refer [debug info]]
     [narjure.bag :as b]
     [narjure.control-utils :refer :all]
+    [narjure.defaults :refer :all]
     [narjure.memory-management.local-inference.local-inference-utils :refer [get-task-id]]
     [narjure.debug-util :refer :all])
   (:refer-clojure :exclude [promise await]))
@@ -14,14 +15,12 @@
 (def display (atom '()))                                    ; for lense output
 (def search (atom ""))                                      ; for lense output filtering
 
-(def max-derived-sentences 50)                              ; task bag capacity
-(def max-selections 10)                                     ; max selections per cycle
 (def derivation-bag (atom (b/default-bag max-derived-sentences)))      ; task bag
 
 (defn system-time-tick-handler
   "select n sentences from input bag and post to :task-creator"
   []
-  (doseq [n (range (min max-selections (b/count-elements @derivation-bag)))]
+  (doseq [n (range (min max-derived-selections (b/count-elements @derivation-bag)))]
     (let [[element derivation-bag'] (b/get-by-index @derivation-bag (selection-fn @derivation-bag))
           msg [:derived-sentence-msg [(:task element)]]]
       (reset! derivation-bag derivation-bag')

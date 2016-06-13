@@ -6,6 +6,7 @@
     [narjure.global-atoms :refer [c-bag]]
     [narjure.memory-management.concept :as c]
     [narjure.bag :as b]
+    [narjure.defaults :refer [c-priority]]
     [taoensso.timbre :refer [debug info]]
     [narjure.debug-util :refer :all])
   (:refer-clojure :exclude [promise await]))
@@ -13,7 +14,6 @@
 (def aname :concept-manager)                                   ; actor name
 (def display (atom '()))                                    ; for lense output
 (def search (atom ""))                                      ; for lense output filtering
-(def c-priority 0.5)                                        ; default concept priority
 
 (defn make-general-concept
   "Create a concept, for the supplied term, and add to

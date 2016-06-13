@@ -1,6 +1,7 @@
 (ns narjure.control-utils
   (:require
     [narjure.bag :as b]
+    [narjure.defaults :refer [max-evidence]]
     [clojure.math.numeric-tower :as math]))
 
 (defn round2
@@ -42,8 +43,6 @@
         new-budget  [new-priority (second budget)]]
     (assoc el :priority new-priority
               :task (assoc (:task el) :budget new-budget))))
-
-(def max-evidence 50)
 
 (defn make-ev-helper [e2 e1 sofar]
   (let [r1 (first e1)

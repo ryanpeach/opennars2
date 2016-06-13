@@ -4,6 +4,7 @@
      [core :refer :all]
      [actors :refer :all]]
     [narjure.global-atoms :refer :all]
+    [narjure.defaults :refer [max-event-selections]]
     [narjure.bag :as b]
     [clojure.math.numeric-tower :as math]
     [taoensso.timbre :refer [debug info]]
@@ -12,7 +13,6 @@
   (:refer-clojure :exclude [promise await]))
 
 (def aname :event-selector)                                 ; actor name
-(def max-event-selections 10)                               ; number of events to select per cycle
 (def display (atom '()))                                    ; for lense output
 (def search (atom ""))                                      ; for lense output filtering
 
