@@ -7,10 +7,15 @@
   [content]
   (and (sequential? content) (= (first content) :interval)))
 
+(defn variable? [t]
+  (and (coll? t) (or (= (first t) 'ind-var)
+                     (= (first t) 'dep-var)
+                     (= (first t) 'qu-var))))
+
 (defn compound?
   "Is the term a compound term?"
   [content]
-  (and (sequential? content) (not= (first content) :interval)))
+  (and (sequential? content) (not= (first content) :interval) (not (variable? content))))
 
 (defn syntactic-complexity
   "Calculates the syntactic complexity of a content term,
@@ -25,11 +30,6 @@
   #{'--> '<-> 'instance 'property 'instance-property '==> 'pred-impl '=|> 'retro-impl '<=> '</> '<|> 'ext-set 'int-set 'ext-inter '| '- 'int-dif '* 'ext-image 'int-image '-- '|| 'conj 'seq-conj '&|})
 
 (defn placeholder? [t] (= '_ t))
-
-(defn variable? [t]
-  (and (coll? t) (or (= (first t) 'ind-var)
-                     (= (first t) 'dep-var)
-                     (= (first t) 'qu-var))))
 
 (defn termlink-subterms
   "Extract the termlink relevant subterms of the term up to 3 levels as demanded by the NAL rules"

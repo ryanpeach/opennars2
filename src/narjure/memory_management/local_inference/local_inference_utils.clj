@@ -20,10 +20,18 @@
 (defn item [task]
   {:id (get-task-id task) :priority (first (:budget task))})
 
+(defn merge-budget [budg1 budg2]                            ;the one with higher priority determines the budget
+  (apply max-key first [budg1 budg2]))
+
 (defn add-to-tasks [state task]
   (let [bag (:tasks @state)
         el {:id (get-task-id task) :priority (first (:budget task)) :task task}
-        bag' (b/add-element bag el)]
+        [el2 _] (b/get-by-id bag (:id el))
+        el-new-budget (if el2
+                        (assoc el :budget (merge-budget (:budget task)
+                                                        (:budget (:task el2))))
+                        el)
+        bag' (b/add-element bag el-new-budget)]
     (set-state! (assoc @state :tasks bag'))))
 
 (defn add-to-anticipations [state task]

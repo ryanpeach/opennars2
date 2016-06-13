@@ -43,7 +43,7 @@
                          0.5
                          (expectation (:truth task)))
                        (occurrence-penalty-tr (:occurrence task)))
-                    (/ 1.0 1.0 #_(syntactic-complexity (:statement task))) 0.0]]
+                    (/ 1.0 (+ 1.0 (syntactic-complexity (:statement task)))) 0.0]]
         ; dont post if evidence is nil, saves multiple checks further down the pipe
         (when (and (not= evidence '()) (> (first budget) priority-threshold))
           (doseq [derived derivations]
