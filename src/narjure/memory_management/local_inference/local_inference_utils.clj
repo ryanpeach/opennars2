@@ -6,7 +6,7 @@
     [taoensso.timbre :refer [debug info]]
     [narjure.bag :as b]
     [narjure.global-atoms :refer :all]
-    [narjure.control-utils :refer [make-evidence]]
+    [narjure.control-utils :refer [make-evidence round2]]
     [narjure.perception-action.task-creator :refer :all]
     [nal.term_utils :refer :all]
     [nal.deriver.truth :refer [t-and t-or frequency confidence expectation]]
@@ -14,8 +14,14 @@
     [narjure.debug-util :refer :all])
   (:refer-clojure :exclude [promise await]))
 
+(defn truth-round [[f c :as truth]]
+  (if (= nil truth)
+    nil
+    [(round2 2 f)
+    (round2 2 c)]))
+
 (defn get-task-id [task]
-  [(:statement task) (:evidence task) (:task-type task) (:occurrence task) (:truth task)])
+  [(:statement task) (:evidence task) (:task-type task) (:occurrence task) (truth-round (:truth task))])
 
 (defn item [task]
   {:id (get-task-id task) :priority (first (:budget task))})
