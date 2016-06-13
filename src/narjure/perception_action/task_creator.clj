@@ -37,7 +37,7 @@
         content (:statement sentence)
         task-type (:task-type sentence)]
     {:truth (:truth sentence)
-     :desire (:desire sentence)
+     ;:desire (:desire sentence)
      :budget (:budget sentence)
      :occurrence toc
      :source :input
@@ -59,7 +59,7 @@
   [sentence syntactic-complexity]
   (let [content (:statement sentence)]
     {:truth      (:truth sentence)
-     :desire     (:desire sentence)
+     ;:desire     (:desire sentence)
      :budget     (:budget sentence)
      :occurrence (:occurrence sentence)
      :source     :derived

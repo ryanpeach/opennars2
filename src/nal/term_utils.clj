@@ -24,6 +24,8 @@
 (def logic-ops
   #{'--> '<-> 'instance 'property 'instance-property '==> 'pred-impl '=|> 'retro-impl '<=> '</> '<|> 'ext-set 'int-set 'ext-inter '| '- 'int-dif '* 'ext-image 'int-image '-- '|| 'conj 'seq-conj '&|})
 
+(defn placeholder? [t] (= '_ t))
+
 (defn termlink-subterms
   "Extract the termlink relevant subterms of the term up to 3 levels as demanded by the NAL rules"
   ([level content]
@@ -31,7 +33,7 @@
      (reduce set/union #{content} (map (partial termlink-subterms (inc level)) content))
      #{content}))
   ([content]
-   (remove #(or (logic-ops %) (interval? %))
+   (remove #(or (logic-ops %) (interval? %) (placeholder? %))
            (termlink-subterms 0 content))))
 
 
