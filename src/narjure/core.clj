@@ -19,7 +19,8 @@
      [task-creator :refer [task-creator]]]
     [narjure.narsese :refer [parse2]]
     [taoensso.timbre :refer [info set-level!]]
-    [narjure.bag :as b])
+    [narjure.bag :as b]
+    [narjure.defaults :refer :all])
   (:refer-clojure :exclude [promise await])
   (:import (ch.qos.logback.classic Level)
            (org.slf4j LoggerFactory)

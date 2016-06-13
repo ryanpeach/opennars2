@@ -75,6 +75,19 @@
         questions (filter #(= (:task-type %) :question ) tasks)
         anticipations (get-anticipations state)]
 
+    ;also allow revision in subterm concepts! this is why statement is compared to task statement, not to ID!!
+    (let [projected-beliefs (map #(project-eternalize-to (:occurrence task) % @nars-time) (filter #(= (:statement %) (:statement task)) beliefs))]
+
+        (let [total-revision (reduce (fn [a b] (if (non-overlapping-evidence? (:evidence a) (:evidence b))
+                                                 (revise a b :belief)
+                                                 a))
+                                     task (shuffle projected-beliefs))]
+          ;add task to bag
+          (add-to-tasks state total-revision)
+          ;check if it satisfies a goal or question and change budget accordingly
+          (satisfaction-based-budget-change state total-revision goals)
+          (answer-based-budget-change state total-revision questions)))
+
     ; processing revised anticipations
     (when (= (:source task) :input)
       (when (not-empty anticipations)
@@ -83,33 +96,21 @@
           (when (non-overlapping-evidence? (:evidence task) (:evidence projected-anticipation))
             (add-to-anticipations state (revise projected-anticipation task :anticipation))))))
 
-    ;also allow revision in subterm concepts! this is why statement is compared to task statement, not to ID!!
-    (let [projected-beliefs (map #(project-eternalize-to (:occurrence task) % @nars-time) (filter #(= (:statement %) (:statement task)) beliefs))]
-      (when (< cnt 1)
-        (doseq [revisable (filter #(non-overlapping-evidence? (:evidence task) (:evidence %)) projected-beliefs)]
-         ;revise beliefs and add to tasks
-         (process-belief state (revise task revisable :belief) (inc cnt)))))
-
-    ;add task to bag
-    (add-to-tasks state task)
-    ;check if it satisfies a goal or question and change budget accordingly
-    (satisfaction-based-budget-change state task goals)
-    (answer-based-budget-change state task questions)
-
-      ;generate neg confirmation for expired anticipations
+    ;generate neg confirmation for expired anticipations
     ;and add to tasks
     (when (not-empty anticipations)
       (doseq [anticipation anticipations]
-       (when (expired? anticipation)
-         (let [neg-confirmation (create-negative-confirmation-task anticipation)]
-           ;add neg-confirmation to tasks bag and remove anticiptaion from anticipation bag
-           (remove-anticipation state anticipation)
-           ;(set-state! (assoc @state :anticipations (b/get-by-id (:anticipations @state) anticipation)))
-           (add-to-tasks state neg-confirmation)))))
+        (when (expired? anticipation)
+          (let [neg-confirmation (create-negative-confirmation-task anticipation)]
+            ;add neg-confirmation to tasks bag and remove anticiptaion from anticipation bag
+            (remove-anticipation state anticipation)
+            ;(set-state! (assoc @state :anticipations (b/get-by-id (:anticipations @state) anticipation)))
+            (add-to-tasks state neg-confirmation)))))
 
     ;when task is confirmable and observabnle
     ;add an anticipation tasks to tasks
     (when (confirmable-observable? task)
       (let [anticipated-task (create-anticipation-task task)]
         (when (not (b/exists? (:anticipations @state) (get-task-id anticipated-task)))
-          (add-to-anticipations state anticipated-task))))))
+          (add-to-anticipations state anticipated-task))))
+    ))

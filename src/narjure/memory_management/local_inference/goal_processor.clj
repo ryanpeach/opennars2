@@ -35,9 +35,10 @@
 
 (defn operation? [task]
   (let [st (:statement task)]
-    (if (and (= (first st) '-->)
-                    (coll? (second st))
-                    (= (first (second st)) '*))
+    (if (and (coll? st)
+             (= (first st) '-->)
+             (coll? (second st))
+             (= (first (second st)) '*))
       (let [op (nth st 2)]
         (and (not (coll? op))
              (clojure.string/starts-with? (name op) "op_")))
@@ -73,21 +74,19 @@
         beliefs (filter #(= (:task-type %) :belief) tasks)
         quests (filter #(= (:task-type %) :quest ) tasks)]
 
-    ;filter beliefs matching concept content
-    ;(project to task time
+    ;also allow revision in subterm concepts! this is why statement is compared to task statement, not to ID!!
     (let [projected-goals (map #(project-eternalize-to (:occurrence task) % @nars-time) (filter #(= (:statement %) (:statement task)) goals))]
-      ;revise task with revisable goals
-      (when (< cnt 1)
-        (doseq [revisable (filter #(non-overlapping-evidence? (:evidence task) (:evidence %)) projected-goals)]
-         ;revise goals and add to tasks
-         (process-goal state (revise task revisable :goal) (inc cnt)))))
 
-    ;add task to bag
-    (add-to-tasks state task)
-    ; check to see if revised or task is answer to quest and increase budget accordingly
-    ;check whether it is fullfilled by belief and decrease budget accordingly
-    (satisfaction-based-budget-change state task beliefs)
-    (answer-based-budget-change state task quests)
+      (let [total-revision (reduce (fn [a b] (if (non-overlapping-evidence? (:evidence a) (:evidence b))
+                                               (revise a b :goal)
+                                               a))
+                                   task (shuffle projected-goals))]
+        ;add task to bag
+        (add-to-tasks state total-revision)
+        ; check to see if revised or task is answer to quest and increase budget accordingly
+        ;check whether it is fullfilled by belief and decrease budget accordingly
+        (satisfaction-based-budget-change state total-revision beliefs)
+        (answer-based-budget-change state total-revision quests)))
 
     ;best operation project goal to current time
     ; if above decision threshold then execute
