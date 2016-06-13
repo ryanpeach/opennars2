@@ -35,9 +35,9 @@
   [state]
 
   (when (= @direction -1)
-    (reset! py (+ @py -5)))
+    (reset! py (+ @py -3)))
   (when (= @direction 1)
-    (reset! py (+ @py 5)))
+    (reset! py (+ @py 3)))
   (when (= (mod (:iteration state) 100) 0)
     (nars-input-narsese "<{SELF} --> [good]>!")
     (nars-input-narsese (str "<(*,{SELF}) --> op_up>!" ))
@@ -107,7 +107,6 @@
                    (assoc state6 :direction-x kset-x))
                  state6)]
 
-    (println (str @py " " fieldmax))
     (when (> @py (- fieldmax (:barheight state6) (- fieldmin)))
       (reset! py (- fieldmax (:barheight state6) (- fieldmin))))
     (when (< @py fieldmin)
