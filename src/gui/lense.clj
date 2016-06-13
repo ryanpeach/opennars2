@@ -29,6 +29,11 @@
      [(- 255 colr) (- 255 colg) (- 255 colb)]
      [colr colg colb]))
 
+(defn invert-comp [v]
+  (if (= (deref invert-colors) true)
+    (- 255 v)
+    v))
+
 (defn bag-format [st]
   (clojure.string/replace st "}" "}\n"))
 
@@ -131,17 +136,24 @@
                   r (first col)
                   g (second col)
                   b (nth col 2)]
-              (q/stroke r g b))
+
+              (q/stroke r g b)
             (q/stroke-weight (* weight 2.0))
             (q/line left-x left-y
                     middle-x target-y)
             (when (and (:unidirectional c)
                        (not (:opposite-edge-exists c)))
+              (if (:ghost-opposite c)
+                (do
+                  (q/stroke (invert-comp 220.0))
+                  (q/stroke-weight 0.009))
+                (do
+                  (q/stroke-weight weight)))
               (q/stroke-weight weight)
               (q/line right-x right-y
                       middle-x middle-y))
             (when (not= nil name)
-              (q/text (str name) namepos-x namepos-y)))))))
+              (q/text (str name) namepos-x namepos-y))))))))
   (q/stroke (first (invert-color [0 0 0])))
   (doseq [a nodes]
     (when (in-picture state (assoc a :px (+ (:px a) (/ node-width 2.0))
@@ -196,7 +208,10 @@
                                                 (invert-color [rterm 0.0 bterm])
                                                 [0.0 (* 0.5 rterm) (* 0.5 bterm)])
                         :name                 (when @link-labels [freq conf])
-                        :opposite-edge-exists true}))
+                        :opposite-edge-exists (some (fn [[tl2 _]]
+                                                      (= tl2 (:id n)))
+                                                    (@lense-termlinks k))
+                        :ghost-opposite       true}))
              concept-graph [(filter #(not= % nil) nodes) edges 10 10]]
          (reset! graphs (concat static-graphs [concept-graph])))
        (catch Exception e (println e))))
