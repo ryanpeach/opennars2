@@ -26,6 +26,11 @@
 
 (defn placeholder? [t] (= '_ t))
 
+(defn variable? [t]
+  (and (coll? t) (or (= (first t) 'ind-var)
+                     (= (first t) 'dep-var)
+                     (= (first t) 'qu-var))))
+
 (defn termlink-subterms
   "Extract the termlink relevant subterms of the term up to 3 levels as demanded by the NAL rules"
   ([level content]
@@ -33,7 +38,7 @@
      (reduce set/union #{content} (map (partial termlink-subterms (inc level)) content))
      #{content}))
   ([content]
-   (remove #(or (logic-ops %) (interval? %) (placeholder? %))
+   (remove #(or (logic-ops %) (interval? %) (placeholder? %) (variable? %))
            (termlink-subterms 0 content))))
 
 
