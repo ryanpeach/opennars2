@@ -176,11 +176,11 @@
   "Update the concept budget"
   (let [concept-state @state
         tasks (:priority-index (:tasks concept-state))      ; :priority-index ok here
-        priority-sum (reduce t-or (for [x tasks] (:priority x)))
+        priority-sum (round2 3 (reduce t-or (for [x tasks] (:priority x))))
         quality-rescale 0.1
         el {:id       (:id @state)
             :priority priority-sum
-            :quality  (Math/max (concept-quality) (* quality-rescale priority-sum))
+            :quality  (round2 3 (Math/max (concept-quality) (* quality-rescale priority-sum)))
             :ref      @self}]
     ;update c-bag directly instead of message passing
     (swap! c-bag b/add-element el)))
