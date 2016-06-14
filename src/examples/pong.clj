@@ -11,14 +11,14 @@
 (defn setup-pong []
   (nars-input-narsese (str "<(*,{SELF}) --> op_up>! :|:" ))
   (nars-input-narsese (str "<(*,{SELF}) --> op_down>! :|:" ))
-  #_(nars-input-narsese (str "<(*,{SELF}) --> op_stop>!" ))
+  (nars-input-narsese (str "<(*,{SELF}) --> op_stop>!" ))
   (nars-input-narsese "<{SELF} --> [good]>! :|:")
   (q/frame-rate 30)
   (nars-register-operation 'op_up (fn [args]
                                     (reset! direction 1)))
   (nars-register-operation 'op_down (fn [args]
                                       (reset! direction -1)))
-  #_(nars-register-operation 'op_stop (fn [args]
+  (nars-register-operation 'op_stop (fn [args]
                                       (reset! direction 0)))
   (merge hnav/states {:ball-px 80
                       :ball-py 280
@@ -38,12 +38,16 @@
     (reset! py (+ @py -3)))
   (when (= @direction 1)
     (reset! py (+ @py 3)))
-  (when (= (mod (:iteration state) 10) 0)
-    (nars-input-narsese "<{SELF} --> [good]>! :|:"))
+  (when (= (mod (:iteration state) 20) 0)
+    (nars-input-narsese "<{SELF} --> [good]>! :|:")
+    (nars-input-narsese "<{SELF} --> [good]>. %0%")
+    (nars-input-narsese "<{SELF} --> [below]>. %0%")
+    (nars-input-narsese "<{SELF} --> [equal]>. %0%")
+    (nars-input-narsese "<{SELF} --> [above]>. %0%"))
   (when (= (mod (:iteration state) 2000) 0)
     (nars-input-narsese (str "<(*,{SELF}) --> op_up>!  :|:" ))
     (nars-input-narsese (str "<(*,{SELF}) --> op_down>!  :|:" ))
-    #_(nars-input-narsese (str "<(*,{SELF}) --> op_stop>!" )))
+    (nars-input-narsese (str "<(*,{SELF}) --> op_stop>! :|:" )))
 
   (when (= (mod (:iteration state) 10) 0)
     #_(nars-input-narsese (str "<{" (int (* 100 (quot (:ball-py state) 100))) "} --> ballpos>. :|:" ))
@@ -83,7 +87,7 @@
                       fieldmin)
                  (do
                    (nars-input-narsese "<{SELF} --> [good]>. :|: %0.0;0.9%")
-                   (nars-input-narsese "<{SELF} --> [good]>!")
+                   (nars-input-narsese "<{SELF} --> [good]>! :|:")
                    ;(println "bad NARS")
                    (assoc state3 :direction-x kset-x))
                  state3)
@@ -103,7 +107,7 @@
                         (<= (:ball-py state6) (+ @py (:barheight state6))))
                  (do
                    (nars-input-narsese "<{SELF} --> [good]>. :|: %1.0;0.9%")
-                   (nars-input-narsese "<{SELF} --> [good]>!")
+                   (nars-input-narsese "<{SELF} --> [good]>! :|:")
                    ;(println "good NARS")
                    (assoc state6 :direction-x kset-x))
                  state6)]

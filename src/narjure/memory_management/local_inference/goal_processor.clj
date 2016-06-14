@@ -81,8 +81,10 @@
                                                (revise a b :goal)
                                                a))
                                    task (shuffle projected-goals))]
-        ;add task to bag
+        ;add revised task to bag
         (add-to-tasks state total-revision)
+        ;add task to bag
+        (add-to-tasks state task)
         ; check to see if revised or task is answer to quest and increase budget accordingly
         ;check whether it is fullfilled by belief and decrease budget accordingly
         (satisfaction-based-budget-change state total-revision beliefs)

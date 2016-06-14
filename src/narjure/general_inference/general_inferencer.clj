@@ -57,7 +57,7 @@
     (catch Exception e (debuglogger search display (str "inference error " (.toString e))))))
 
 (defn begin-count-handler [_ _]
-  #_(when (pos? (:all-inference-requests @state))
+  (when (pos? (:all-inference-requests @state))
     (println (str
                "[GI] all-inference-requests: " (:all-inference-requests @state)
                ", non-overlapping-inference-requests: " (:non-overlapping-inference-requests @state)

@@ -112,9 +112,11 @@
          (if (not-empty projected-belief-tuples)
            ;(println projected-beliefs)
            ;(println "not empty pb: " projected-beliefs)
-           (let [[not-projected-belief belief] (apply max-key (comp confidence second) projected-belief-tuples)]
-             (debuglogger search display ["selected belief:" belief "§"])
-             (cast! (:general-inferencer @state) [:do-inference-msg [task not-projected-belief]])
+           (let [#_[not-projected-belief belief] #_(apply max-key (comp confidence second) projected-belief-tuples)]
+             #_(cast! (:general-inferencer @state) [:do-inference-msg [task not-projected-belief]])
+             (doseq [belief beliefs]
+               (debuglogger search display ["selected belief:" belief "§"])
+               (cast! (:general-inferencer @state) [:do-inference-msg [task belief]])
              (try
                ;1. check whether belief matches by unifying the question vars in task
                (when (and (= (:task-type task) :question)
@@ -138,7 +140,7 @@
                        ;and replace it with the one having the better solution. (reducing priority here though according to solution before send)
                        (when-let [{c-ref :ref} ((:elements-map @c-bag) (:statement task))]
                          (cast! c-ref [:solution-update-msg task newtask]))))))
-               (catch Exception e (debuglogger search display (str "what-question error " (.toString e)))))
+               (catch Exception e (debuglogger search display (str "what-question error " (.toString e))))))
 
              ))
          ;dummy? belief as "empty" termlink belief selection for structural inference
