@@ -18,7 +18,7 @@
 (def search (atom ""))
 
 (defn occurrence-penalty-tr [occ]
-  (let [k 0.01]
+  (let [k 0.0001]
     (if (= occ :eternal)
       1.0
       (/ 1.0 (+ 1.0 (* k (Math/abs (- @nars-time occ))))))))
