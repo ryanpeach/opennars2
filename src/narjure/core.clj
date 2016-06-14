@@ -10,8 +10,8 @@
      [task-dispatcher :refer [task-dispatcher]]]
     [narjure.general-inference
      [concept-selector :refer [concept-selector]]
-     [event-selector :refer [event-selector]]
-     [general-inferencer :refer [general-inferencer]]]
+     [general-inferencer :refer [general-inferencer]]
+     [inference-request-router :refer [inference-request-router]]]
     [narjure.perception-action
      [operator-executor :refer [operator-executor]]
      [sentence-parser :refer [sentence-parser]]
@@ -27,14 +27,13 @@
            (java.util.concurrent TimeUnit))
   (:gen-class))
 
-(def inference-tick-interval 25)
-(def system-tick-interval 10)
-(def sentence-tick-interval 500)
-
-(defn inference-tick []
-  (cast! (whereis :concept-selector) [:inference-tick-msg])
-  ;(cast! (whereis :event-selector) [:inference-tick-msg])
-  )
+(def system-tick-interval 10)                               ;make big enough
+(def inference-tick-interval 50)                             ;a=how much messages come from general inference to load balancer per second
+                                ;b=how much messages come from load balancer to task dispatcher per second
+(def sentence-tick-interval 500)                            ;case1: b=a all results let through  because system-tick-interval fast enough compared to inference-tick-interval
+                                                            ;case2: b<a load balancer lets only through a subset of the derived results because
+(defn inference-tick []                                     ;inference-tick-interval is fast enough compared to system-tick-interval
+  (cast! (whereis :concept-selector) [:inference-tick-msg]))
 
 (defn system-tick []
   (cast! (whereis :task-creator) [:system-time-tick-msg])
@@ -78,16 +77,19 @@
 ; supervisor test code
 (def child-specs
   #(list
+    ["0" :permanent 5 5 :sec 100 (inference-request-router)]
     ["1" :permanent 5 5 :sec 100 (derived-load-reducer)]
-    ["2" :permanent 5 5 :sec 100 (general-inferencer)]
+    ["2.0" :permanent 5 5 :sec 100 (general-inferencer :ge0)]
+    ["2.1" :permanent 5 5 :sec 100 (general-inferencer :ge1)]
+    ["2.2" :permanent 5 5 :sec 100 (general-inferencer :ge2)]
+    ["2.3" :permanent 5 5 :sec 100 (general-inferencer :ge3)]
+    ["2.4" :permanent 5 5 :sec 100 (general-inferencer :ge4)]
     ["3" :permanent 5 5 :sec 100 (concept-selector)]
-    ; ["4" :permanent 5 5 :sec 100 (event-selector)]
-    ["5" :permanent 5 5 :sec 100 (concept-manager)]
-    ["6" :permanent 5 5 :sec 100 (task-dispatcher)]
-    ["7" :permanent 5 5 :sec 100 (task-creator)]
-    ["8" :permanent 5 5 :sec 100 (operator-executor)]
-    ["9" :permanent 5 5 :sec 100 (sentence-parser)]
-    ))
+    ["4" :permanent 5 5 :sec 100 (concept-manager)]
+    ["5" :permanent 5 5 :sec 100 (task-dispatcher)]
+    ["6" :permanent 5 5 :sec 100 (task-creator)]
+    ["7" :permanent 5 5 :sec 100 (operator-executor)]
+    ["8" :permanent 5 5 :sec 100 (sentence-parser)]))
 
 (def sup (atom '()))
 

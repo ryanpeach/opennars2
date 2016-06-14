@@ -7,8 +7,8 @@
             [seesaw.core :refer :all]
             [gui.globals :refer :all]
             [narjure.core :as nar]
+            [narjure.general-inference.inference-request-router :as inference-request-router]
             [narjure.general-inference.concept-selector :as concept-selector]
-            [narjure.general-inference.event-selector :as event-selector]
             [narjure.general-inference.general-inferencer :as general-inferencer]
             [narjure.memory-management.concept-manager :as concept-manager]
             [narjure.memory-management.task-dispatcher :as task-dispatcher]
@@ -47,11 +47,10 @@
                 (str (bagfilter filteratom
                                 (:priority-index bag))) 20000)))
 
-(def debugmessage {:event-selector       [(fn [] (deref event-selector/display)) event-selector/search]
+(def debugmessage {:inference-request-router [(fn [] (deref inference-request-router/display)) inference-request-router/search]
                    :concept-selector     [(fn [] (deref concept-selector/display)) concept-selector/search]
                    :general-inferencer   [(fn [] (deref general-inferencer/display)) general-inferencer/search]
                    :concept-manager      [(fn [] (deref concept-manager/display)) concept-manager/search]
-                   ;:event-buffer         [(fn [] (deref event-buffer/display)) event-buffer/search]
                    :task-dispatcher      [(fn [] (deref task-dispatcher/display)) task-dispatcher/search]
                    :operator-executor    [(fn [] (deref operator-executor/display)) operator-executor/search]
                    :sentence-parser      [(fn [] (deref sentence-parser/display)) sentence-parser/search]
@@ -60,7 +59,6 @@
                    :concept-bag          [(fn [] (bagshow @c-bag concept-filter)) concept-filter]
                    :event-bag            [(fn [] (bagshow @e-bag event-filter)) event-filter]
                    :derived-load-reducer [(fn [] (deref derived-load-reducer/display)) derived-load-reducer/search]
-                   ;:input-load-reducer   [(fn [] (deref input-load-reducer/display)) input-load-reducer/search]
                    :input                [(fn [] "") inputstr]
                    :output               [(fn [] (deref output-display)) output-search]
                    :+prioThres [(fn [] (deref prio-threshold))]})

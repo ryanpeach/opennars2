@@ -19,6 +19,7 @@
             ;{:name :input-load-reducer :px 400 :py -325}
             {:name :operator-executor :px -100 :py -150 :backcolor [255 200 200]}
             ;{:name :event-buffer :px 200 :py 150}
+            {:name :inference-request-router :px 400 :py 450 :backcolor derived-task-color}
             {:name :general-inferencer :px 400 :py 300 :backcolor derived-task-color}
             {:name :derived-load-reducer :px 400 :py 150 :backcolor util-color}
             #_{:name :event-selector :px 600 :py 150 :backcolor task-color}
@@ -27,10 +28,11 @@
             {:name :concept-bag :px 75 :py 300 :backcolor concept-color}
             {:name :output :px 600 :py -400 :backcolor gui-color}])
 
-(def edges [{:name ":create-concept-msg" :from :task-dispatcher :to :concept-manager :unidirectional true}
+(def edges [{:name ":do-inference-msg" :from :inference-request-router :to :general-inferencer :unidirectional true}
+            {:name ":create-concept-msg" :from :task-dispatcher :to :concept-manager :unidirectional true}
             {:name ":task-msg" :from :concept-manager :to :task-dispatcher :unidirectional true}
             ;{:from :task-dispatcher :to :event-buffer :unidirectional true}
-            {:name "              :do-inference-msg" :from :concepts :to :general-inferencer :unidirectional true}
+            {:name "              :do-inference-msg" :from :concepts :to :inference-request-router :unidirectional true}
             {:name ":operator-execution-msg" :from :concepts :to :operator-executor :unidirectional true}
             {:name ":derived-sentence-msg" :from :operator-executor :to :task-creator :unidirectional true}
             #_{:name ":do-inference-msg" :from :event-selector :to :general-inferencer :unidirectional true}

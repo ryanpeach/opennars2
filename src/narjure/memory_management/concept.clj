@@ -116,7 +116,7 @@
              #_(cast! (:general-inferencer @state) [:do-inference-msg [task not-projected-belief]])
              (doseq [belief beliefs]
                (debuglogger search display ["selected belief:" belief "§"])
-               (cast! (:general-inferencer @state) [:do-inference-msg [task belief]])
+               (cast! (:inference-request-router @state) [:do-inference-msg [task belief]])
              (try
                ;1. check whether belief matches by unifying the question vars in task
                (when (and (= (:task-type task) :question)
@@ -146,7 +146,7 @@
          ;dummy? belief as "empty" termlink belief selection for structural inference
          (let [belief {:statement (:id @state) :task-type :question :occurrence @nars-time :evidence '()}]
            (debuglogger search display ["selected belief:" belief "§"])
-           (cast! (:general-inferencer @state) [:do-inference-msg [task belief]]))
+           (cast! (:inference-request-router @state) [:do-inference-msg [task belief]]))
          )
        (catch Exception e (debuglogger search display (str "belief request error " (.toString e))))))
 
@@ -253,7 +253,7 @@
                :termlinks          {}
                :anticipations      (b/default-bag max-anticipations)
                :concept-manager    (whereis :concept-manager)
-               :general-inferencer (whereis :general-inferencer)
+               :inference-request-router (whereis :inference-request-router)
                :last-forgotten     @nars-time}))
 
 (defn msg-handler
