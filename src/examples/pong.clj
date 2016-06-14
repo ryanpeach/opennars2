@@ -9,10 +9,10 @@
 (def direction (atom 0))
 
 (defn setup-pong []
-  (nars-input-narsese (str "<(*,{SELF}) --> op_up>!" ))
-  (nars-input-narsese (str "<(*,{SELF}) --> op_down>!" ))
+  (nars-input-narsese (str "<(*,{SELF}) --> op_up>! :|:" ))
+  (nars-input-narsese (str "<(*,{SELF}) --> op_down>! :|:" ))
   #_(nars-input-narsese (str "<(*,{SELF}) --> op_stop>!" ))
-  (nars-input-narsese "<{SELF} --> [good]>!")
+  (nars-input-narsese "<{SELF} --> [good]>! :|:")
   (q/frame-rate 30)
   (nars-register-operation 'op_up (fn [args]
                                     (reset! direction 1)))
@@ -39,10 +39,10 @@
   (when (= @direction 1)
     (reset! py (+ @py 3)))
   (when (= (mod (:iteration state) 10) 0)
-    (nars-input-narsese "<{SELF} --> [good]>!"))
+    (nars-input-narsese "<{SELF} --> [good]>! :|:"))
   (when (= (mod (:iteration state) 2000) 0)
-    (nars-input-narsese (str "<(*,{SELF}) --> op_up>!" ))
-    (nars-input-narsese (str "<(*,{SELF}) --> op_down>!" ))
+    (nars-input-narsese (str "<(*,{SELF}) --> op_up>!  :|:" ))
+    (nars-input-narsese (str "<(*,{SELF}) --> op_down>!  :|:" ))
     #_(nars-input-narsese (str "<(*,{SELF}) --> op_stop>!" )))
 
   (when (= (mod (:iteration state) 10) 0)
