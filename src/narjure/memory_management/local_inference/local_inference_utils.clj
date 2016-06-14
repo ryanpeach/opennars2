@@ -29,12 +29,12 @@
 (defn merge-budget [budg1 budg2]                            ;the one with higher priority determines the budget
   (apply max-key first [budg1 budg2]))
 
-(defn add-to-tasks [state task]
+#_(defn add-to-tasks [state task]
   (let [bag (:tasks @state)
         el {:id (get-task-id task) :priority (first (:budget task)) :task task}
         [el2 _] (b/get-by-id bag (:id el))
         el-new-budget (if el2
-                        (assoc el :budget (merge-budget (:budget task)
+                        (assoc el :budget (merge-budget (:budget task) ; error here - el does not contain budget should be in : task
                                                         (:budget (:task el2))))
                         el)
         bag' (b/add-element bag el-new-budget)]
@@ -42,6 +42,21 @@
             (= (:source task) :derived)
             (= (:task-type task) :goal))
       (println (str "goal added " (:statement task))))
+    (set-state! (assoc @state :tasks bag'))))
+
+(defn make-element [task]
+  {:id (get-task-id task) :priority (first (:budget task)) :task task})
+
+(defn add-to-tasks [state task]
+  (let [bag (:tasks @state)
+        el (make-element task)
+        [existing-el _] (b/get-by-id bag (:id el))
+        new-budget (if existing-el
+                     (merge-budget (:budget task)
+                                   (get-in existing-el [:task :budget]))
+                     (get-in el [:task :budget]))
+        new-el (make-element (assoc task :budget new-budget))
+        bag' (b/add-element bag new-el)]
     (set-state! (assoc @state :tasks bag'))))
 
 (defn add-to-anticipations [state task]

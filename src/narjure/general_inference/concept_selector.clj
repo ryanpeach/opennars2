@@ -20,6 +20,7 @@
    inference-request-message to each selected
    concept"
   [from [msg]]
+  (cast! (whereis :general-inferencer) [:begin-count-msg])
   (doseq [[k v] @lense-taskbags]                            ;is empty if not in debug so can stay here for now since we
     (when-not (b/exists? @c-bag k)                          ;don't want mem to get full just because lense isn't running
       (swap! lense-taskbags (fn [old] (dissoc old k))) ;element doesnt exist anymore
