@@ -38,6 +38,10 @@
                                                         (:budget (:task el2))))
                         el)
         bag' (b/add-element bag el-new-budget)]
+    (when (and
+            (= (:source task) :derived)
+            (= (:task-type task) :goal))
+      (println (str "goal added " (:statement task))))
     (set-state! (assoc @state :tasks bag'))))
 
 (defn add-to-anticipations [state task]

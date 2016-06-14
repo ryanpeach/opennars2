@@ -43,6 +43,7 @@
      :source :input
      :evidence (list (get-id))
      :sc syntactic-complexity
+     :depth 1
      :terms (termlink-subterms content)
      :solution nil
      :task-type task-type
@@ -65,6 +66,7 @@
      :source     :derived
      :evidence   (:evidence sentence)
      :sc         syntactic-complexity
+     :depth      (:depth sentence)
      :terms      (termlink-subterms content)
      :solution   nil
      :task-type  (:task-type sentence)

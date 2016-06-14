@@ -25,7 +25,7 @@
       (doseq [[belief belief-task-projected-to-goal] projected-list]
         (when (better-solution belief goal-task)
           ;update budget and solution
-          (potential-output-answer state goal-task belief)
+          ;(potential-output-answer state goal-task belief)
           (let [new-goal (reduced-goal-budget-by-belief goal-task belief-task-projected-to-goal)
                 new-goal-with-solution (assoc new-goal :solution belief)]
             (update-task-in-tasks state new-goal-with-solution goal-task))
