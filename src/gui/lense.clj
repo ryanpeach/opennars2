@@ -37,8 +37,6 @@
 (defn bag-format [st]
   (clojure.string/replace st "}" "}\n"))
 
-(def concept-filter (atom ""))
-(def event-filter (atom ""))
 (defn bagfilter [fil bag]
   (apply vector (filter (fn [x] (.contains (str x) (deref fil))) bag)))
 
@@ -57,7 +55,6 @@
                    :task-creator         [(fn [] (deref task-creator/display)) task-creator/search]
                    :concepts             [(fn [] (deref concepts/display)) concepts/search]
                    :concept-bag          [(fn [] (bagshow @c-bag concept-filter)) concept-filter]
-                   :event-bag            [(fn [] (bagshow @e-bag event-filter)) event-filter]
                    :derived-load-reducer [(fn [] (deref derived-load-reducer/display)) derived-load-reducer/search]
                    :input                [(fn [] "") inputstr]
                    :output               [(fn [] (deref output-display)) output-search]
