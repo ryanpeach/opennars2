@@ -33,7 +33,7 @@
       (let [derivations (filter #(not= (:statement %) (:parent-statement task)) (inference task belief))
             evidence (make-evidence (:evidence task) (:evidence belief))
             derivation-depth (if (not (:depth task)) 1 (:depth task))
-            task-type-penalty (fn [type statement] (if (= type :belief) 0.5 1.0))
+            task-type-penalty (fn [type] (if (= type :belief) 0.5 1.0))
             derived-load-reducer (whereis :derived-load-reducer)]
         ; dont post if evidence is nil, saves multiple checks further down the pipe
         (when (not= evidence '())

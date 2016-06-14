@@ -38,7 +38,7 @@
                                                         (:budget (:task el2))))
                         el)
         bag' (b/add-element bag el-new-budget)]
-    (when (and
+    #_(when (and
             (= (:source task) :derived)
             (= (:task-type task) :goal))
       (println (str "goal added " (:statement task))))
@@ -71,16 +71,12 @@
 (defn no-duplicate [M]
   (= (count (set M)) (count M)))
 
-(defn merge-budget-different-evidence [budg1 budg2]                            ;the one with higher priority determines the budget
-  (let [highest (apply max-key first [budg1 budg2])]
-    [(t-or (first budg1) (first budg2)) (max (second budg1) (second budg2))]))
-
 (defn revise [t1 t2 kw]
   (let [revised-truth (nal.deriver.truth/revision (:truth t1) (:truth t2))
         evidence (make-evidence (:evidence t1) (:evidence t2))]
     (when-not (no-duplicate evidence)
       (println (str "nope " kw)))
-    (create-revised-task t1 revised-truth evidence (merge-budget-different-evidence (:budget t1) (:budget t2)))))
+    (create-revised-task t1 revised-truth evidence (merge-budget (:budget t1) (:budget t2)))))
 
 (defn better-solution [solution task]
   (let [projected-solution (project-eternalize-to (:occurrence task) solution @nars-time)
