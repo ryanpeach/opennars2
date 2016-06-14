@@ -64,19 +64,23 @@
 
 (defn create-revised-task
   "create a revised task with the provided sentence, truth and default value"
-  [sentence truth evidence]
+  [sentence truth evidence budget]
   ;todo budget should be updated
-  (assoc sentence :truth truth :evidence evidence))
+  (assoc sentence :truth truth :evidence evidence :budget budget))
 
 (defn no-duplicate [M]
   (= (count (set M)) (count M)))
+
+(defn merge-budget-different-evidence [budg1 budg2]                            ;the one with higher priority determines the budget
+  (let [highest (apply max-key first [budg1 budg2])]
+    [(t-or (first budg1) (first budg2)) (max (second budg1) (second budg2))]))
 
 (defn revise [t1 t2 kw]
   (let [revised-truth (nal.deriver.truth/revision (:truth t1) (:truth t2))
         evidence (make-evidence (:evidence t1) (:evidence t2))]
     (when-not (no-duplicate evidence)
       (println (str "nope " kw)))
-    (create-revised-task t1 revised-truth evidence)))
+    (create-revised-task t1 revised-truth evidence (merge-budget-different-evidence (:budget t1) (:budget t2)))))
 
 (defn better-solution [solution task]
   (let [projected-solution (project-eternalize-to (:occurrence task) solution @nars-time)

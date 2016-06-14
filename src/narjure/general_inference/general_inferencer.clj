@@ -33,20 +33,22 @@
       (let [derivations (filter #(not= (:statement %) (:parent-statement task)) (inference task belief))
             evidence (make-evidence (:evidence task) (:evidence belief))
             derivation-depth (if (not (:depth task)) 1 (:depth task))
-            derived-load-reducer (whereis :derived-load-reducer)
-            budget [(* (first (:budget task))               ;im not sure anymore whether task parent priority is good here
-                       (if (= nil (:truth task)) ;needs discussing.
-                         0.5
-                         (expectation (:truth task)))
-                       (occurrence-penalty-tr (:occurrence task))
-                       (/ 1.0 derivation-depth))
-                    (/ 1.0 (+ 1.0 (syntactic-complexity (:statement task)))) 0.0]]
+            task-type-penalty (fn [type statement] (if (= type :belief) 0.5 1.0))
+            derived-load-reducer (whereis :derived-load-reducer)]
         ; dont post if evidence is nil, saves multiple checks further down the pipe
-        (when (and (not= evidence '()) (> (first budget) priority-threshold))
+        (when (not= evidence '())
           (doseq [derived derivations]
-            (cast! derived-load-reducer [:derived-sentence-msg (assoc derived :budget [(round2 4 (first budget)) (round2 4 (second budget)) 0.0]
-                                                                              :parent-statement (:statement task) :depth (inc derivation-depth)
-                                                                              :evidence evidence)])))))
+            (let [budget [(* (first (:budget task))               ;im not sure anymore whether task parent priority is good here
+                             (task-type-penalty (:task-type derived))
+                             (if (= nil (:truth derived)) ;needs discussing.
+                                 1.0
+                                 (expectation (:truth derived)))
+                             (occurrence-penalty-tr (:occurrence derived)))
+                          (/ 1.0 (+ 1.0 derivation-depth (syntactic-complexity (:statement derived)))) 0.0]]
+              (when (> (first budget) priority-threshold)
+                (cast! derived-load-reducer [:derived-sentence-msg (assoc derived :budget [(round2 4 (first budget)) (round2 4 (second budget)) 0.0]
+                                                                                 :parent-statement (:statement task) :depth (inc derivation-depth)
+                                                                                 :evidence evidence)])))))))
     (catch Exception e (debuglogger search display (str "inference error " (.toString e))))))
 
 (defn initialise

@@ -6,7 +6,7 @@
 (def truth-value
   [belief-frequency belief-confidence])
 
-(def belief-priority 0.6)
+(def belief-priority 0.1)
 (def belief-durability 0.2)
 ;todo clarify this
 (def belief-quality 0.0)
@@ -25,7 +25,7 @@
 (def goal-confidence 0.9)
 (def goal-priority 0.99)
 (def goal-quality 0.0)
-(def goal-durability 0.8)
+(def goal-durability 0.95)
 
 (def goal-budget
   [goal-priority goal-durability goal-quality])
@@ -45,7 +45,7 @@
 (def priority-threshold 0.001)                              ; concepts and tasks have to be above this to be processed
 (def selection-count 10)                                    ; don't set higher if not on a sumpercomputer, will cause trouble
 (def termlink-single-sample-evidence-amount 0.01)           ; default conf for termlink truth value
-(def concept-max-termlinks 5)                               ; max size of termlink bag per concept
+(def concept-max-termlinks 10)                              ; max size of termlink bag per concept
 (def max-tasks 10)                                          ; max size of task bag per concept
 (def max-anticipations 5)                                   ; max size of anticipation bag per concept
 (def max-concepts 1000)                                     ; do not make too small (less than 50) as causes cyclic issue between task-dispatcher and concept-manager
