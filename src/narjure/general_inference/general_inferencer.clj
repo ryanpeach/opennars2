@@ -28,17 +28,17 @@
     generated derived results, budget and occurrence time for derived tasks.
     Posts derived sentences to task creator"
   [from [msg [task belief]]]
-  #_(set-state! (update @state :all-inference-requests inc))  ;for stats tracking
+  (set-state! (update @state :all-inference-requests inc))  ;for stats tracking
   (try
     (when (non-overlapping-evidence? (:evidence task) (:evidence belief))
-      #_(set-state! (update @state :non-overlapping-inference-requests inc))      ;for stats tracking
+      (set-state! (update @state :non-overlapping-inference-requests inc))      ;for stats tracking
       (let [pre-filtered-derivations (inference task belief)]
         (let [filtered-derivations (filter #(not= (:statement %) (:parent-statement task)) pre-filtered-derivations)
              evidence (make-evidence (:evidence task) (:evidence belief))
              derivation-depth (if (not (:depth task)) 1 (:depth task))
              task-type-penalty (fn [type] (if (= type :belief) 0.5 1.0))
              derived-load-reducer (whereis :derived-load-reducer)]
-          #_(set-state! (update @state :pre-filtered-derivations + (count pre-filtered-derivations)))      ;for stats tracking
+          (set-state! (update @state :pre-filtered-derivations + (count pre-filtered-derivations)))      ;for stats tracking
          ; dont post if evidence is nil, saves multiple checks further down the pipe
          (when (not= evidence '())
            (doseq [derived filtered-derivations]
@@ -50,7 +50,7 @@
                               (occurrence-penalty-tr (:occurrence derived)))
                            (/ 1.0 (+ 1.0 derivation-depth (syntactic-complexity (:statement derived)))) 0.0]]
                (when (> (first budget) priority-threshold)
-                 #_(set-state! (update @state :filtered-derivations inc))              ;for stats tracking
+                 (set-state! (update @state :filtered-derivations inc))              ;for stats tracking
                  (cast! derived-load-reducer [:derived-sentence-msg (assoc derived :budget [(round2 4 (first budget)) (round2 4 (second budget)) 0.0]
                                                                                    :parent-statement (:statement task) :depth (inc derivation-depth)
                                                                                    :evidence evidence)]))))))))
@@ -58,8 +58,8 @@
 
 (defn begin-count-handler [_ _]
   (when (pos? (:all-inference-requests @state))
-    #_(println (str
-               "[GI] all-inference-requests: " (:all-inference-requests @state)
+    (println (str
+               "[GI(" (:name @state) ")] all-inference-requests: " (:all-inference-requests @state)
                ", non-overlapping-inference-requests: " (:non-overlapping-inference-requests @state)
                ", pre-filtered-derivations: " (:pre-filtered-derivations @state)
                ", filtered-derivations: " (:filtered-derivations @state))))
@@ -74,7 +74,8 @@
       registers actor and sets actor state"
   [aname actor-ref]
   (reset! display '())
-  (register! aname actor-ref))
+  (register! aname actor-ref)
+  (set-state! {:name aname :all-inference-requests 0 :non-overlapping-inference-requests 0 :pre-filtered-derivations 0 :filtered-derivations 0}))
 
 (defn msg-handler
   "Identifies message type and selects the correct message handler.
