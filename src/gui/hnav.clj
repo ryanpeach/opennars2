@@ -79,3 +79,15 @@
              :savepx 0.0
              :savepy 0.0
              :zoom   1.0})
+
+;todo put at appropriate place:
+(defn invert-color
+  [[colr colg colb]]
+  (if (= (deref invert-colors) true)
+    [(- 255 colr) (- 255 colg) (- 255 colb)]
+    [colr colg colb]))
+
+(defn invert-comp [v]
+  (if (= (deref invert-colors) true)
+    (- 255 v)
+    v))

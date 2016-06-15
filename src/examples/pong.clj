@@ -124,11 +124,11 @@
 
 
 (defn draw-pong [state]
-  (q/background (gui.lense/invert-comp 255))
-  (q/stroke (gui.lense/invert-comp 0))
+  (q/background (hnav/invert-comp 255))
+  (q/stroke (hnav/invert-comp 0))
   (q/reset-matrix)
   (hnav/transform state)
-  (q/fill (gui.lense/invert-comp 255))
+  (q/fill (hnav/invert-comp 255))
   (q/rect fieldmin fieldmin fieldmax fieldmax)
   (q/fill 128)
   (q/rect 25 @py 10 (:barheight state))
