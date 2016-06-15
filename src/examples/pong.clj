@@ -2,6 +2,7 @@
   (:require [quil.core :as q]
             [quil.middleware :as m]
             [gui.hnav :as hnav]
+            [gui.globals :refer [invert-comp]]
             [narjure.core :as nar]
             [narjure.sensorimotor :refer :all]))
 
@@ -124,11 +125,11 @@
 
 
 (defn draw-pong [state]
-  (q/background (hnav/invert-comp 255))
-  (q/stroke (hnav/invert-comp 0))
+  (q/background (invert-comp 255))
+  (q/stroke (invert-comp 0))
   (q/reset-matrix)
   (hnav/transform state)
-  (q/fill (hnav/invert-comp 255))
+  (q/fill (invert-comp 255))
   (q/rect fieldmin fieldmin fieldmax fieldmax)
   (q/fill 128)
   (q/rect 25 @py 10 (:barheight state))

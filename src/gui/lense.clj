@@ -64,9 +64,9 @@
 
 (defn draw-actor [{:keys [name px py backcolor frontcolor displaysize titlesize stroke-weight]} node-width node-height]
   (q/stroke-weight (if (= nil stroke-weight) 1.0 stroke-weight))
-  (apply q/fill (hnav/invert-color (if (= backcolor nil) [255 255 255] backcolor)))
+  (apply q/fill (invert-color (if (= backcolor nil) [255 255 255] backcolor)))
   (q/rect px py node-width node-height)
-  (apply q/fill (hnav/invert-color (if (= frontcolor nil) [0 0 0] frontcolor)))
+  (apply q/fill (invert-color (if (= frontcolor nil) [0 0 0] frontcolor)))
   (q/text-size (if (= nil titlesize) 10.0 titlesize))
   (q/text (nameof name) (+ px 5) (+ py (if (= nil titlesize) 10.0 titlesize)))
   (q/text-size (if (= displaysize nil) 2.0 displaysize))
@@ -114,8 +114,8 @@
                     (in-picture state (pointf namepos-x namepos-y))
                     (in-picture state (pointf middle-x middle-y)))
             (let [eval-color (if (= nil (:link-color c) )
-                               (hnav/invert-color [0 0 0])
-                               (hnav/invert-color (:link-color c)))
+                               (invert-color [0 0 0])
+                               (invert-color (:link-color c)))
                   col eval-color
                   r (first col)
                   g (second col)
@@ -129,7 +129,7 @@
                        (not (:opposite-edge-exists c)))
               (if (:ghost-opposite c)
                 (do
-                  (q/stroke (hnav/invert-comp 220.0))
+                  (q/stroke (invert-comp 220.0))
                   (q/stroke-weight 0.009))
                 (do
                   (q/stroke-weight weight)))
@@ -137,7 +137,7 @@
                       middle-x middle-y))
             (when (not= nil name)
               (q/text (str name) namepos-x namepos-y))))))))
-  (q/stroke (first (hnav/invert-color [0 0 0])))
+  (q/stroke (first (invert-color [0 0 0])))
   (doseq [a nodes]
     (when (in-picture state (assoc a :px (+ (:px a) (/ node-width 2.0))
                                      :py (+ (:py a) (/ node-height 2.0))))
@@ -147,7 +147,7 @@
 
 ;copy of draw below marked as draw2
 (defn draw [state]
-  (q/background (first (hnav/invert-color [255 255 255])))
+  (q/background (first (invert-color [255 255 255])))
   (q/reset-matrix)
   (hnav/transform state)
   (doseq [g @graphs]
@@ -187,8 +187,8 @@
                        {:from                 (:id n)
                         :to                   k :unidirectional true
                         :stroke-weight        (* 0.5 conf)
-                        :link-color           (if @hnav/invert-color
-                                                (hnav/invert-color [(+ 128.0 rterm) 128.0 (+ 128.0 bterm)])
+                        :link-color           (if @invert-colors
+                                                (invert-color [(+ 128.0 rterm) 128.0 (+ 128.0 bterm)])
                                                 [0.0 (+ 0 rterm) (+ 0 bterm)])
                         :name                 (when @link-labels [freq conf])
                         :opposite-edge-exists (some (fn [[tl2 _]]

@@ -7,6 +7,17 @@
 (def link-labels (atom false))
 (def concept-filter (atom "_DELETE_ME_"))
 
+(defn invert-color
+  [[colr colg colb]]
+  (if (= (deref invert-colors) true)
+    [(- 255 colr) (- 255 colg) (- 255 colb)]
+    [colr colg colb]))
+
+(defn invert-comp [v]
+  (if (= (deref invert-colors) true)
+    (- 255 v)
+    v))
+
 (defn get-clipboard []
   (.getSystemClipboard (java.awt.Toolkit/getDefaultToolkit)))
 
