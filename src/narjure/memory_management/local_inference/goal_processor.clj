@@ -84,7 +84,8 @@
         ;add revised task to bag
         (add-to-tasks state total-revision)
         ;add task to bag
-        (add-to-tasks state task)
+        (when (not= task total-revision)
+          (add-to-tasks state task))
         ; check to see if revised or task is answer to quest and increase budget accordingly
         ;check whether it is fullfilled by belief and decrease budget accordingly
         (satisfaction-based-budget-change state total-revision beliefs)

@@ -85,7 +85,8 @@
           ;add revised task to bag:
           (add-to-tasks state total-revision)
           ;add task to bag also:
-          (add-to-tasks state task)
+          (when (not= task total-revision)
+            (add-to-tasks state task))
           ;check if it satisfies a goal or question and change budget accordingly
           (satisfaction-based-budget-change state total-revision goals)
           (answer-based-budget-change state total-revision questions)))
