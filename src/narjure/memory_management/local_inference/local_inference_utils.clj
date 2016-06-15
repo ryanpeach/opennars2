@@ -46,12 +46,25 @@
 (defn make-element [task]
   {:id (get-task-id task) :priority (first (:budget task)) :task task})
 
+(defn take-better-solution [result t1 t2]
+  (let [sol1 (:solution t1)
+        sol2  (:solution t2)]
+    (if (or (not= nil sol1)
+            (not= nil sol2)) ;project both to result time and then use the better solution for our result:
+      (let [sol1-proj (project-eternalize-to (:occurrence result) sol1 @nars-time)
+            sol2-proj (project-eternalize-to (:occurrence result) sol2 @nars-time)
+            best-solution (apply max-key
+                                 (fn [a] (second (:truth a)))
+                                 (filter #(not= nil %) [sol1-proj sol2-proj]))]
+        (assoc result :solution best-solution))
+      result)))
+
 (defn choice [t1 t2]
-  (if (= t2 nil)
-    t1
-    (if (not= nil (:truth t1) (:truth t2))
-      (max-key (comp measure-truth :truth) t1 t2)
-      (max-key (comp measure-budget :budget) t1 t2))))
+  (if (= t2 nil)                                            ;no previous bag entry exists
+    t1                                                      ;so take the new one
+    (if (not= nil (:truth t1))
+      (take-better-solution (max-key (comp measure-truth :truth) t1 t2) t1 t2)
+      (take-better-solution (max-key (comp measure-budget :budget) t1 t2) t1 t2))))
 
 #_(defn choice [t1 t2]
   (if (= t2 nil)
