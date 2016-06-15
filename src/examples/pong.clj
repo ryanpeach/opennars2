@@ -126,10 +126,11 @@
 (defn draw-pong [state]
   (q/background (gui.lense/invert-comp 255))
   (q/stroke (gui.lense/invert-comp 0))
-  (q/fill (gui.lense/invert-comp 255))
   (q/reset-matrix)
   (hnav/transform state)
+  (q/fill (gui.lense/invert-comp 255))
   (q/rect fieldmin fieldmin fieldmax fieldmax)
+  (q/fill 128)
   (q/rect 25 @py 10 (:barheight state))
   (q/rect (:ball-px state) (:ball-py state) 10 10))
 
