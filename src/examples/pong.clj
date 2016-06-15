@@ -16,9 +16,9 @@
   (nars-input-narsese "<{SELF} --> [good]>! :|:")
   (q/frame-rate 30)
   (nars-register-operation 'op_up (fn [args]
-                                    (reset! direction 1)))
+                                    (reset! direction -1)))
   (nars-register-operation 'op_down (fn [args]
-                                      (reset! direction -1)))
+                                      (reset! direction 1)))
   (nars-register-operation 'op_stop (fn [args]
                                       (reset! direction 0)))
   (merge hnav/states {:ball-px 80

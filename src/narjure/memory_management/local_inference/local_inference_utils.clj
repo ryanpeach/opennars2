@@ -40,35 +40,27 @@
 (defn max-budget [budg1 budg2]                            ;the one with higher priority determines the budget
   (apply max-key measure-budget [budg1 budg2]))
 
-#_(defn add-to-tasks [state task]
-  (let [bag (:tasks @state)
-        el {:id (get-task-id task) :priority (first (:budget task)) :task task}
-        [el2 _] (b/get-by-id bag (:id el))
-        el-new-budget (if el2
-                        (assoc el :budget (merge-budget (:budget task) ; error here - el does not contain budget should be in : task
-                                                        (:budget (:task el2))))
-                        el)
-        bag' (b/add-element bag el-new-budget)]
-    #_(when (and
-            (= (:source task) :derived)
-            (= (:task-type task) :goal))
-      (println (str "goal added " (:statement task))))
-    (set-state! (assoc @state :tasks bag'))))
+(defn measure-truth [tv]                                    ; higher confidence means higher evaluation
+  (second tv))
 
 (defn make-element [task]
   {:id (get-task-id task) :priority (first (:budget task)) :task task})
 
 (defn choice [t1 t2]
-  ; if t2 is nil then t1
-  ;   if (not= nil (:truth t1) (:truth t2)
-  ;     (case (> (second (:truth t1)) (second (:truth t2)))
-  ;     (case (> (first (:budget t1)) (first (:budget t2))
+  (if (= t2 nil)
+    t1
+    (if (not= nil (:truth t1) (:truth t2))
+      (max-key (comp measure-truth :truth) t1 t2)
+      (max-key (comp measure-budget :budget) t1 t2))))
+
+#_(defn choice [t1 t2]
   (if (= t2 nil)
     t1
     (if (not= nil (:truth t1) (:truth t2))
       (case (>= (second (:truth t1)) (second (:truth t2)))
         true t1
         false t2)
+      (max-key (comp measure-truth :truth) t1 t2)
       (max-key (comp measure-budget :budget) t1 t2))))
 
 (defn add-to-tasks [state task]
@@ -81,18 +73,6 @@
                                  (:budget t2))
                      (:budget task))
         new-el (make-element (assoc chosen-task :budget new-budget))
-        bag' (b/add-element bag new-el)]
-    (set-state! (assoc @state :tasks bag'))))
-
-#_(defn add-to-tasks [state task]
-  (let [bag (:tasks @state)
-        el (make-element task)
-        [existing-el _] (b/get-by-id bag (:id el))
-        new-budget (if existing-el
-                     (merge-budget (:budget task)
-                                   (get-in existing-el [:task :budget]))
-                     (get-in el [:task :budget]))
-        new-el (make-element (assoc task :budget new-budget))
         bag' (b/add-element bag new-el)]
     (set-state! (assoc @state :tasks bag'))))
 

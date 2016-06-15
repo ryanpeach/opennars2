@@ -37,6 +37,12 @@
   ""
   [from [_ task]]
   (debuglogger search display ["task processed:" task])
+  ; check observable and set if necessary
+  (when-not (:observable @state)
+    (let [{:keys [occ source]} task]
+      (when (and (= occ :event) (= source :input))
+       (set-state! (assoc @state :observable true)))))
+
   (case (:task-type task)
     :belief (process-belief state task 0)
     :goal (process-goal state task 0)
@@ -171,6 +177,7 @@
     (set-state! (assoc @state :tasks (b/default-bag max-tasks)))
     (doseq [[_ el] tasks]
       (let [el' (forget-task el last-forgotten)]
+        ;(println (str "forgetting: " (get-in el' [:task :statement])))
         (set-state! (assoc @state :tasks (b/add-element (:tasks @state) el')))))
     (set-state! (assoc @state :last-forgotten @nars-time))))
 
@@ -254,7 +261,8 @@
                :anticipations      (b/default-bag max-anticipations)
                :concept-manager    (whereis :concept-manager)
                :inference-request-router (whereis :inference-request-router)
-               :last-forgotten     @nars-time}))
+               :last-forgotten     @nars-time
+               :observable false}))
 
 (defn msg-handler
   "Identifies message type and selects the correct message handler.

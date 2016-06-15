@@ -23,7 +23,7 @@
   (doseq [n (range (min max-derived-selections (b/count-elements @derivation-bag)))]
     (let [[element derivation-bag'] (b/get-by-index @derivation-bag (selection-fn @derivation-bag))
           msg [:derived-sentence-msg [(:task element)]]]
-      (reset! derivation-bag derivation-bag')
+      ;(reset! derivation-bag derivation-bag')
       (cast! (whereis :task-creator) msg)
       ;(cast! (:task-creator @state) msg) ; see register-task-creator-handler for comments
       (debuglogger search display [:forward msg]))))

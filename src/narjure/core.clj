@@ -98,8 +98,8 @@
   (info "Resetting concepts bagss:")
   (reset! c-bag (b/default-bag max-concepts))
   (info "c-bag count: " (b/count-elements @c-bag))
-  (reset! e-bag (b/default-bag max-events))
-  (info "e-bag count: " (b/count-elements @e-bag))
+  ;(reset! e-bag (b/default-bag max-events))
+  ;(info "e-bag count: " (b/count-elements @e-bag))
 
   (info "Reset system Parameters:")
   (reset! nars-id -1)
@@ -128,7 +128,7 @@
   (stop-timers)
 
   (shutdown! @sup)
-
+  ;(Thread/sleep 3000)
   (info "System shutdown complete."))
 
 ; call main function

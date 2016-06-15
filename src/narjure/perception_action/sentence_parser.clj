@@ -17,7 +17,7 @@
   "Parses a narsese string and posts a :sentence-msg to input-load-reducer"
   [from [msg string]]
   (try (let [sentence (parse2 string)]
-         (cast! (:task-creator @state) [:sentence-msg sentence]))
+         (cast! (whereis :task-creator) [:sentence-msg sentence]))
        (catch Exception e (debuglogger search display (str "parsing error " (.toString e))))))
 
 (defn msg-handler
@@ -34,9 +34,7 @@
       registers actor and sets actor state"
   [aname actor-ref]
   (reset! display '())
-  (register! aname actor-ref)
-  ; caches task-creator reference for performance
-  (set-state! {:task-creator (whereis :task-creator)}))
+  (register! aname actor-ref))
 
 (defn sentence-parser
   "creates gen-server for sentence-parser. This is used by the system supervisor"
