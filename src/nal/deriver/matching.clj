@@ -332,7 +332,7 @@
                         other)))))
 
   (defn conds-priorities-map
-    "Generates the map of priorities for coditions according to their frequency."
+    "Generates the map of priorities for conditions according to their frequency."
     [conds]
     (->> (mapcat (fn [[cnds k]]
                    (if (not-empty cnds)
@@ -344,7 +344,7 @@
 
   (defn sort-conds
     "Sorts conditions in conditions->conclusions map according to the map of
-     priorities of conditions. If condition occurs frequntly it will have higher
+     priorities of conditions. If condition occurs frequently it will have higher
      priority."
     [conds cpm]
     (map (fn [[cnds k]] [(sort-by cpm cnds) k]) conds))
