@@ -213,7 +213,7 @@
           ;(update-concept-budget)
           (debuglogger search display ["selected inference task:" el])
           ;now search through termlinks, get the endpoint concepts, and form a bag of them
-          (let [initbag (b/default-bag 10)
+          (let [initbag (b/default-bag concept-max-termlinks)
                 resbag (reduce (fn [a b] (b/add-element a b)) initbag (for [[k v] (:termlinks @state)]
                                                                         {:priority (:priority (first (b/get-by-id @c-bag k)))
                                                                          :id       k}))
