@@ -3,8 +3,10 @@
        [co.paralleluniverse.pulsar
         [core :refer :all]
         [actors :refer :all]]
-       [narjure.narsese :refer [parse2]        ]
-       [narjure.global-atoms :refer [nars-time]])
+       [narjure.narsese :refer [parse2]]
+       [nal.deriver.truth :refer [expectation]]
+       [nal.deriver.projection-eternalization :refer [project-eternalize-to]]
+       [narjure.global-atoms :refer [lense-taskbags nars-time]])
      (:refer-clojure :exclude [promise await]))
 
 (defn get-bag-atom [atom]
@@ -30,3 +32,15 @@
 (defn test [n]
   (time
     (test-parser n)))
+
+(defn max-statement-confidence-projected-to-now [concept-term task-type]
+  (let [li (filter (fn [z] (= (:task-type (:task (second z))) task-type))
+                             (:elements-map ((deref lense-taskbags) term)))]
+              (if (= (count li) 0)
+                {:truth [0.5 0.0]}
+                (project-eternalize-to
+                  (deref nars-time)
+                  (:task (second (apply max-key (fn [y]
+                                                  (second (:truth (:task (second y)))))
+                                        li)))
+                  (deref nars-time)))))
