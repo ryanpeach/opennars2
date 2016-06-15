@@ -40,7 +40,7 @@
   ; check observable and set if necessary
   (when-not (:observable @state)
     (let [{:keys [occ source]} task]
-      (when (and (= occ :event) (= source :input))
+      (when (and (= occ :event) (= source :input) (= (:statement task) (:id @state)))
        (set-state! (assoc @state :observable true)))))
 
   (case (:task-type task)
@@ -204,8 +204,13 @@
     (try
       (when (pos? (b/count-elements task-bag))
         (let [[el] (b/lookup-by-index task-bag (selection-fn task-bag))]
-          (forget-tasks)
-          (update-concept-budget)
+          (try
+            (forget-tasks)
+            (update-concept-budget)
+            (catch Exception e (debuglogger search display (str "forget/update error " (.toString e)))))
+
+          ;(forget-tasks)
+          ;(update-concept-budget)
           (debuglogger search display ["selected inference task:" el])
           ;now search through termlinks, get the endpoint concepts, and form a bag of them
           (let [initbag (b/default-bag 10)

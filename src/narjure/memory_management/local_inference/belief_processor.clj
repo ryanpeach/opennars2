@@ -25,8 +25,7 @@
                                (second (:budget anticipation))]))
 
 (defn confirmable-observable? [task]
-  ;todo check state for observable
-  (not= (:occurrence task) :eternal))
+  (and (:observable @state) (not= (:occurrence task) :eternal)))
 
 (defn create-anticipation-task [task]
   (assoc task :task-type :anticipation :expiry (+ (:occurrence task) 100)))
