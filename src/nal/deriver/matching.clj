@@ -114,7 +114,7 @@
 
 (defn match-rules
   "Generates code of function that will match premises. Generated function
-  should be called with task and beleif as arguments."
+  should be called with task and belief as arguments."
   [rules pattern task-type]
   (let [t1 (gensym) t2 (gensym)
         task (gensym) belief (gensym)
