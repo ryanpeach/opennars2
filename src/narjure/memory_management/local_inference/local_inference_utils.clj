@@ -20,14 +20,25 @@
     [(round2 2 f)
     (round2 2 c)]))
 
+(defn occurrence-type [occ]
+  (case occ
+    :eternal :eternal
+    :event))
+
 (defn get-task-id [task]
+  [(:statement task) (:task-type task) (occurrence-type (:occurrence task))])
+
+#_(defn get-task-id [task]
   [(:statement task) (:evidence task) (:task-type task) (:occurrence task) (truth-round (:truth task))])
 
 (defn item [task]
   {:id (get-task-id task) :priority (first (:budget task))})
 
-(defn merge-budget [budg1 budg2]                            ;the one with higher priority determines the budget
-  (apply max-key first [budg1 budg2]))
+(defn measure-budget [budg]
+  (first budg))                                             ;higher priority means higher evaluation similar as for confidence in truth consideration
+
+(defn max-budget [budg1 budg2]                            ;the one with higher priority determines the budget
+  (apply max-key measure-budget [budg1 budg2]))
 
 #_(defn add-to-tasks [state task]
   (let [bag (:tasks @state)
@@ -47,7 +58,33 @@
 (defn make-element [task]
   {:id (get-task-id task) :priority (first (:budget task)) :task task})
 
+(defn choice [t1 t2]
+  ; if t2 is nil then t1
+  ;   if (not= nil (:truth t1) (:truth t2)
+  ;     (case (> (second (:truth t1)) (second (:truth t2)))
+  ;     (case (> (first (:budget t1)) (first (:budget t2))
+  (if (= t2 nil)
+    t1
+    (if (not= nil (:truth t1) (:truth t2))
+      (case (>= (second (:truth t1)) (second (:truth t2)))
+        true t1
+        false t2)
+      (max-key (comp measure-budget :budget) t1 t2))))
+
 (defn add-to-tasks [state task]
+  (let [bag (:tasks @state)
+        el (make-element task)
+        [{t2 :task :as existing-el} _] (b/get-by-id bag (:id el))
+        chosen-task (choice task t2)
+        new-budget (if existing-el
+                     (max-budget (:budget task)
+                                 (:budget t2))
+                     (:budget task))
+        new-el (make-element (assoc chosen-task :budget new-budget))
+        bag' (b/add-element bag new-el)]
+    (set-state! (assoc @state :tasks bag'))))
+
+#_(defn add-to-tasks [state task]
   (let [bag (:tasks @state)
         el (make-element task)
         [existing-el _] (b/get-by-id bag (:id el))
@@ -91,7 +128,7 @@
         evidence (make-evidence (:evidence t1) (:evidence t2))]
     (when-not (no-duplicate evidence)
       (println (str "nope " kw)))
-    (create-revised-task t1 revised-truth evidence (merge-budget (:budget t1) (:budget t2)))))
+    (create-revised-task t1 revised-truth evidence (max-budget (:budget t1) (:budget t2)))))
 
 (defn better-solution [solution task]
   (let [projected-solution (project-eternalize-to (:occurrence task) solution @nars-time)

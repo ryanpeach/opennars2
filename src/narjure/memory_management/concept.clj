@@ -261,13 +261,6 @@
    if there is no match it generates a log message for the unhandled message"
   [from [type :as message]]
   (debuglogger search display message)
-  (when (pos? debug-messages)
-    (swap! lense-taskbags
-           (fn [dic]
-             (assoc dic (:id @state) (:tasks @state))))
-    (swap! lense-termlinks
-           (fn [dic]
-             (assoc dic (:id @state) (:termlinks @state)))))
   (case type
     :termlink-create-msg (termlink-create-handler from message)
     :task-msg (task-handler from message)
@@ -277,7 +270,15 @@
     :set-concept-state-msg (set-concept-state-handler from message)
     :solution-update-msg (solution-update-handler from message)
     :shutdown (shutdown-handler from message)
-    (debug (str "unhandled msg: " type))))
+    (debug (str "unhandled msg: " type)))
+  (when (pos? debug-messages)
+    (swap! lense-taskbags
+           (fn [dic]
+             (assoc dic (:id @state) (:tasks @state))))
+    (swap! lense-termlinks
+           (fn [dic]
+             (assoc dic (:id @state) (:termlinks @state)))))
+  )
 
 (defn concept [name]
   (gen-server

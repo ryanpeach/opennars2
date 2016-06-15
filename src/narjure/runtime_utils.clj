@@ -35,7 +35,7 @@
 
 (defn max-statement-confidence-projected-to-now [concept-term task-type]
   (let [li (filter (fn [z] (= (:task-type (:task (second z))) task-type))
-                             (:elements-map ((deref lense-taskbags) term)))]
+                             (:elements-map ((deref lense-taskbags) concept-term)))]
               (if (= (count li) 0)
                 {:truth [0.5 0.0]}
                 (project-eternalize-to

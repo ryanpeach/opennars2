@@ -21,7 +21,7 @@
    concept"
   [from [msg]]
   ; send begin-count message to all general-inferencers
-  (doseq [actor [:ge0 :ge1 :ge2 :ge3 :ge4]]
+  #_(doseq [actor [:ge0 :ge1 :ge2 :ge3 :ge4]]
     (cast! (whereis actor) [:begin-count-msg]))
 
   (doseq [[k v] @lense-taskbags]                            ;is empty if not in debug so can stay here for now since we
