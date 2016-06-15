@@ -64,7 +64,7 @@
              :savepx (:x event)
              :savepy (:y event))))
 
-(def scrollcamspeed 1.1)
+(def scrollcamspeed 1.3)
 (defn mouse-wheel [state mouse-scroll]
   (let [zoom-before (:zoom state)
         state2 (if (> mouse-scroll 0)
