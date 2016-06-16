@@ -116,7 +116,9 @@
               pointf (fn [a b] {:px a :py b})
               name (:name c)]
           (when (or (in-picture state (pointf left-x left-y) hud)
-                    (in-picture state (pointf namepos-x namepos-y) hud))
+                    name
+                    (and @link-labels
+                         (in-picture state (pointf namepos-x namepos-y) hud)))
 
             (let [eval-color (if (= nil (:link-color c) )
                                (invert-color [0 0 0])
@@ -171,14 +173,13 @@
   (doseq [g @graphs]
     (draw-graph state g false))
   ;concept graph
-  (println (str (hnav/mouse-to-world-coord-x state (hnav/width))))
   (reset! graphs static-graphs)
   (when (> (hnav/mouse-to-world-coord-x state (hnav/width)) 1600)
     (try (let [elems (apply vector (:priority-index (deref c-bag)))
               nodes (for [i (range (count elems))]
                       (let [elem (elems i)
                             ratio (* 30.0 (+ 0.10 (/ i (count elems))))
-                            a 50.0
+                            a 100.0
                             id (:id elem)
                             priority (:priority elem)
                             quality (:quality ((:elements-map (deref c-bag)) id))]
