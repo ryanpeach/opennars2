@@ -90,7 +90,7 @@
         evidence (make-evidence (:evidence t1) (:evidence t2))]
     #_(when-not (no-duplicate evidence)
       (println (str "nope " kw)))
-    (assoc t1 :truth revised-truth :evidence evidence :budget (max-budget (:budget t1) (:budget t2)))))
+    (assoc t1 :truth revised-truth :source :derived :evidence evidence :budget (max-budget (:budget t1) (:budget t2)))))
 
 (defn better-solution [solution task]
   (let [projected-solution (project-eternalize-to (:occurrence task) solution @nars-time)

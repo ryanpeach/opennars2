@@ -19,8 +19,7 @@
     if feedback msg required posts :sentence-msg to task creator"
   [from [msg operationgoal]]
   (let [feedback (assoc operationgoal :task-type :belief
-                                      :occurrence @nars-time
-                                      :budget [0.9 0.8 0.5])
+                                      :occurrence @nars-time)
         operation (:statement operationgoal)
         arguments (rest (second operation))
         operator (nth operation 2)]
@@ -29,7 +28,7 @@
              (func arguments)))
       (catch Exception e (debuglogger search display (str "operator execution error " (.toString e)))))
     (output-task :execution operationgoal)
-    (cast! (whereis :task-creator) [:derived-sentence-msg [feedback (:budget feedback) (:evidence operationgoal)]]))) ;derived-sentence so we keep evidence trail
+    (cast! (whereis :task-creator) [:sentence-msg feedback]))) ;derived-sentence so we keep evidence trail
 
 (defn msg-handler
   "Identifies message type and selects the correct message handler.

@@ -34,9 +34,9 @@
             ;{:from :task-dispatcher :to :event-buffer :unidirectional true}
             {:name "                  :do-inference-msg" :from :concepts :to :inference-request-router :unidirectional true}
             {:name ":operator-execution-msg" :from :concepts :to :operator-executor :unidirectional true}
-            {:name ":derived-sentence-msg" :from :operator-executor :to :task-creator :unidirectional true}
+            {:name ":sentence-msg" :from :operator-executor :to :task-creator :unidirectional true}
             #_{:name ":do-inference-msg" :from :event-selector :to :general-inferencer :unidirectional true}
-            {:name ":narsese-string-msg" :from :sentence-parser :to :task-creator :unidirectional true}
+            {:name ":sentence-msg" :from :sentence-parser :to :task-creator :unidirectional true}
                ;{:from :sentence-parser :to :input-load-reducer}
                ;{:from :input-load-reducer :to :task-creator}
             {:name ":derived-sentence-msg" :from :general-inferencer :to :derived-load-reducer :unidirectional true}

@@ -14,7 +14,7 @@
   (nars-input-narsese (str "<(*,{SELF}) --> op_down>! :|:" ))
   (nars-input-narsese (str "<(*,{SELF}) --> op_stop>!" ))
   (nars-input-narsese "<{SELF} --> [good]>! :|:")
-  (q/frame-rate 30)
+  (q/frame-rate 60)
   (nars-register-operation 'op_up (fn [args]
                                     (reset! direction -1)))
   (nars-register-operation 'op_down (fn [args]

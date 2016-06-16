@@ -130,7 +130,7 @@
              (:id @state))
       (when (confirmable-observable? task)
         (let [anticipated-task (create-anticipation-task task)
-              with-anticipated-truth (fn [t] (assoc t :anticipated-truth (:truth t) :truth [0.5 0.0]))]
+              with-anticipated-truth (fn [t] (assoc t :source :derived :anticipated-truth (:truth t) :truth [0.5 0.0]))]
           (if (not= nil anticipation)
             (set-state! (assoc @state :anticipation (with-anticipated-truth (better-task anticipated-task anticipation))))
             (set-state! (assoc @state :anticipation (with-anticipated-truth anticipated-task)))))))

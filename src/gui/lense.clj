@@ -172,7 +172,7 @@
   (hnav/transform state)
   (doseq [g @graphs]
     (draw-graph state g false))
-  (reset! graphs static-graphs)
+  ;(reset! graphs static-graphs)
   ;concept graph
   (when (> (hnav/mouse-to-world-coord-x state (hnav/width)) 1600)
     (try (let [elems (apply vector (:priority-index (deref c-bag)))
