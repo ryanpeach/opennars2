@@ -10,45 +10,45 @@
 (def hud-width 50)
 (def hud-height 25)
 
-(def nodes [{:name :pop-up :px 0 :py 0 :onclick (fn [state]
+(def nodes [{:name :pop-up :px 700 :py 0 :onclick (fn [state]
                                                        (cast! (whereis :sentence-parser) [:narsese-string-msg (str (input "Add Narsese" :to-string :name) "\n")]))
              :backcolor backcolor}
-            {:name :paste :px 50 :py 0 :onclick (fn [state]
+            {:name :paste :px 750 :py 0 :onclick (fn [state]
                                                       (input-str (slurp-clipboard)))
              :backcolor backcolor}
 
-            {:name :resume :px 100 :py 0 :onclick (fn [state]
+            {:name :resume :px 0 :py 0 :onclick (fn [state]
                                                        (start-timers))
              :backcolor backcolor}
-            {:name :pause :px 150 :py 0 :onclick (fn [state]
+            {:name :pause :px 50 :py 0 :onclick (fn [state]
                                                      (stop-timers))
              :backcolor backcolor}
-            {:name :off :px 200 :py 0 :onclick (fn [state]
+            {:name :off :px 100 :py 0 :onclick (fn [state]
                                                     (shutdown))
              :backcolor backcolor}
-            {:name :start :px 250 :py 0 :onclick (fn [state]
+            {:name :start :px 150 :py 0 :onclick (fn [state]
                                                       (run))
              :backcolor backcolor}
 
-            {:name :color :px 325 :py 0 :onclick (fn [state]
+            {:name :color :px 225 :py 0 :onclick (fn [state]
                                                        (reset! invert-colors (not @invert-colors)))
              :backcolor backcolor}
-            {:name :+prioTh. :px 375 :py 0 :onclick (fn [state]
+            {:name :+prioTh. :px 275 :py 0 :onclick (fn [state]
                                                             (reset! prio-threshold (+ @prio-threshold 0.1)))
              :displaysize 10
              :backcolor backcolor}
-            {:name :-prioTh. :px 425 :py 0 :onclick (fn [state]
+            {:name :-prioTh. :px 325 :py 0 :onclick (fn [state]
                                                             (reset! prio-threshold (- @prio-threshold 0.1)))
              :backcolor backcolor}
-            {:name :edgeInf. :px 475 :py 0 :onclick (fn [state]
+            {:name :edgeInf. :px 375 :py 0 :onclick (fn [state]
                                                             (reset! link-labels (not @link-labels)))
              :backcolor backcolor}
 
-            {:name :send :px 750 :py 0 :onclick (fn [state]
+            {:name :send :px 650 :py 0 :onclick (fn [state]
                                                      (input-str (deref inputstr))
                                                      (swap! inputstr (fn [st] ""))) :backcolor backcolor}
 
-            {:name :input :px 550 :custom-w 200 :py 0 :backcolor backcolor :displaysize 10}
+            {:name :input :px 450 :custom-w 200 :py 0 :backcolor backcolor :displaysize 10}
             ])
 
 (def hud [nodes [] hud-width hud-height])
