@@ -16,11 +16,15 @@
          (q/height))
        (catch Exception e init-size)))
 
+(defn speedhelper
+  (^double [^double zoom ^double coord ^double dif ^double wh]
+   (* (/ 1.0 zoom) (+ coord (- dif) (- (/ wh 2.0))))))
+
 (defn mouse-to-world-coord-x [state x]
-  (* (/ 1.0 (:zoom state)) (+ x (- (:difx state)) (- (/ (width) 2.0)))))
+  (speedhelper (:zoom state) x (:difx state) (width)))
 
 (defn mouse-to-world-coord-y [state y]
-  (* (/ 1.0 (:zoom state)) (+ y (- (:dify state)) (- (/ (height) 2.0)))))
+  (speedhelper (:zoom state) y (:dify state) (height)))
 
 (defn transform [{:keys [difx dify zoom]}]
   (q/translate (+ difx (* 0.5 (width)))

@@ -75,7 +75,8 @@
   (q/text-size (if (= displaysize nil) 2.0 displaysize))
   (when (contains? debugmessage name)
     (q/text (hnav/display-string debugmessage name)
-            (+ px 5) (+ py 20))))
+            (+ px 5) (+ py 20)))
+  (q/text-size 2.0))
 
 (defn in-picture [state p hud]
   (if hud
@@ -87,7 +88,7 @@
      true
      false)))
 
-(defn draw-graph [state [nodes edges node-width node-height]]
+(defn draw-graph [state [nodes edges node-width node-height] hud]
   (let [prefer-id (fn [n] (if (= nil (:id n))
                             (:name n)
                             (:id n)))]
@@ -115,9 +116,8 @@
               pointf (fn [a b] {:px a :py b})
               name (:name c)]
           (when (or (in-picture state (pointf left-x left-y) hud)
-                    (in-picture state (pointf right-x right-y) hud)
-                    (in-picture state (pointf namepos-x namepos-y) hud)
-                    (in-picture state (pointf middle-x middle-y) hud))
+                    (in-picture state (pointf namepos-x namepos-y) hud))
+
             (let [eval-color (if (= nil (:link-color c) )
                                (invert-color [0 0 0])
                                (invert-color (:link-color c)))
@@ -169,58 +169,61 @@
   (q/push-matrix)
   (hnav/transform state)
   (doseq [g @graphs]
-    (draw-graph state g))
+    (draw-graph state g false))
   ;concept graph
-  (try (let [elems (apply vector (:priority-index (deref c-bag)))
-             nodes (for [i (range (count elems))]
-                     (let [elem (elems i)
-                           ratio (* 30.0 (+ 0.10 (/ i (count elems))))
-                           a 50.0
-                           id (:id elem)
-                           priority (:priority elem)
-                           quality (:quality ((:elements-map (deref c-bag)) id))]
-                       (when (and (.contains (str id) (deref concept-filter))
-                                  (> priority priority-threshold)
-                                  (> priority @prio-threshold))
-                         {:name          (str "\n" (narsese-print id)
-                                              (if (= id @selected-concept)
-                                                (str "\npriority: " priority " " "quality: " quality " "
-                                                     "truth: " (:truth (max-statement-confidence-projected-to-now id :belief)) " "
-                                                     "desire: " (:truth (max-statement-confidence-projected-to-now id :goal)) "\n"
-                                                     (bag-format
-                                                   (limit-string (str (apply vector
-                                                                             (:elements-map (@lense-taskbags id)))) 20000)))
-                                                "")) ;"\n" @lense-termlinks
-                          :px            (+ 3000 (* a ratio (Math/cos ratio)))
-                          :py            (+ 200 (* a ratio (Math/sin ratio)))
-                          :displaysize   1.0
-                          :backcolor     [(- 255 (* priority 255.0)) 255 255]
-                          :titlesize     2.0
-                          :stroke-weight 0.5
-                          :id            id
-                          :onclick       (fn [state]
-                                           (reset! selected-concept id))})))
-             edges (for [n nodes
-                         [k [freq conf]] (@lense-termlinks (:id n))]
-                     (let [disttomiddle (Math/abs (- 0.5 freq))
-                           rterm (/ (if (>= freq 0.5) (* 510.0 disttomiddle) 0.0) 2.0)
-                           bterm (/ (if (< freq 0.5) (* 510.0 disttomiddle) 0.0) 2.0)]
-                       {:from                 (:id n)
-                        :to                   k :unidirectional true
-                        :stroke-weight        (* 0.5 conf)
-                        :link-color           (if @invert-colors
-                                                (invert-color [(+ 128.0 rterm) 128.0 (+ 128.0 bterm)])
-                                                [0.0 (+ 0 rterm) (+ 0 bterm)])
-                        :name                 (when @link-labels [freq conf])
-                        :opposite-edge-exists (some (fn [[tl2 _]]
-                                                      (= tl2 (:id n)))
-                                                    (@lense-termlinks k))
-                        :ghost-opposite       true}))
-             concept-graph [(filter #(not= % nil) nodes) edges 10 10]]
-         (reset! graphs (concat static-graphs [concept-graph])))
-       (catch Exception e (println e)))
+  (println (str (hnav/mouse-to-world-coord-x state (hnav/width))))
+  (reset! graphs static-graphs)
+  (when (> (hnav/mouse-to-world-coord-x state (hnav/width)) 1600)
+    (try (let [elems (apply vector (:priority-index (deref c-bag)))
+              nodes (for [i (range (count elems))]
+                      (let [elem (elems i)
+                            ratio (* 30.0 (+ 0.10 (/ i (count elems))))
+                            a 50.0
+                            id (:id elem)
+                            priority (:priority elem)
+                            quality (:quality ((:elements-map (deref c-bag)) id))]
+                        (when (and (.contains (str id) (deref concept-filter))
+                                   (> priority priority-threshold)
+                                   (> priority @prio-threshold))
+                          {:name          (str "\n" (narsese-print id)
+                                               (if (= id @selected-concept)
+                                                 (str "\npriority: " priority " " "quality: " quality " "
+                                                      "truth: " (:truth (max-statement-confidence-projected-to-now id :belief)) " "
+                                                      "desire: " (:truth (max-statement-confidence-projected-to-now id :goal)) "\n"
+                                                      (bag-format
+                                                        (limit-string (str (apply vector
+                                                                                  (:elements-map (@lense-taskbags id)))) 20000)))
+                                                 ""))       ;"\n" @lense-termlinks
+                           :px            (+ 3000 (* a ratio (Math/cos ratio)))
+                           :py            (+ 200 (* a ratio (Math/sin ratio)))
+                           :displaysize   1.0
+                           :backcolor     [(- 255 (* priority 255.0)) 255 255]
+                           :titlesize     2.0
+                           :stroke-weight 0.5
+                           :id            id
+                           :onclick       (fn [state]
+                                            (reset! selected-concept id))})))
+              edges (for [n nodes
+                          [k [freq conf]] (@lense-termlinks (:id n))]
+                      (let [disttomiddle (Math/abs (- 0.5 freq))
+                            rterm (/ (if (>= freq 0.5) (* 510.0 disttomiddle) 0.0) 2.0)
+                            bterm (/ (if (< freq 0.5) (* 510.0 disttomiddle) 0.0) 2.0)]
+                        {:from                 (:id n)
+                         :to                   k :unidirectional true
+                         :stroke-weight        (* 0.5 conf)
+                         :link-color           (if @invert-colors
+                                                 (invert-color [(+ 128.0 rterm) 128.0 (+ 128.0 bterm)])
+                                                 [0.0 (+ 0 rterm) (+ 0 bterm)])
+                         :name                 (when @link-labels [freq conf])
+                         :opposite-edge-exists (some (fn [[tl2 _]]
+                                                       (= tl2 (:id n)))
+                                                     (@lense-termlinks k))
+                         :ghost-opposite       true}))
+              concept-graph [(filter #(not= % nil) nodes) edges 10 10]]
+          (reset! graphs (concat static-graphs [concept-graph])))
+        (catch Exception e (println e))))
   (q/pop-matrix)
-  (draw-graph state hud)
+  (draw-graph state hud true)
   )
 
 (defn key-pressed [state event]
