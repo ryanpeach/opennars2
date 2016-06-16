@@ -9,6 +9,7 @@
     [narjure.control-utils :refer :all]
     [narjure.global-atoms :refer :all]
     [narjure.defaults :refer :all]
+    [narjure.perception-action.task-creator :refer [event?]]
     [narjure.memory-management.local-inference.local-inference-utils :refer :all]
     [nal.deriver.truth :refer [t-or confidence frequency w2c t2-evidence-weights]]
     [nal.deriver.projection-eternalization :refer [project-eternalize-to]])
@@ -16,7 +17,6 @@
 
 (defn expired? [anticipation]
   (> @nars-time (:expiry anticipation)))
-
 
 (defn create-negative-confirmation-task [anticipation]
   "collected input-evidence: [w+,w-]
@@ -107,7 +107,7 @@
           (answer-based-budget-change state total-revision questions)))
 
     ; processing revised anticipations
-    (when (= (:source task) :input)
+    (when (and (event? task) (= (:source task) :input))
       (when anticipation
         (when (= (:statement anticipation) (:statement task))
           (doseq [projected-anticipation (project-eternalize-to (:occurrence task) anticipation @nars-time)]
