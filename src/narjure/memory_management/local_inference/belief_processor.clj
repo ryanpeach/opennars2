@@ -29,7 +29,9 @@
   (and (:observable @state) (not= (:occurrence task) :eternal)))
 
 (defn create-anticipation-task [task]
-  (assoc task :task-type :anticipation :expiry (+ (:occurrence task) anticipation-expiry-window)))
+  (assoc task :task-type :anticipation :expiry (let [k anticipation-scale-dependent-tolerance
+                                                     scale (/ (Math/abs (- (:occurrence task) @nars-time)) k)]
+                                                 (+ (:occurence task scale))))) ;left side limit not needed since projection in revision
 
 (defn satisfaction-based-budget-change [state belief-task goals]
   ;filter goals matching concept content
