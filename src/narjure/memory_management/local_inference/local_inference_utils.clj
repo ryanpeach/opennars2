@@ -100,7 +100,7 @@
 
 (defn remove-anticipation [state anticipation]
   (let [bag (:anticipations @state)
-        id (get-task-id anticipation)
+        id (get-anticipation-id anticipation)
         [_ bag'] (b/get-by-id bag id)]
     (set-state! (assoc @state :anticipations bag'))))
 

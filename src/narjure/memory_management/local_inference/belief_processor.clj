@@ -95,7 +95,7 @@
     (when (= (:source task) :input)
       (when (not-empty anticipations)
         (doseq [projected-anticipation (map #(project-eternalize-to (:occurrence task) % @nars-time) (filter #(= (:statement %) (:statement task)) anticipations))]
-          ;revise anticpation and add to tasks
+          ;revise anticipation and add to tasks
           (when (non-overlapping-evidence? (:evidence task) (:evidence projected-anticipation))
             (add-to-anticipations state (revise projected-anticipation task :anticipation))))))
 
@@ -116,6 +116,4 @@
     (when (confirmable-observable? task)
       (let [anticipated-task (create-anticipation-task task)]
         (when (not (b/exists? (:anticipations @state) (get-task-id anticipated-task)))
-          (add-to-anticipations state anticipated-task))))
-
-    (println (str "anticipations: " anticipations))))
+          (add-to-anticipations state anticipated-task))))))

@@ -43,16 +43,17 @@
 (def temporal-window-duration 10)                           ; number of system cycles to consider as concurrent
 (def max-term-complexity 20)                                ; maximum number of terms and sub terms in a statement - syntactic complexity
 (def priority-threshold 0.001)                              ; concepts and tasks have to be above this to be processed
-(def max-concept-selections 10)                             ; don't set higher if not on a sumpercomputer, will cause trouble
+(def max-concept-selections 5)                              ; don't set higher if not on a sumpercomputer, will cause trouble
 (def termlink-single-sample-evidence-amount 0.01)           ; default conf for termlink truth value
-(def concept-max-termlinks 10)                              ; max size of termlink bag per concept
-(def max-tasks 10)                                          ; max size of task bag per concept
+(def concept-max-termlinks 15)                              ; max size of termlink bag per concept
+(def max-tasks 15)                                          ; max size of task bag per concept
 (def max-anticipations 5)                                   ; max size of anticipation bag per concept
 (def max-concepts 1000)                                     ; do not make too small (less than 50) as causes cyclic issue between task-dispatcher and concept-manager
 (def max-derived-sentences 50)                              ; derived task bag capacity
 (def max-derived-selections 10)                             ; max derived selections per cycle
 (def max-event-selections 10)                               ; no longer used - number of events to select per cycle
 (def max-events 50)                                         ; no longer used
-(def decay-rate 100)                                       ; forgetting adjustment rate for concepts e^-lt where l = (1.0 - durabiity) / decay-rate
+(def decay-rate 1000)                                       ; forgetting adjustment rate for concepts e^-lt where l = (1.0 - durabiity) / decay-rate
                                                             ; durability of 0.5 and decay rate of 100 fully decays priority in 1000 cycles
                                                             ; decay-rate of 10 would fully decay it in 100 cycles
+(def anticipation-expiry-window 100)                        ; leeway allowed on anticipation expiry time
