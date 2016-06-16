@@ -96,12 +96,12 @@
     (let [projected-goals (map #(project-eternalize-to @nars-time % @nars-time)
                                (filter #(= (:statement %) (:statement task))
                                        (filter #(= (:task-type %) :goal) ;re-getting the goals because we also want our just added goal
-                                               (get-tasks state))))] ;needs new
+                                               (conj tasks task))))] ;needs new task as well
      (if (not-empty projected-goals)
-       (let [goal (apply max-key confidence projected-goals)]
-         (when (and (operation? goal)
-                    (= (:statement goal) (:id @state)))   ;execution only in concept which is responsible for this goal!
-           (when (execute? goal)
-             (cast! (whereis :operator-executor) [:operator-execution-msg goal]))))))
-
-    ))
+       (let [possible-operations (filter #(and (operation? %) (execute? %) (= (:statement %) (:id @state))) projected-goals)
+             operation (if (not-empty possible-operations)
+                    (apply max-key confidence possible-operations)
+                    nil)]
+         (when-not (= nil operation)
+           ;(println (str  "goal: " operation))
+           (cast! (whereis :operator-executor) [:operator-execution-msg operation])))))))
