@@ -4,7 +4,6 @@
     [narjure.defaults :refer :all]))
 
 (def c-bag (atom (b/default-bag max-concepts)))
-(def e-bag (atom (b/default-bag max-events)))
 
 (def nars-time (atom 0))
 

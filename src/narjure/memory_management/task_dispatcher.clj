@@ -3,7 +3,7 @@
     [co.paralleluniverse.pulsar
      [core :refer :all]
      [actors :refer :all]]
-    [narjure.global-atoms :refer [c-bag e-bag]]
+    [narjure.global-atoms :refer [c-bag]]
     [narjure.memory-management.local-inference.local-inference-utils :refer [get-task-id]]
     [narjure.bag :as b]
     [taoensso.timbre :refer [debug info]]
@@ -32,10 +32,6 @@
   (let [terms (:terms task)]
     (if (every? term-exists? terms)
       (do
-        #_(when (event? task)
-          ;(swap! e-bag b/add-element {:id (get-task-id task) :priority (first (:budget task)) :task task})
-          ;;(cast! (:event-buffer @state) [:event-msg task])
-          )
         (doseq [term terms]
           (when-let [{c-ref :ref} ((:elements-map @c-bag) term)]
             (cast! c-ref [:task-msg task])

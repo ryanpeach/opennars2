@@ -51,8 +51,6 @@
 (def max-concepts 1000)                                     ; do not make too small (less than 50) as causes cyclic issue between task-dispatcher and concept-manager
 (def max-derived-sentences 50)                              ; derived task bag capacity
 (def max-derived-selections 10)                             ; max derived selections per cycle
-(def max-event-selections 10)                               ; no longer used - number of events to select per cycle
-(def max-events 50)                                         ; no longer used
 (def decay-rate 1000)                                       ; forgetting adjustment rate for concepts e^-lt where l = (1.0 - durabiity) / decay-rate
                                                             ; durability of 0.5 and decay rate of 100 fully decays priority in 1000 cycles
                                                             ; decay-rate of 10 would fully decay it in 100 cycles

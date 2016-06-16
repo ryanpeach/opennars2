@@ -25,7 +25,7 @@
                       :ball-py 280
                       :direction-x 1
                       :direction-y 1
-                      :barheight 200
+                      :barheight 10
                       :iteration 0}))
 
 (def fieldmax 760)

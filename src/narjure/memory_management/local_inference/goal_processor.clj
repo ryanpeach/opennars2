@@ -32,13 +32,13 @@
           (let [new-belief (increased-belief-budget-by-goal belief-task-projected-to-goal goal-task)]
             (update-task-in-tasks state new-belief belief)))))))
 
-
 (defn operation? [task]
   (let [st (:statement task)]
     (if (and (coll? st)
              (= (first st) '-->)
              (coll? (second st))
-             (= (first (second st)) '*))
+             (= (first (second st)) '*)
+             (= (second (second st)) ['ext-set 'SELF]))
       (let [op (nth st 2)]
         (and (not (coll? op))
              (clojure.string/starts-with? (name op) "op_")))
