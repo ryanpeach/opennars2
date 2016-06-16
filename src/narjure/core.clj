@@ -27,8 +27,8 @@
            (java.util.concurrent TimeUnit))
   (:gen-class))
 
-(def system-tick-interval 15)                               ;make big enough
-(def inference-tick-interval 75)                             ;a=how much messages come from general inference to load balancer per second
+(def system-tick-interval 10)                               ;make big enough
+(def inference-tick-interval 10)                             ;a=how much messages come from general inference to load balancer per second
                                 ;b=how much messages come from load balancer to task dispatcher per second
 (def sentence-tick-interval 500)                            ;case1: b=a all results let through  because system-tick-interval fast enough compared to inference-tick-interval
                                                             ;case2: b<a load balancer lets only through a subset of the derived results because
@@ -45,16 +45,16 @@
                                              (rand-nth ["a" "b" "c" "d" "e" "f" "g"])
                                              (rand-nth ["h" "p" "j" "k" "l" "m" "n"]))]))
 
-(defn prn-ok [msg] (info (format "\t[OK] %s" msg)))
+(defn prn-ok [msg interval] (info (format "\t[OK] %s (%d ms)" msg interval)))
 
 (defn start-timers []
   (info "Initialising system timers...")
   (schedule inference-tick {:in    inference-tick-interval
                             :every inference-tick-interval})
-  (prn-ok :inference-timer)
+  (prn-ok :inference-timer inference-tick-interval)
 
   (schedule system-tick {:every system-tick-interval})
-  (prn-ok :system-timer)
+  (prn-ok :system-timer system-tick-interval)
 
   ;uncomment following two line to auto generate input sentences
   ;(schedule sentence-tick {:every sentence-tick-interval})

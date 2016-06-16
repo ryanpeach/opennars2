@@ -8,6 +8,7 @@
     [narjure.debug-util :refer :all]
     [narjure.control-utils :refer :all]
     [narjure.global-atoms :refer :all]
+    [narjure.defaults :refer :all]
     [narjure.memory-management.local-inference.local-inference-utils :refer :all]
     [nal.deriver.truth :refer [t-or confidence frequency]]
     [nal.deriver.projection-eternalization :refer [project-eternalize-to]])
@@ -28,7 +29,7 @@
   (and (:observable @state) (not= (:occurrence task) :eternal)))
 
 (defn create-anticipation-task [task]
-  (assoc task :task-type :anticipation :expiry (+ (:occurrence task) 100)))
+  (assoc task :task-type :anticipation :expiry (+ (:occurrence task) anticipation-expiry-window)))
 
 (defn satisfaction-based-budget-change [state belief-task goals]
   ;filter goals matching concept content
@@ -93,7 +94,7 @@
     ; processing revised anticipations
     (when (= (:source task) :input)
       (when (not-empty anticipations)
-        (doseq [projected-anticipation (map #(project-eternalize-to (:occurrence task) % @nars-time) anticipations)]
+        (doseq [projected-anticipation (map #(project-eternalize-to (:occurrence task) % @nars-time) (filter #(= (:statement %) (:statement task)) anticipations))]
           ;revise anticpation and add to tasks
           (when (non-overlapping-evidence? (:evidence task) (:evidence projected-anticipation))
             (add-to-anticipations state (revise projected-anticipation task :anticipation))))))
@@ -107,6 +108,7 @@
             ;add neg-confirmation to tasks bag and remove anticiptaion from anticipation bag
             (remove-anticipation state anticipation)
             ;(set-state! (assoc @state :anticipations (b/get-by-id (:anticipations @state) anticipation)))
+            ;(println (str "neg conf: " neg-confirmation))
             (add-to-tasks state neg-confirmation)))))
 
     ;when task is confirmable and observabnle
@@ -115,4 +117,5 @@
       (let [anticipated-task (create-anticipation-task task)]
         (when (not (b/exists? (:anticipations @state) (get-task-id anticipated-task)))
           (add-to-anticipations state anticipated-task))))
-    ))
+
+    (println (str "anticipations: " anticipations))))

@@ -39,8 +39,8 @@
   (debuglogger search display ["task processed:" task])
   ; check observable and set if necessary
   (when-not (:observable @state)
-    (let [{:keys [occ source]} task]
-      (when (and (= occ :event) (= source :input) (= (:statement task) (:id @state)))
+    (let [{:keys [occurrence source]} task]
+      (when (and (not= occurrence :eternal) (= source :input) (= (:statement task) (:id @state)))
        (set-state! (assoc @state :observable true)))))
 
   (case (:task-type task)

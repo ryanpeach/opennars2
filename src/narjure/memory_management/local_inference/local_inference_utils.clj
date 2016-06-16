@@ -89,9 +89,12 @@
         bag' (b/add-element bag new-el)]
     (set-state! (assoc @state :tasks bag'))))
 
-(defn add-to-anticipations [state task]
+(defn get-anticipation-id [anticipation]
+  [(:statement anticipation) (:occurrence anticipation)])
+
+(defn add-to-anticipations [state anticipation]
   (let [bag (:anticipations @state)
-        el {:id (get-task-id task) :priority (first (:budget task)) :task task}
+        el {:id (get-anticipation-id anticipation) :priority (first (:budget anticipation)) :task anticipation}
         bag' (b/add-element bag el)]
     (set-state! (assoc @state :anticipations bag'))))
 
