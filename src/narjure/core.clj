@@ -27,11 +27,7 @@
            (java.util.concurrent TimeUnit))
   (:gen-class))
 
-(def system-tick-interval 10)                               ;make big enough
-(def inference-tick-interval 10)                             ;a=how much messages come from general inference to load balancer per second
-                                ;b=how much messages come from load balancer to task dispatcher per second
-(def sentence-tick-interval 500)                            ;case1: b=a all results let through  because system-tick-interval fast enough compared to inference-tick-interval
-                                                            ;case2: b<a load balancer lets only through a subset of the derived results because
+
 (defn inference-tick []                                     ;inference-tick-interval is fast enough compared to system-tick-interval
   (cast! (whereis :concept-selector) [:inference-tick-msg]))
 
