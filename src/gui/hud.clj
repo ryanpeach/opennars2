@@ -6,7 +6,7 @@
             [narjure.core :refer [start-timers shutdown run stop-timers]]
             [gui.gui-utils :refer :all]))
 
-(def backcolor [230 230 230])
+(def backcolor [230 230 230 100])
 (def hud-width 50)
 (def hud-height 25)
 

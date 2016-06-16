@@ -7,9 +7,9 @@
             [narjure.core :refer [start-timers shutdown run stop-timers]]))
 
 (defn invert-color
-  [[colr colg colb]]
+  [[colr colg colb cola]]
   (if (= (deref invert-colors) true)
-    [(- 255 colr) (- 255 colg) (- 255 colb)]
+    [(- 255 colr) (- 255 colg) (- 255 colb) (if cola cola 255)]
     [colr colg colb]))
 
 (defn invert-comp [v]
