@@ -57,3 +57,4 @@
 ; decay-rate of 10 would fully decay it in 100 cycles
 (def system-tick-interval 15)                               ;make big enough
 (def inference-tick-interval 75)
+(def anticipation-expiry-window 100) 
