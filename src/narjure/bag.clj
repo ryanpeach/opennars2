@@ -81,11 +81,14 @@
   (pop-element [bag]
     (let [cnt (count priority-index)]
       (if (pos? cnt)
-        (let [{:keys [id ref] :as element} (nth priority-index (dec cnt))
+        (let [{:keys [id] :as element} (nth priority-index (dec cnt))
               priority-index' (disj priority-index element)
               element' (elements-map id)
+              ref (:ref element')
               elements-map' (dissoc elements-map id)]
-          (when (not= ref nil) (shutdown! ref))             ;shutdown concept actor
+          (elements-map id)
+          (when (not= ref nil)
+            (shutdown! ref))             ;shutdown concept actor
           [element' (->DefaultBag priority-index' elements-map' capacity)])
         [nil bag])))
 
