@@ -2,7 +2,9 @@
   (:require [quil.core :as q]
             [quil.middleware :as m]
             [gui.actors :refer [graph-actors]]
-            [gui.gui :refer [graph-gui inputstr]]
+            [gui.gui-utils :refer :all]
+            [gui.gui :refer [graph-gui]]
+            [gui.hud :refer [hud]]
             [gui.hnav :as hnav]
             [seesaw.core :refer :all]
             [gui.globals :refer :all]
@@ -47,7 +49,7 @@
                    :derived-load-reducer [(fn [] (deref derived-load-reducer/display)) derived-load-reducer/search]
                    :input                [(fn [] "") inputstr]
                    :output               [(fn [] (deref output-display)) output-search]
-                   :+prioThres [(fn [] (deref prio-threshold))]})
+                   :+prioTh. [(fn [] (deref prio-threshold))]})
 
 (def static-graphs [graph-actors graph-gui])
 (def graphs (atom static-graphs))
@@ -62,10 +64,10 @@
 (defn nameof [a]
   (if (string? a) a (name a)))
 
-(defn draw-actor [{:keys [name px py backcolor frontcolor displaysize titlesize stroke-weight]} node-width node-height]
+(defn draw-actor [{:keys [name px py backcolor frontcolor displaysize titlesize stroke-weight custom-w custom-h]} node-width node-height]
   (q/stroke-weight (if (= nil stroke-weight) 1.0 stroke-weight))
   (apply q/fill (invert-color (if (= backcolor nil) [255 255 255] backcolor)))
-  (q/rect px py node-width node-height)
+  (q/rect px py (if custom-w custom-w node-width) (if custom-h custom-h node-height))
   (apply q/fill (invert-color (if (= frontcolor nil) [0 0 0] frontcolor)))
   (q/text-size (if (= nil titlesize) 10.0 titlesize))
   (q/text (nameof name) (+ px 5) (+ py (if (= nil titlesize) 10.0 titlesize)))
@@ -74,13 +76,15 @@
     (q/text (hnav/display-string debugmessage name)
             (+ px 5) (+ py 20))))
 
-(defn in-picture [state p]
-  (if (and (> (:px p) (hnav/mouse-to-world-coord-x state 0))
-           (< (:px p) (hnav/mouse-to-world-coord-x state (hnav/width)))
-           (> (:py p) (hnav/mouse-to-world-coord-y state 0))
-           (< (:py p) (hnav/mouse-to-world-coord-y state (hnav/height))))
+(defn in-picture [state p hud]
+  (if hud
     true
-    false))
+    (if (and (> (:px p) (hnav/mouse-to-world-coord-x state 0))
+            (< (:px p) (hnav/mouse-to-world-coord-x state (hnav/width)))
+            (> (:py p) (hnav/mouse-to-world-coord-y state 0))
+            (< (:py p) (hnav/mouse-to-world-coord-y state (hnav/height))))
+     true
+     false)))
 
 (defn draw-graph [state [nodes edges node-width node-height]]
   (let [prefer-id (fn [n] (if (= nil (:id n))
@@ -109,10 +113,10 @@
               namepos-x (pxtransform namepos) namepos-y (pytransform namepos)
               pointf (fn [a b] {:px a :py b})
               name (:name c)]
-          (when (or (in-picture state (pointf left-x left-y))
-                    (in-picture state (pointf right-x right-y))
-                    (in-picture state (pointf namepos-x namepos-y))
-                    (in-picture state (pointf middle-x middle-y)))
+          (when (or (in-picture state (pointf left-x left-y) hud)
+                    (in-picture state (pointf right-x right-y) hud)
+                    (in-picture state (pointf namepos-x namepos-y) hud)
+                    (in-picture state (pointf middle-x middle-y) hud))
             (let [eval-color (if (= nil (:link-color c) )
                                (invert-color [0 0 0])
                                (invert-color (:link-color c)))
@@ -140,7 +144,7 @@
   (q/stroke (first (invert-color [0 0 0])))
   (doseq [a nodes]
     (when (in-picture state (assoc a :px (+ (:px a) (/ node-width 2.0))
-                                     :py (+ (:py a) (/ node-height 2.0))))
+                                     :py (+ (:py a) (/ node-height 2.0))) hud)
       (draw-actor a node-width node-height))))
 
 (def selected-concept (atom []))
@@ -149,6 +153,7 @@
 (defn draw [state]
   (q/background (first (invert-color [255 255 255])))
   (q/reset-matrix)
+  (q/push-matrix)
   (hnav/transform state)
   (doseq [g @graphs]
     (draw-graph state g))
@@ -197,7 +202,10 @@
                         :ghost-opposite       true}))
              concept-graph [(filter #(not= % nil) nodes) edges 10 10]]
          (reset! graphs (concat static-graphs [concept-graph])))
-       (catch Exception e (println e))))
+       (catch Exception e (println e)))
+  (q/pop-matrix)
+  (draw-graph state hud)
+  )
 
 (defn key-pressed [state event]
   (let [name (name (:key event))
@@ -209,12 +217,16 @@
                                                         name "") ""))))
     state))
 
+(defn lense-mousepress [state event]
+  (hnav/mouse-pressed graphs debugmessage false state event)
+  (hnav/mouse-pressed (atom [hud]) debugmessage true state event))
+
 (q/defsketch example
              :size [(hnav/width) (hnav/height)]
              :setup setup
              :draw draw
              :update update
-             :mouse-pressed (partial hnav/mouse-pressed graphs debugmessage)
+             :mouse-pressed lense-mousepress
              :mouse-dragged hnav/mouse-dragged
              :mouse-wheel hnav/mouse-wheel
              :key-pressed key-pressed

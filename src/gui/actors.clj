@@ -28,11 +28,11 @@
             {:name :concept-bag :px -100 :py 450 :backcolor concept-color}
             {:name :output :px 575 :py -400 :backcolor gui-color}])
 
-(def edges [{:name ":do-inference-msg" :from :inference-request-router :to :general-inferencer :unidirectional true}
+(def edges [{:name "      :do-inference-msg" :from :inference-request-router :to :general-inferencer :unidirectional true}
             {:name ":create-concept-msg" :from :task-dispatcher :to :concept-manager :unidirectional true}
             {:name ":task-msg" :from :concept-manager :to :task-dispatcher :unidirectional true}
             ;{:from :task-dispatcher :to :event-buffer :unidirectional true}
-            {:name "              :do-inference-msg" :from :concepts :to :inference-request-router :unidirectional true}
+            {:name "                  :do-inference-msg" :from :concepts :to :inference-request-router :unidirectional true}
             {:name ":operator-execution-msg" :from :concepts :to :operator-executor :unidirectional true}
             {:name ":derived-sentence-msg" :from :operator-executor :to :task-creator :unidirectional true}
             #_{:name ":do-inference-msg" :from :event-selector :to :general-inferencer :unidirectional true}
@@ -40,7 +40,7 @@
                ;{:from :sentence-parser :to :input-load-reducer}
                ;{:from :input-load-reducer :to :task-creator}
             {:name ":derived-sentence-msg" :from :general-inferencer :to :derived-load-reducer :unidirectional true}
-            {:name ":derived-sentence-msg" :from :derived-load-reducer :to :task-creator :unidirectional true}
+            {:name "           :derived-sentence-msg" :from :derived-load-reducer :to :task-creator :unidirectional true}
             {:name "         :task-msg" :from :task-creator :to :task-dispatcher :unidirectional true}
             {:name ":inference-request-msg" :from :concept-selector :to :concepts :unidirectional true}
             {:name "add element" :from :concept-manager :to :concept-bag :unidirectional true}

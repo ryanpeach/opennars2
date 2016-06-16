@@ -1,5 +1,6 @@
 (ns gui.hnav
   (:require [quil.core :as q]
+            [gui.gui-utils :refer :all]
             [gui.globals :refer :all]))
 
 
@@ -35,14 +36,14 @@
                                ((first (debugmessage name)))) #"§" "\n"))
 
 ;HNAV implementation
-(defn mouse-pressed [graphs debugmessage state event]                           ;also HGUI click check here
+(defn mouse-pressed [graphs debugmessage hud state event]                           ;also HGUI click check here
   (when (not= [] graphs)
     (doseq [[V E w h] @graphs]
      (doseq [v V]
        (let [px (:px v)
              py (:py v)
-             mousex (mouse-to-world-coord-x state (:x event))
-             mousey (mouse-to-world-coord-y state (:y event))]
+             mousex (if hud (:x event) (mouse-to-world-coord-x state (:x event)))
+             mousey (if hud (:y event) (mouse-to-world-coord-y state (:y event)))]
          (when (and (> mousex px) (> mousey py)
                     (< mousex (+ px w)) (< mousey (+ py h)))
            (when (not (= (:onclick v) nil))
