@@ -18,6 +18,14 @@
 (defn c2w ^double [^double c]
   (let [^double h horizon] (/ (* h c) (- 1 c))))
 
+(defn t2-evidence-weights [[f c]]
+  (let [total-evidence (c2w c)
+        positive-evidence (* f total-evidence)
+        negative-evidence (- total-evidence positive-evidence)]
+  {:negative-evidence negative-evidence
+   :positive-evidence positive-evidence
+   :total-evidence total-evidence }))                                        ;not used by deriver, just by anticipations
+
 ;--------------------------------------------
 (defn conversion [_ p1]
   (when-let [[f c] p1] [1 (w2c (and f c))]))

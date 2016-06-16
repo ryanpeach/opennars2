@@ -58,3 +58,4 @@
 (def system-tick-interval 15)                               ;make big enough
 (def inference-tick-interval 75)
 (def anticipation-scale-dependent-tolerance 2.0)
+(def anticipation-disappointment-priority-gain 1.5)         ;should be >=1.0 !

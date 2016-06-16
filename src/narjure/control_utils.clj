@@ -13,7 +13,7 @@
 (def concept-selection-parameter 5)
 (def task-selection-parameter 1)
 
-(defn selection-fn
+(defn selection-fn-old
   ""
   [bag]
   (let [count (b/count-elements bag)
@@ -21,7 +21,7 @@
     ;(println (str "i: " i " count: " count))
     i))
 
-(defn selection-fn-old
+(defn selection-fn
   ""
   [bag]
   (let [count (b/count-elements bag)

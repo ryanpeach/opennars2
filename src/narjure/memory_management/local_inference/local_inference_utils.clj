@@ -28,9 +28,6 @@
 (defn get-task-id [task]
   [(:statement task) (:task-type task) (occurrence-type (:occurrence task))])
 
-#_(defn get-task-id [task]
-  [(:statement task) (:evidence task) (:task-type task) (:occurrence task) (truth-round (:truth task))])
-
 (defn item [task]
   {:id (get-task-id task) :priority (first (:budget task))})
 
@@ -59,28 +56,18 @@
         (assoc result :solution best-solution))
       result)))
 
-(defn choice [t1 t2]
+(defn better-task [t1 t2]
   (if (= t2 nil)                                            ;no previous bag entry exists
     t1                                                      ;so take the new one
     (if (not= nil (:truth t1))
       (take-better-solution (max-key (comp measure-truth :truth) t1 t2) t1 t2)
       (take-better-solution (max-key (comp measure-budget :budget) t1 t2) t1 t2))))
 
-#_(defn choice [t1 t2]
-  (if (= t2 nil)
-    t1
-    (if (not= nil (:truth t1) (:truth t2))
-      (case (>= (second (:truth t1)) (second (:truth t2)))
-        true t1
-        false t2)
-      (max-key (comp measure-truth :truth) t1 t2)
-      (max-key (comp measure-budget :budget) t1 t2))))
-
 (defn add-to-tasks [state task]
   (let [bag (:tasks @state)
         el (make-element task)
         [{t2 :task :as existing-el} _] (b/get-by-id bag (:id el))
-        chosen-task (choice task t2)
+        chosen-task (better-task task t2)
         new-budget (if existing-el
                      (max-budget (:budget task)
                                  (:budget t2))
@@ -89,32 +76,11 @@
         bag' (b/add-element bag new-el)]
     (set-state! (assoc @state :tasks bag'))))
 
-(defn get-anticipation-id [anticipation]
-  [(:statement anticipation) (:occurrence anticipation)])
-
-(defn add-to-anticipations [state anticipation]
-  (let [bag (:anticipations @state)
-        el {:id (get-anticipation-id anticipation) :priority (first (:budget anticipation)) :task anticipation}
-        bag' (b/add-element bag el)]
-    (set-state! (assoc @state :anticipations bag'))))
-
-(defn remove-anticipation [state anticipation]
-  (let [bag (:anticipations @state)
-        id (get-anticipation-id anticipation)
-        [_ bag'] (b/get-by-id bag id)]
-    (set-state! (assoc @state :anticipations bag'))))
-
 (defn update-task-in-tasks [state task old-task]
   (let [[element bag] (b/get-by-id (:tasks @state) old-task)]
     (when (not= nil element)
       (set-state! (assoc @state :tasks bag))))
   (add-to-tasks state task))
-
-(defn create-revised-task
-  "create a revised task with the provided sentence, truth and default value"
-  [sentence truth evidence budget]
-  ;todo budget should be updated
-  (assoc sentence :truth truth :evidence evidence :budget budget))
 
 (defn no-duplicate [M]
   (= (count (set M)) (count M)))
@@ -122,9 +88,9 @@
 (defn revise [t1 t2 kw]
   (let [revised-truth (nal.deriver.truth/revision (:truth t1) (:truth t2))
         evidence (make-evidence (:evidence t1) (:evidence t2))]
-    (when-not (no-duplicate evidence)
+    #_(when-not (no-duplicate evidence)
       (println (str "nope " kw)))
-    (create-revised-task t1 revised-truth evidence (max-budget (:budget t1) (:budget t2)))))
+    (assoc t1 :truth revised-truth :evidence evidence :budget (max-budget (:budget t1) (:budget t2)))))
 
 (defn better-solution [solution task]
   (let [projected-solution (project-eternalize-to (:occurrence task) solution @nars-time)

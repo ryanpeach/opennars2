@@ -285,6 +285,7 @@
     :shutdown (shutdown-handler from message)
     (debug (str "unhandled msg: " type)))
   (when (pos? debug-messages)
+    ;(reset! lense-anticipations (:anticipation @state))
     (swap! lense-taskbags
            (fn [dic]
              (assoc dic (:id @state) (:tasks @state))))

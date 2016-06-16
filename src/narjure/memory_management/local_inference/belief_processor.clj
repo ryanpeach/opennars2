@@ -10,20 +10,33 @@
     [narjure.global-atoms :refer :all]
     [narjure.defaults :refer :all]
     [narjure.memory-management.local-inference.local-inference-utils :refer :all]
-    [nal.deriver.truth :refer [t-or confidence frequency]]
+    [nal.deriver.truth :refer [t-or confidence frequency w2c t2-evidence-weights]]
     [nal.deriver.projection-eternalization :refer [project-eternalize-to]])
   (:refer-clojure :exclude [promise await]))
 
 (defn expired? [anticipation]
   (> @nars-time (:expiry anticipation)))
 
+
 (defn create-negative-confirmation-task [anticipation]
-  (assoc anticipation :task-type :belief
-                      :truth (nal.deriver.truth/negation (:truth anticipation) 0)
-                      :budget [(min 1.0
-                                 (* (first (:budget anticipation))
-                                    1.5))
-                               (second (:budget anticipation))]))
+  "collected input-evidence: [w+,w-]
+   anticipated evidence: [wa+,wa-]
+   positive evidence lack: lack=max(0,wa+ - w+)
+   evidence that was not observed: [f,c]_result = [0,  w2c(positive-lack)]
+   ''justified by the amount of positive evidence that was NOT observed as anticipated to be observed''"
+  (let [anticipated-positive-evidence (:positive-evidence (t2-evidence-weights (:anticipated-truth anticipation)))
+        observed-positive-evidence (:positive-evidence (t2-evidence-weights (:truth anticipation)))
+        positive-evidence-lack (max 0 (- anticipated-positive-evidence
+                                         observed-positive-evidence))
+        confidence-of-lack (w2c positive-evidence-lack)]
+    (dissoc (assoc anticipation :task-type :belief
+                               :truth [0.0 confidence-of-lack]
+                               :budget [(min 1.0
+                                             (* (first (:budget anticipation))
+                                                confidence-of-lack
+                                                anticipation-disappointment-priority-gain))
+                                        (second (:budget anticipation))])
+           :expiry)))
 
 (defn confirmable-observable? [task]
   (and (:observable @state) (not= (:occurrence task) :eternal)))
@@ -72,10 +85,10 @@
 (defn process-belief [state task cnt]
   ;group-by :task-type tasks
   (let [tasks (get-tasks state)
+        anticipation (:anticipation @state)
         goals (filter #(= (:task-type %) :goal) tasks)
         beliefs (filter #(= (:task-type %) :belief) tasks)
-        questions (filter #(= (:task-type %) :question ) tasks)
-        anticipations (get-anticipations state)]
+        questions (filter #(= (:task-type %) :question ) tasks)]
 
     ;also allow revision in subterm concepts! this is why statement is compared to task statement, not to ID!!
     (let [projected-beliefs (map #(project-eternalize-to (:occurrence task) % @nars-time) (filter #(= (:statement %) (:statement task)) beliefs))]
@@ -95,27 +108,30 @@
 
     ; processing revised anticipations
     (when (= (:source task) :input)
-      (when (not-empty anticipations)
-        (doseq [projected-anticipation (map #(project-eternalize-to (:occurrence task) % @nars-time) (filter #(= (:statement %) (:statement task)) anticipations))]
-          ;revise anticipation and add to tasks
-          (when (non-overlapping-evidence? (:evidence task) (:evidence projected-anticipation))
-            (add-to-anticipations state (revise projected-anticipation task :anticipation))))))
+      (when anticipation
+        (when (= (:statement anticipation) (:statement task))
+          (doseq [projected-anticipation (project-eternalize-to (:occurrence task) anticipation @nars-time)]
+            ;revise anticipation and add to tasks
+            (when (non-overlapping-evidence? (:evidence task) (:evidence projected-anticipation))
+              (set-state! (assoc @state :anticipation (revise projected-anticipation task :anticipation))))))))
 
     ;generate neg confirmation for expired anticipations
     ;and add to tasks
-    (when (not-empty anticipations)
-      (doseq [anticipation anticipations]
-        (when (expired? anticipation)
-          (let [neg-confirmation (create-negative-confirmation-task anticipation)]
-            ;add neg-confirmation to tasks bag and remove anticiptaion from anticipation bag
-            (remove-anticipation state anticipation)
-            ;(set-state! (assoc @state :anticipations (b/get-by-id (:anticipations @state) anticipation)))
-            ;(println (str "neg conf: " neg-confirmation))
-            (add-to-tasks state neg-confirmation)))))
+    (when (and anticipation (expired? anticipation))
+      (let [neg-confirmation (create-negative-confirmation-task anticipation)]
+        ;add neg-confirmation to tasks bag and remove anticiptaion
+        (set-state! (assoc @state :anticipation nil))
+        ;(println (str "neg conf: " neg-confirmation))
+        (add-to-tasks state neg-confirmation)))
 
     ;when task is confirmable and observabnle
     ;add an anticipation tasks to tasks
-    (when (confirmable-observable? task)
-      (let [anticipated-task (create-anticipation-task task)]
-        (when (not (b/exists? (:anticipations @state) (get-task-id anticipated-task)))
-          (add-to-anticipations state anticipated-task))))))
+    (when (= (:statement task)                              ;only allow anticipation with concept content
+             (:id @state))
+      (when (confirmable-observable? task)
+        (let [anticipated-task (create-anticipation-task task)
+              with-anticipated-truth (fn [t] (assoc t :anticipated-truth (:truth t) :truth [0.5 0.0]))]
+          (if (not= nil anticipation)
+            (set-state! (assoc @state :anticipation (with-anticipated-truth (better-task anticipated-task anticipation))))
+            (set-state! (assoc @state :anticipation (with-anticipated-truth anticipated-task)))))))
+    ))
