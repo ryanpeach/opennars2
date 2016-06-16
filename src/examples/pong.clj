@@ -2,7 +2,7 @@
   (:require [quil.core :as q]
             [quil.middleware :as m]
             [gui.hnav :as hnav]
-            [gui.globals :refer [invert-comp]]
+            [gui.gui-utils :refer [invert-comp]]
             [narjure.core :as nar]
             [narjure.sensorimotor :refer :all]))
 
@@ -140,7 +140,7 @@
              :setup setup-pong
              :draw draw-pong
              :update update-pong
-             :mouse-pressed (partial hnav/mouse-pressed [] {})
+             :mouse-pressed (partial hnav/mouse-pressed [] {} false)
              :mouse-dragged hnav/mouse-dragged
              :mouse-wheel hnav/mouse-wheel
              :middleware [m/fun-mode]

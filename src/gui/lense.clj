@@ -4,6 +4,7 @@
             [gui.actors :refer [graph-actors]]
             [gui.gui-utils :refer :all]
             [gui.gui :refer [graph-gui]]
+            [nal.deriver.projection-eternalization :refer [project-eternalize-to]]
             [gui.hud :refer [hud]]
             [gui.hnav :as hnav]
             [seesaw.core :refer :all]
@@ -149,6 +150,18 @@
 
 (def selected-concept (atom []))
 
+(defn max-statement-confidence-projected-to-now [concept-term task-type]
+  (let [li (filter (fn [z] (= (:task-type (:task (second z))) task-type))
+                   (:elements-map ((deref lense-taskbags) concept-term)))]
+    (if (= (count li) 0)
+      {:truth [0.5 0.0]}
+      (project-eternalize-to
+        (deref nars-time)
+        (:task (second (apply max-key (fn [y]
+                                        (second (:truth (:task (second y)))))
+                              li)))
+        (deref nars-time)))))
+
 ;copy of draw below marked as draw2
 (defn draw [state]
   (q/background (first (invert-color [255 255 255])))
@@ -169,11 +182,14 @@
                        (when (and (.contains (str id) (deref concept-filter))
                                   (> priority priority-threshold)
                                   (> priority @prio-threshold))
-                         {:name          (str "\n" (narsese-print id) "\npriority: " priority " " "quality: " quality "\n"
+                         {:name          (str "\n" (narsese-print id)
                                               (if (= id @selected-concept)
-                                                (bag-format
-                                                  (limit-string (str (apply vector
-                                                                            (:elements-map (@lense-taskbags id)))) 20000))
+                                                (str "\npriority: " priority " " "quality: " quality " "
+                                                     "truth: " (:truth (max-statement-confidence-projected-to-now id :belief)) " "
+                                                     "desire: " (:truth (max-statement-confidence-projected-to-now id :goal)) "\n"
+                                                     (bag-format
+                                                   (limit-string (str (apply vector
+                                                                             (:elements-map (@lense-taskbags id)))) 20000)))
                                                 "")) ;"\n" @lense-termlinks
                           :px            (+ 3000 (* a ratio (Math/cos ratio)))
                           :py            (+ 200 (* a ratio (Math/sin ratio)))
