@@ -48,7 +48,7 @@
 (def concept-max-termlinks 15)                              ; max size of termlink bag per concept
 (def max-tasks 15)                                          ; max size of task bag per concept
 (def max-anticipations 5)                                   ; max size of anticipation bag per concept
-(def max-concepts 100)                                     ; do not make too small (less than 50) as causes cyclic issue between task-dispatcher and concept-manager
+(def max-concepts 1000)                                     ; do not make too small (less than 50) as causes cyclic issue between task-dispatcher and concept-manager
 (def max-derived-sentences 50)                              ; derived task bag capacity
 (def max-derived-selections 10)                             ; max derived selections per cycle
 (def decay-rate 10)                                       ; forgetting adjustment rate for concepts e^-lt where l = (1.0 - durabiity) / decay-rate
