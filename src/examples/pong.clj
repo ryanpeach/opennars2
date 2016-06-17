@@ -10,9 +10,6 @@
 (def direction (atom 0))
 
 (defn setup-pong []
-  (nars-input-narsese (str "<(*,{SELF}) --> op_up>! :|:" ))
-  (nars-input-narsese (str "<(*,{SELF}) --> op_down>! :|:" ))
-  (nars-input-narsese (str "<(*,{SELF}) --> op_stop>!" ))
   (nars-input-narsese "<{SELF} --> [good]>! :|:")
   (q/frame-rate 60)
   (nars-register-operation 'op_up (fn [args]
@@ -43,9 +40,9 @@
   (when (= (mod (:iteration state) 150) 0)
     (nars-input-narsese "<I --> [good]>! :|:"))
   (when (= (mod (:iteration state) 300) 0)
-    (nars-input-narsese (str (rand-nth ["<(*,{SELF}) --> op_up>!  :|:"
+    #_(nars-input-narsese (str (rand-nth ["<(*,{SELF}) --> op_up>!  :|:"
                                         "<(*,{SELF}) --> op_down>!  :|:"
-                                        "<(*,{SELF}) --> op_stop>! :|:"]))))
+                                        #_"<(*,{SELF}) --> op_stop>! :|:"]))))
 
   (when (= (mod (:iteration state) 53) 0)
     #_(nars-input-narsese (str "<{" (int (* 100 (quot (:ball-py state) 100))) "} --> ballpos>. :|:" ))
@@ -55,7 +52,7 @@
         (do
           (when (not= @updown-state "equal")
             (nars-input-narsese "<I --> [good]>. :|: %1.0;0.9%")
-           (do (nars-input-narsese (str "<state1 --> [equal]>. :|:"))
+           (do #_(nars-input-narsese (str "<state1 --> [equal]>. :|:"))
                (reset! updown-state "equal")
                (when allow-continuous-feedback
                  ;(println "good NARS")
