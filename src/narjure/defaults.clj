@@ -14,18 +14,18 @@
 (def belief-budget
   [belief-priority belief-durability belief-quality])
 
-(def question-priority 0.5)
-(def question-durability 0.5)
+(def question-priority 0.9)
+(def question-durability 0.7)
 ;todo clarify this
-(def question-quality 0.0)
+(def question-quality 1.0)
 
 (def question-budget
   [question-priority question-durability question-quality])
 
 (def goal-confidence 0.9)
-(def goal-priority 0.5)
-(def goal-quality 0.0)
-(def goal-durability 0.5)
+(def goal-priority 0.9)
+(def goal-quality 0.5)
+(def goal-durability 0.7)
 
 (def goal-budget
   [goal-priority goal-durability goal-quality])
@@ -52,7 +52,7 @@
 (def max-derived-sentences 50)                              ; derived task bag capacity
 (def max-derived-selections 10)                             ; max derived selections per cycle
 (def max-event-selections 10)                               ; no longer used - number of events to select per cycle
-(def decay-rate 100)                                       ; forgetting adjustment rate for concepts e^-lt where l = (1.0 - durabiity) / decay-rate
+(def decay-rate 200)                                        ; forgetting adjustment rate for concepts e^-lt where l = (1.0 - durabiity) / decay-rate
 ; durability of 0.5 and decay rate of 100 fully decays priority in 1000 cycles
 ; decay-rate of 10 would fully decay it in 100 cycles
 (def system-tick-interval 15)                               ;make big enough

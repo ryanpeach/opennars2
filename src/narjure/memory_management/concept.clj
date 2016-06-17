@@ -41,14 +41,14 @@
 
 (defn truth-to-quality [t]
   (let [exp (expectation t)
-        positive-truth-bias 0.75
-        (max exp (* (- 1.0 exp) positive-truth-bias))]))
+        positive-truth-bias 0.75]
+        (max exp (* (- 1.0 exp) positive-truth-bias))))
 
 (defn link-feedback-handler
   [from [_ [derived-task belief-concept-id]]]                       ;this one uses the usual priority durability semantics
   (try
     ;TRADITIONAL BUDGET INFERENCE (BLINK PART)
-    (let [complexity (syntactic-complexity belief-concept-id)
+    (let [complexity (if (:truth derived-task) (syntactic-complexity belief-concept-id) 1.0)
           qual (if (:truth derived-task)
                     (truth-to-quality (:truth derived-task))
                     (w2c 1.0))
@@ -195,9 +195,10 @@
         ;new-priority (round2 4 (* (:priority el) (second budget)))
         lambda (/ (- 1.0 (second budget)) decay-rate)
         fr (Math/exp (* -1.0 (* lambda (- @nars-time last-forgotten))))
-        new-priority (Math/max (round2 4 (* (:priority el) fr))
-                               (/ (concept-quality) (+ 1.0 (b/count-elements (:tasks @state))))) ;dont fall below 1/N*quality
-        new-budget [new-priority (second budget)]]
+        new-priority (max (round2 4 (* (:priority el) fr))
+                          (/ (concept-quality) (+ 1.0 (b/count-elements (:tasks @state))))
+                          (nth budget 2)) ;dont fall below 1/N*quality
+        new-budget [new-priority (second budget) (nth budget 2)]]
     (let [updated-task (assoc (:task el) :budget new-budget)]
       (assoc el :priority new-priority
                 :task updated-task))))
@@ -246,8 +247,8 @@
           ;now search through termlinks, get the endpoint concepts, and form a bag of them
           (let [initbag (b/default-bag concept-max-termlinks)
                 resbag (reduce (fn [a b] (b/add-element a b)) initbag (for [[k v] (:termlinks @state)]
-                                                                        {:priority (* (first v)
-                                                                                      1.0 #_(:priority (first (b/get-by-id @c-bag k))))
+                                                                        {:priority (t-or (first v)
+                                                                                      (:priority (first (b/get-by-id @c-bag k))))
                                                                          :id       k}))
                 ;now select an element from this bag
                 [beliefconcept bag1] (b/get-by-index resbag (selection-fn resbag))]
