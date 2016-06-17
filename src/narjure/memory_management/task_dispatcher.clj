@@ -28,15 +28,15 @@
   "If concept, or any sub concepts, do not exist post task to concept-creator,
    otherwise, dispatch task to respective concepts. Also, if task is an event
    dispatch task to event buffer actor."
-  [from [_ task]]
+  [from [_ [task-concept-id belief-concept-id task]]]
   (let [terms (:terms task)]
     (if (every? term-exists? terms)
       (do
         (doseq [term terms]
           (when-let [{c-ref :ref} ((:elements-map @c-bag) term)]
-            (cast! c-ref [:task-msg task])
+            (cast! c-ref [:task-msg [task-concept-id belief-concept-id task]])
             )))
-      (cast! (whereis :concept-manager) [:create-concept-msg task]))))
+      (cast! (whereis :concept-manager) [:create-concept-msg [task-concept-id belief-concept-id task]]))))
 
 (defn msg-handler
   "Identifies message type and selects the correct message handler.

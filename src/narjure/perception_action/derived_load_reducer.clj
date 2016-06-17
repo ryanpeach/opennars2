@@ -23,7 +23,7 @@
   []
   (doseq [n (range (min max-derived-selections (b/count-elements @d-bag)))]
     (let [[element d-bag'] (b/get-by-index @d-bag (selection-fn @d-bag))
-          msg [:derived-sentence-msg [(:task element)]]
+          msg [:derived-sentence-msg [(:task-concept-id element) (:belief-concept-id element) (:task element)]]
           task-creator (whereis :task-creator)]
       (reset! d-bag d-bag')
       (cast! task-creator msg)
@@ -31,8 +31,10 @@
 
 (defn derived-sentence-handler
   "adds sentence to input-bag and selects n senetences on system-time-tick"
-  [from [msg sentence]]
-  (let [elem {:id (get-task-id sentence) :priority (first (:budget sentence)) :task sentence}]
+  [from [msg [task-concept-id belief-concept-id sentence]]]
+  (let [elem {:id (get-task-id sentence) :priority (first (:budget sentence)) :task sentence
+              :task-concept-id task-concept-id
+              :belief-concept-id belief-concept-id}]
     (debuglogger search display [:add elem])
     (swap! d-bag b/add-element elem)))
 

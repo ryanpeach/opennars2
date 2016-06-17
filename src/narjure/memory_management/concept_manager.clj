@@ -27,11 +27,11 @@
 (defn create-concept-handler
   "Create a concept for each term in statement, if they dont
    exist. Then post the task back to task-dispatcher."
-  [from [_ {:keys [statement]  :as task}]]
+  [from [_ [task-concept-id belief-concept-id {:keys [statement] :as task}]]]
   (doseq [term (:terms task)]
     (when-not (b/exists? @c-bag term)
       (make-general-concept term)))
-  (cast! from [:task-msg task]))
+  (cast! from [:task-msg [task-concept-id belief-concept-id task]]))
 
 (defn persist-state-handler
   ""

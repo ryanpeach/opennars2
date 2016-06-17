@@ -88,14 +88,14 @@
                        sentence
                        syntactic-complexity)
             task-dispatcher (whereis :task-dispatcher)]
-        (cast! task-dispatcher [:task-msg new-task])
+        (cast! task-dispatcher [:task-msg [nil nil new-task]])
         (output-task :input new-task)
         (when (event? sentence)
-          (cast! task-dispatcher [:task-msg (create-eternal-task new-task)]))))))
+          (cast! task-dispatcher [:task-msg [nil nil (create-eternal-task new-task)]]))))))
 
 (defn derived-sentence-handler
   "processes a :derived-sentence-msg and posts to task-dispatcher"
-  [from [msg [sentence budget evidence]]]
+  [from [msg [task-concept-id belief-concept-id sentence]]]
   (let [syntactic-complexity (syntactic-complexity (:statement sentence))]
        (when (< syntactic-complexity max-term-complexity)
          (let [derived-task (create-derived-task
@@ -103,11 +103,11 @@
                               syntactic-complexity)
                task-dispatcher (whereis :task-dispatcher)]
 
-           (cast! task-dispatcher [:task-msg derived-task])
+           (cast! task-dispatcher [:task-msg [task-concept-id belief-concept-id derived-task]])
            ; display task in output window
            (output-task :derived derived-task)
            (when (event? sentence)
-             (cast! task-dispatcher [:task-msg (create-eternal-task derived-task)]))))))
+             (cast! task-dispatcher [:task-msg [task-concept-id belief-concept-id (create-eternal-task derived-task)]]))))))
 
 (defn msg-handler
   "Identifies message type and selects the correct message handler.

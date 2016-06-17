@@ -27,7 +27,7 @@
   "Processes :do-inference-msg:
     generated derived results, budget and occurrence time for derived tasks.
     Posts derived sentences to task creator"
-  [from [msg [task belief]]]
+  [from [msg [task-concept-id belief-concept-id task belief]]]
   (set-state! (update @state :all-inference-requests inc))  ;for stats tracking
   (try
     (when (non-overlapping-evidence? (:evidence task) (:evidence belief))
@@ -51,9 +51,11 @@
                            (/ 1.0 (+ 1.0 derivation-depth (syntactic-complexity (:statement derived)))) 0.0]]
                (when (> (first budget) priority-threshold)
                  (set-state! (update @state :filtered-derivations inc))              ;for stats tracking
-                 (cast! derived-load-reducer [:derived-sentence-msg (assoc derived :budget [(round2 4 (first budget)) (round2 4 (second budget)) 0.0]
-                                                                                   :parent-statement (:statement task) :depth (inc derivation-depth)
-                                                                                   :evidence evidence)]))))))))
+                 (cast! derived-load-reducer [:derived-sentence-msg [task-concept-id
+                                                                     belief-concept-id
+                                                                     (assoc derived :budget [(round2 4 (first budget)) (round2 4 (second budget)) 0.0]
+                                                                                    :parent-statement (:statement task) :depth (inc derivation-depth)
+                                                                                    :evidence evidence)]]))))))))
     (catch Exception e (debuglogger search display (str "inference error " (.toString e))))))
 
 (defn begin-count-handler [_ _]

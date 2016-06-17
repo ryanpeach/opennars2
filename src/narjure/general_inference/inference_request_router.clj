@@ -62,8 +62,8 @@
 (defn do-inference-handler
   "Processes :do-inference-msg:
     posts msg to next routee in round robin fashion"
-  [from [msg [task belief]]]
-  (cast! (get-next-routee) [msg [task belief]])
+  [from message]
+  (cast! (get-next-routee) message)
   )
 
 (defn msg-handler
