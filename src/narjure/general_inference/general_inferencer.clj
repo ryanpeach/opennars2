@@ -48,8 +48,8 @@
                 durability (* (second (:budget task))
                                  (/ 1.0 (+ 1.0 (syntactic-complexity (:statement derived)))))
 
-                priority' (t-or priority (first bLink))
-                durability' (t-and durability (second bLink))
+                priority' (if bLink (t-or priority (first bLink)) priority)
+                durability' (if bLink (t-and durability (second bLink)) durability)
 
                 complexity (syntactic-complexity (:statement derived))
 

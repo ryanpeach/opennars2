@@ -47,7 +47,8 @@
 (def decision-threshold 0.5)
 
 (defn execute? [task]
-  (> (expectation (:truth task)) decision-threshold))
+  (and (not= (:occurence task) :eternal)
+       (> (expectation (:truth task)) decision-threshold)))
 
 (defn answer-based-budget-change [state goal-task quests]
   ;filter goals matching concept content

@@ -37,8 +37,8 @@
          ;1. if last concept exsts create initial link between concepts
          (let [last-selected (:last-selected @state)]
            (when last-selected
-             (cast! ref [:termlink-create-msg [(:id last-selected)]])
-             (cast! (:ref last-selected) [:termlink-create-msg [(:id selected)]])))
+             #_(cast! ref [:termlink-create-msg [(:id last-selected)]])
+             #_(cast! (:ref last-selected) [:termlink-create-msg [(:id selected)]])))
          ;2. remember last selected concept for "temporal" termlinks
          (set-state! (assoc @state :last-selected selected))
          (when (> (:priority selected) priority-threshold)
