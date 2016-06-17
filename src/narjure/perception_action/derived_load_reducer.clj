@@ -22,7 +22,7 @@
   "select n sentences from input bag and post to :task-creator"
   []
   (doseq [n (range (min max-derived-selections (b/count-elements @d-bag)))]
-    (let [[element d-bag'] (b/get-by-index @d-bag (selection-fn @d-bag))
+    (let [[element d-bag'] (b/get-by-index @d-bag (selection-fn @d-bag concept-selection-parameter))
           msg [:derived-sentence-msg [(:task element)]]
           task-creator (whereis :task-creator)]
       (reset! d-bag d-bag')

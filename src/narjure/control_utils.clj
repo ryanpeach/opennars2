@@ -10,31 +10,20 @@
   (let [factor (Math/pow 10 precision)]
     (/ (Math/round (* d factor)) factor)))
 
-(def concept-selection-parameter 5)
-(def task-selection-parameter 1)
-
-(defn selection-fn-old
+(defn selection-fn
   ""
-  [bag]
+  [bag _]
   (let [count (b/count-elements bag)
         i (Math/abs (- (* (+ (rand) (rand)) count) count))]
     ;(println (str "i: " i " count: " count))
     i))
 
-(defn selection-fn
+(defn selection-fn-old
   ""
-  [bag]
+  [bag param]
   (let [count (b/count-elements bag)
-        i (- (Math/ceil (* (math/expt (rand) concept-selection-parameter) count)) 1)]
+        i (- (Math/ceil (* (math/expt (rand) param) count)) 1)]
     ;(println (str "i: " i " count: " count))
-    i))
-
-(defn selection-fn2
-  ""
-  [bag concept-priority]
-  (let [count (b/count-elements bag)
-        selection-parameter' (+ 1.0 (* concept-priority task-selection-parameter))
-        i (- (Math/ceil (* (math/expt (rand) selection-parameter') count)) 1)]
     i))
 
 (defn forget-element [el]
