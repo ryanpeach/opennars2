@@ -39,13 +39,18 @@
                                          tl strength)))
   (forget-termlinks))
 
+(defn truth-to-quality [t]
+  (let [exp (expectation t)
+        positive-truth-bias 0.75
+        (max exp (* (- 1.0 exp) positive-truth-bias))]))
+
 (defn link-feedback-handler
   [from [_ [derived-task belief-concept-id]]]                       ;this one uses the usual priority durability semantics
   (try
     ;TRADITIONAL BUDGET INFERENCE (BLINK PART)
     (let [complexity (syntactic-complexity belief-concept-id)
           qual (if (:truth derived-task)
-                    (expectation (:truth derived-task))
+                    (truth-to-quality (:truth derived-task))
                     (w2c 1.0))
           quality (/ qual complexity)
           [target _] (b/get-by-id @c-bag belief-concept-id)
