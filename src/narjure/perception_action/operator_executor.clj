@@ -19,7 +19,7 @@
     if feedback msg required posts :sentence-msg to task creator"
   [from [msg operationgoal]]
   (let [feedback (assoc operationgoal :task-type :belief
-                                      :occurrence 0) //has to be 0 since task creator will add current time!!!!!
+                                      :occurrence 0)        ;has to be 0 since task creator will add current time!!!!!
         operation (:statement operationgoal)
         arguments (rest (second operation))
         operator (nth operation 2)]
