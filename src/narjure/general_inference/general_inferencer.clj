@@ -63,7 +63,9 @@
                           (w2c 1.0))
                         ]
                 ]
-               (when (> (first budget) priority-threshold)
+               (when (and (> (first budget) priority-threshold)
+                          (or (not (:truth derived))
+                              true #_(> (expectation (:truth derived)) 0.5))) ;buffer filter of older versions
                  (set-state! (update @state :filtered-derivations inc))              ;for stats tracking
                  (cast! derived-load-reducer [:derived-sentence-msg [task-concept-id
                                                                      belief-concept-id

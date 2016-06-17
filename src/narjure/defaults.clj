@@ -59,6 +59,6 @@
 (def inference-tick-interval 75)
 (def anticipation-scale-dependent-tolerance 2.0)
 (def anticipation-disappointment-priority-gain 1.5)         ;should be >=1.0 !
-(def termlink-default-budget [0.6 0.99])
+(def termlink-default-budget [0.1 0.9])
 (def concept-selection-introduced-termlink-default-budget [0.1 0.1])
 (def termlink-context-adaptations-speed 0.05)

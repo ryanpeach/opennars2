@@ -28,7 +28,7 @@
     (let [worst (apply max-key (comp first second) (:termlinks @state))]
       (set-state! (assoc @state :termlinks (dissoc (:termlinks @state) (first worst))))))
   ;apply weak forget also:
-  (set-state!
+  #_(set-state!
     (assoc @state :termlinks
                   (apply merge (for [[tl [p d]] (:termlinks @state)]
                                  {tl [(* p d) d]}))))
@@ -247,7 +247,11 @@
                 ;now select an element from this bag
                 [beliefconcept bag1] (b/get-by-index resbag (selection-fn resbag))]
             ;and create a belief request message
-
+            (set-state! (assoc @state :termlinks
+                                      (assoc (:termlinks @state)
+                                        (:id beliefconcept)
+                                        (let [[p d] ((:termlinks @state) (:id beliefconcept))] ;apply forgetting for termlinks only on selection
+                                          [(* p d) d]))))
             (when-let [{c-ref :ref} ((:elements-map @c-bag) (:id beliefconcept))]
               (try
                 #_(update-termlink (:id beliefconcept))          ;belief concept here
