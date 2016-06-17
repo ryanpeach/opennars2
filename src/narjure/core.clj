@@ -59,12 +59,14 @@
   (info "System timer initialisation complete."))
 
 (defn disable-third-party-loggers []
-  (doseq [logger ["co.paralleluniverse.actors.JMXActorMonitor"
+  (doseq [logger ["co.paralleluniverse.actors.behaviors.ServerActor"
+                  "co.paralleluniverse.actors.behaviors.SupervisorActor"
+                  "co.paralleluniverse.actors.JMXActorMonitor"
                   "org.quartz.core.QuartzScheduler"
                   "co.paralleluniverse.actors.LocalActorRegistry"
                   "co.paralleluniverse.actors.ActorRegistry"
                   "org.projectodd.wunderboss.scheduling.Scheduling"]]
-    (.setLevel (LoggerFactory/getLogger logger) Level/OFF)))
+    (.setLevel (LoggerFactory/getLogger logger) Level/ERROR)))
 
 (defn setup-logging []
   (set-level! :debug)

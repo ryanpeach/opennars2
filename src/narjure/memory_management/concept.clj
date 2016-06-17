@@ -203,7 +203,7 @@
     ; and sending budget update message to concept mgr
     (try
       (when (pos? (b/count-elements task-bag))
-        (let [[el] (b/lookup-by-index task-bag (selection-fn task-bag))]
+        (let [[el] (b/lookup-by-index task-bag (selection-fn task-bag concept-selection-parameter))]
           (try
             (forget-tasks)
             (update-concept-budget)
@@ -218,7 +218,7 @@
                                                                         {:priority (:priority (first (b/get-by-id @c-bag k)))
                                                                          :id       k}))
                 ;now select an element from this bag
-                [beliefconcept bag1] (b/get-by-index resbag (selection-fn resbag))]
+                [beliefconcept bag1] (b/get-by-index resbag (selection-fn resbag 3.0))]
             ;and create a belief request message
             (when-let [{c-ref :ref} ((:elements-map @c-bag) (:id beliefconcept))]
               (try
