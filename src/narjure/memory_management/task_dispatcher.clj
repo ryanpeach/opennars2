@@ -34,8 +34,12 @@
       (do
         (doseq [term terms]
           (when-let [{c-ref :ref} ((:elements-map @c-bag) term)]
-            (cast! c-ref [:task-msg [task-concept-id belief-concept-id task]])
-            )))
+            (cast! c-ref [:task-msg [task]])
+            )
+          (when task-concept-id
+            (when-let [{c-ref :ref} ((:elements-map @c-bag) task-concept-id)]
+              (cast! c-ref [:link-feedback-msg [task belief-concept-id]])
+              ))))
       (cast! (whereis :concept-manager) [:create-concept-msg [task-concept-id belief-concept-id task]]))))
 
 (defn msg-handler

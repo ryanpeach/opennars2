@@ -33,12 +33,18 @@
                                          tl strength)))
   (forget-termlinks))
 
-(defn apply-link-feedback [task-concept-id belief-concept-id budet]
-  #_TODO)
+(defn link-feedback-handler
+  [from [_ [task belief-concept-id]]]
+  (when (:truth task)
+    (let [quality (expectation (:truth task))]
+
+     ))
+
+  )
+;TODO UPDATE TERMLINK TO belief-concept-id by USEFULNESS (TRUTH QUALITY) OF task
 
 (defn task-handler
-  ""
-  [from [_ [task-concept-id belief-concept-id task]]]
+  [from [_ [task]]]
   (debuglogger search display ["task processed:" task])
   ; check observable and set if necessary
   (when-not (:observable @state)
@@ -109,7 +115,7 @@
 
 (defn belief-request-handler
   ""
-  [from [_ [task-concept-id task]]]
+  [from [_ [task-concept-id termlink-strength task]]]
   ;todo get a belief which has highest confidence when projected to task time
   (try                                                      ;update termlinks at first
     (update-termlink (:statement task))          ;task concept here
@@ -125,7 +131,7 @@
              #_(cast! (:general-inferencer @state) [:do-inference-msg [task not-projected-belief]])
              (doseq [belief beliefs]
                (debuglogger search display ["selected belief:" belief "§"])
-               (cast! (:inference-request-router @state) [:do-inference-msg [task-concept-id (:id @state) task belief]])
+               (cast! (:inference-request-router @state) [:do-inference-msg [task-concept-id (:id @state) termlink-strength task belief]])
              (try
                ;1. check whether belief matches by unifying the question vars in task
                (when (and (= (:task-type task) :question)
@@ -155,7 +161,7 @@
          ;dummy? belief as "empty" termlink belief selection for structural inference
          (let [belief {:statement (:id @state) :task-type :question :occurrence @nars-time :evidence '()}]
            (debuglogger search display ["selected belief:" belief "§"])
-           (cast! (:inference-request-router @state) [:do-inference-msg [task-concept-id (:id @state) task belief]]))
+           (cast! (:inference-request-router @state) [:do-inference-msg [task-concept-id (:id @state) termlink-strength task belief]]))
          )
        (catch Exception e (debuglogger search display (str "belief request error " (.toString e))))))
 
@@ -227,7 +233,7 @@
               (try
                 (update-termlink (:id beliefconcept))          ;belief concept here
                 (catch Exception e (debuglogger search display (str "task side termlink strength error " (.toString e)))))
-              (cast! c-ref [:belief-request-msg [(:id @state) (:task el)]])
+              (cast! c-ref [:belief-request-msg [(:id @state) ((:termlinks @state) (:id beliefconcept)) (:task el)]])
               ))))
       (catch Exception e (debuglogger search display (str "inference request error " (.toString e)))))
     )
@@ -280,6 +286,7 @@
   (case type
     :termlink-create-msg (termlink-create-handler from message)
     :task-msg (task-handler from message)
+    :link-feedback-msg  (link-feedback-handler from message)
     :belief-request-msg (belief-request-handler from message)
     :inference-request-msg (inference-request-handler from message)
     :concept-state-request-msg (concept-state-handler from message)

@@ -27,7 +27,7 @@
   "Processes :do-inference-msg:
     generated derived results, budget and occurrence time for derived tasks.
     Posts derived sentences to task creator"
-  [from [msg [task-concept-id belief-concept-id task belief]]]
+  [from [msg [task-concept-id belief-concept-id termlink-strength task belief]]]
   (set-state! (update @state :all-inference-requests inc))  ;for stats tracking
   (try
     (when (non-overlapping-evidence? (:evidence task) (:evidence belief))
@@ -44,6 +44,7 @@
            (doseq [derived filtered-derivations]
              (let [budget [(* (first (:budget task))        ;im not sure anymore whether task parent priority is good here
                               (task-type-penalty (:task-type derived))
+                              #_(expectation termlink-strength)
                               (if (= nil (:truth derived))  ;needs discussing.
                                 1.0
                                 (expectation (:truth derived)))
