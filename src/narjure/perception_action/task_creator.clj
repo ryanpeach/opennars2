@@ -9,6 +9,7 @@
     [narjure.defaults :refer :all]
     [nal.term_utils :refer :all]
     [narjure.debug-util :refer :all]
+    [nal.term_utils :refer [operation?]]
     [nal.deriver.projection-eternalization :refer [eternalize]])
   (:refer-clojure :exclude [promise await]))
 
@@ -92,9 +93,12 @@
         (cast! task-dispatcher [:task-msg [nil nil new-task]])
         (output-task :input new-task)
         (when (event? sentence)
+          (println (str (:statement new-task) " and old task " (:statement @lastevent)))
           (when (and (not= nil (deref lastevent))
-                     (= (:task-type new-task) :belief))
-            (cast! (whereis :inference-request-router) [:do-inference-msg [(:statement new-task) (:statement @lastevent) nil new-task @lastevent]])
+                     (= (:task-type new-task) :belief)
+                     (not (operation? new-task)))
+            (println (str "temporal inference: " (:statement new-task) (:statement @lastevent)))
+            (cast! (whereis :inference-request-router) [:do-inference-msg [(:statement new-task) (:statement @lastevent) nil new-task @lastevent true]])
             (println "sent"))
           (when (= (:task-type new-task) :belief)
             (reset! lastevent new-task)

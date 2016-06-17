@@ -28,9 +28,12 @@
   "Processes :do-inference-msg:
     generated derived results, budget and occurrence time for derived tasks.
     Posts derived sentences to task creator"
-  [from [msg [task-concept-id belief-concept-id bLink task belief]]]
+  [from [msg [task-concept-id belief-concept-id bLink task belief debug]]]
   (set-state! (update @state :all-inference-requests inc))  ;for stats tracking
   (try
+    (when debug
+      (println (str "inference between: " (:statement task)) (:statement belief)
+               (inference task belief)))
     (when (non-overlapping-evidence? (:evidence task) (:evidence belief))
       (set-state! (update @state :non-overlapping-inference-requests inc))      ;for stats tracking
       (let [pre-filtered-derivations (inference task belief)]
