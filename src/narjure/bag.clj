@@ -87,7 +87,7 @@
               ref (:ref element')
               elements-map' (dissoc elements-map id)]
           (elements-map id)
-          #_(when (not= ref nil) ;TODO disable logging for this actor so that this can be enabled again
+          (when ref ;TODO disable logging for this actor so that this can be enabled again
             (shutdown! ref))             ;shutdown concept actor
           [element' (->DefaultBag priority-index' elements-map' capacity)])
         [nil bag])))
