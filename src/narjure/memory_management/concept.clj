@@ -16,7 +16,7 @@
     [narjure.memory-management.local-inference.goal-processor :refer [process-goal]]
     [narjure.memory-management.local-inference.quest-processor :refer [process-quest]]
     [narjure.memory-management.local-inference.question-processor :refer [process-question]]
-    [nal.deriver.truth :refer [t-or t-and confidence frequency expectation revision]]
+    [nal.deriver.truth :refer [w2c t-or t-and confidence frequency expectation revision]]
     [nal.deriver.projection-eternalization :refer [project-eternalize-to]])
   (:refer-clojure :exclude [promise await]))
 
@@ -25,8 +25,14 @@
 
 (defn forget-termlinks []
   (while (> (count (:termlinks @state)) concept-max-termlinks)
-    (let [worst (apply max-key (comp expectation second) (:termlinks @state))]
-      (set-state! (assoc @state :termlinks (dissoc (:termlinks @state) (first worst)))))))
+    (let [worst (apply max-key (comp first second) (:termlinks @state))]
+      (set-state! (assoc @state :termlinks (dissoc (:termlinks @state) (first worst))))))
+  ;apply weak forget also:
+  (set-state!
+    (assoc @state :termlinks
+                  (apply merge (for [[tl [p d]] (:termlinks @state)]
+                                 {tl [(* p d) d]}))))
+  )
 
 (defn add-termlink [tl strength]
   (set-state! (assoc @state :termlinks (assoc (:termlinks @state)
@@ -34,13 +40,23 @@
   (forget-termlinks))
 
 (defn link-feedback-handler
-  [from [_ [task belief-concept-id]]]
-  (when (:truth task)
-    (let [quality (expectation (:truth task))]
-
-     ))
-
-  )
+  [from [_ [derived-task belief-concept-id]]]                       ;this one uses the usual priority durability semantics
+  (try
+    ;TRADITIONAL BUDGET INFERENCE (BLINK PART)
+    (let [complexity (syntactic-complexity belief-concept-id)
+          qual (if (:truth derived-task)
+                    (expectation (:truth derived-task))
+                    (w2c 1.0))
+          quality (/ qual complexity)
+          [target _] (b/get-by-id @c-bag belief-concept-id)
+          #_[source _] #_(b/get-by-id @c-bag (:id @state))
+          activation (:priority target) #_(t-and (:priority target) (:priority source))
+          [p d] ((:termlinks @state) belief-concept-id)]
+      (when (and p d qual)
+        (add-termlink belief-concept-id [(t-or p (t-or quality activation))
+                                         (t-or d quality)]))
+      )
+    (catch Exception e (println "fail"))))
 ;TODO UPDATE TERMLINK TO belief-concept-id by USEFULNESS (TRUTH QUALITY) OF task
 
 (defn task-handler
@@ -63,7 +79,8 @@
           task-bag (:tasks concept-state)
           newbag (b/add-element task-bag {:id (get-task-id task) :priority (first (:budget task))})]
       (let [newtermlinks (merge (apply merge (for [tl (:terms task)] ;prefer existing termlinks strengths
-                                               {tl [1.0 termlink-single-sample-evidence-amount]})) (:termlinks concept-state))]
+                                               {tl  termlink-default-budget ;priority durability model testing now!!
+                                                #_[1.0 termlink-single-sample-evidence-amount]})) (:termlinks concept-state))]
         (set-state! (merge concept-state {;:tasks     newbag
                                           :termlinks (select-keys newtermlinks
                                                                   (filter #(b/exists? @c-bag %) (keys newtermlinks))) ;only these keys which exist in concept bag
@@ -103,14 +120,14 @@
           (set-state! (assoc concept-state :tasks bag3)))))
     (catch Exception e (debuglogger search display (str "solution update error " (.toString e))))))
 
-(defn update-termlink [tl]                                  ;term
+#_(defn update-termlink [tl]                                  ;term
  (let [prio-me (:priority ((:elements-map @c-bag) (:id @state)))
-       old-truth ((:termlinks @state) tl)
+       [p d] ((:termlinks @state) tl)
        prio-other (:priority ((:elements-map @c-bag) tl))
        association (t-and prio-me prio-other)
        disassocation (t-and prio-me (- 1.0 prio-other))
        frequency (+ 0.5 (/ (- association disassocation) 2.0))
-       newstrength (revision old-truth [frequency termlink-single-sample-evidence-amount])]
+       newstrength [(+ p (* termlink-context-adaptations-speed frequency)) d]]
    (add-termlink tl newstrength)))
 
 (defn belief-request-handler
@@ -118,7 +135,7 @@
   [from [_ [task-concept-id termlink-strength task]]]
   ;todo get a belief which has highest confidence when projected to task time
   (try                                                      ;update termlinks at first
-    (update-termlink (:statement task))          ;task concept here
+    #_(update-termlink (:statement task))          ;task concept here
     (catch Exception e (debuglogger search display (str "belief side termlink strength error " (.toString e)))))
   (try (let [tasks (get-tasks state)
              beliefs (filter #(and (= (:statement %) (:id @state))
@@ -224,14 +241,16 @@
           ;now search through termlinks, get the endpoint concepts, and form a bag of them
           (let [initbag (b/default-bag concept-max-termlinks)
                 resbag (reduce (fn [a b] (b/add-element a b)) initbag (for [[k v] (:termlinks @state)]
-                                                                        {:priority (:priority (first (b/get-by-id @c-bag k)))
+                                                                        {:priority (* (first v)
+                                                                                      1.0 #_(:priority (first (b/get-by-id @c-bag k))))
                                                                          :id       k}))
                 ;now select an element from this bag
                 [beliefconcept bag1] (b/get-by-index resbag (selection-fn resbag))]
             ;and create a belief request message
+
             (when-let [{c-ref :ref} ((:elements-map @c-bag) (:id beliefconcept))]
               (try
-                (update-termlink (:id beliefconcept))          ;belief concept here
+                #_(update-termlink (:id beliefconcept))          ;belief concept here
                 (catch Exception e (debuglogger search display (str "task side termlink strength error " (.toString e)))))
               (cast! c-ref [:belief-request-msg [(:id @state) ((:termlinks @state) (:id beliefconcept)) (:task el)]])
               ))))
@@ -245,7 +264,7 @@
   ;todo get a belief which has highest confidence when projected to task time
 
   (when-not ((:termlinks @state) term)
-    (set-state! (assoc @state :termlinks (assoc (:termlinks @state) term [1.0 termlink-single-sample-evidence-amount])))))
+    (set-state! (assoc @state :termlinks (assoc (:termlinks @state) term concept-selection-introduced-termlink-default-budget)))))
 
 (defn concept-state-handler
   "Sends a copy of the actor state to requesting actor"

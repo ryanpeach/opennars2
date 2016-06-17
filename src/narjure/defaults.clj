@@ -45,7 +45,7 @@
 (def priority-threshold 0.001)                              ; concepts and tasks have to be above this to be processed
 (def max-concept-selections 10)                             ; don't set higher if not on a sumpercomputer, will cause trouble
 (def termlink-single-sample-evidence-amount 0.01)           ; default conf for termlink truth value
-(def concept-max-termlinks 10)                              ; max size of termlink bag per concept
+(def concept-max-termlinks 5)                              ; max size of termlink bag per concept
 (def max-tasks 10)                                          ; max size of task bag per concept
 (def max-anticipations 5)                                   ; max size of anticipation bag per concept
 (def max-concepts 1000)                                     ; do not make too small (less than 50) as causes cyclic issue between task-dispatcher and concept-manager
@@ -59,3 +59,6 @@
 (def inference-tick-interval 75)
 (def anticipation-scale-dependent-tolerance 2.0)
 (def anticipation-disappointment-priority-gain 1.5)         ;should be >=1.0 !
+(def termlink-default-budget [0.6 0.99])
+(def concept-selection-introduced-termlink-default-budget [0.1 0.1])
+(def termlink-context-adaptations-speed 0.05)

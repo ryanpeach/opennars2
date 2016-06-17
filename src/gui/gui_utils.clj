@@ -10,7 +10,7 @@
   [[colr colg colb cola]]
   (if (= (deref invert-colors) true)
     [(- 255 colr) (- 255 colg) (- 255 colb) (if cola cola 255)]
-    [colr colg colb]))
+    [colr colg colb (if cola cola 255)]))
 
 (defn invert-comp [v]
   (if (= (deref invert-colors) true)

@@ -5,6 +5,7 @@
      [actors :refer :all]]
     [nal.deriver :refer [inference]]
     [taoensso.timbre :refer [debug info]]
+    [nal.deriver.truth :refer [t-or t-and w2c]]
     [narjure.global-atoms :refer :all]
     [narjure.debug-util :refer :all]
     [narjure.defaults :refer [priority-threshold]]
@@ -27,7 +28,7 @@
   "Processes :do-inference-msg:
     generated derived results, budget and occurrence time for derived tasks.
     Posts derived sentences to task creator"
-  [from [msg [task-concept-id belief-concept-id termlink-strength task belief]]]
+  [from [msg [task-concept-id belief-concept-id bLink task belief]]]
   (set-state! (update @state :all-inference-requests inc))  ;for stats tracking
   (try
     (when (non-overlapping-evidence? (:evidence task) (:evidence belief))
@@ -36,25 +37,37 @@
         (let [filtered-derivations (filter #(not= (:statement %) (:parent-statement task)) pre-filtered-derivations)
              evidence (make-evidence (:evidence task) (:evidence belief))
              derivation-depth (if (not (:depth task)) 1 (:depth task))
-             task-type-penalty (fn [type] (if (= type :belief) 0.5 1.0))
              derived-load-reducer (whereis :derived-load-reducer)]
           (set-state! (update @state :pre-filtered-derivations + (count pre-filtered-derivations)))      ;for stats tracking
          ; dont post if evidence is nil, saves multiple checks further down the pipe
          (when (not= evidence '())
            (doseq [derived filtered-derivations]
-             (let [budget [(* (first (:budget task))        ;im not sure anymore whether task parent priority is good here
-                              (task-type-penalty (:task-type derived))
-                              #_(expectation termlink-strength)
-                              (if (= nil (:truth derived))  ;needs discussing.
-                                1.0
-                                (expectation (:truth derived)))
-                              (occurrence-penalty-tr (:occurrence derived)))
-                           (/ 1.0 (+ 1.0 derivation-depth (syntactic-complexity (:statement derived)))) 0.0]]
+             (let
+               ;TRADITIONAL BUDGET INFERENCE (DERIVED TASK PART)
+               [priority (first (:budget task))
+                durability (* (second (:budget task))
+                                 (/ 1.0 (+ 1.0 (syntactic-complexity (:statement derived)))))
+
+                priority' (t-or priority (first bLink))
+                durability' (t-and durability (second bLink))
+
+                complexity (syntactic-complexity (:statement derived))
+
+                budget [(* priority' (occurrence-penalty-tr (:occurrence derived)))
+
+                        durability'
+
+                        (if (:truth derived)
+                          (/ (expectation (:truth derived))
+                             complexity)
+                          (w2c 1.0))
+                        ]
+                ]
                (when (> (first budget) priority-threshold)
                  (set-state! (update @state :filtered-derivations inc))              ;for stats tracking
                  (cast! derived-load-reducer [:derived-sentence-msg [task-concept-id
                                                                      belief-concept-id
-                                                                     (assoc derived :budget [(round2 4 (first budget)) (round2 4 (second budget)) 0.0]
+                                                                     (assoc derived :budget [(round2 4 (first budget)) (round2 4 (second budget)) (round2 4 (nth budget 2))]
                                                                                     :parent-statement (:statement task) :depth (inc derivation-depth)
                                                                                     :evidence evidence)]]))))))))
     (catch Exception e (debuglogger search display (str "inference error " (.toString e))))))
