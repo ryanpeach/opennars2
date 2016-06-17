@@ -7,9 +7,9 @@
   [belief-frequency belief-confidence])
 
 (def belief-priority 0.5)
-(def belief-durability 0.5)
+(def belief-durability 0.7)
 ;todo clarify this
-(def belief-quality 0.0)
+(def belief-quality 0.3)
 
 (def belief-budget
   [belief-priority belief-durability belief-quality])
@@ -52,7 +52,7 @@
 (def max-derived-sentences 50)                              ; derived task bag capacity
 (def max-derived-selections 10)                             ; max derived selections per cycle
 (def max-event-selections 10)                               ; no longer used - number of events to select per cycle
-(def decay-rate 200)                                        ; forgetting adjustment rate for concepts e^-lt where l = (1.0 - durabiity) / decay-rate
+(def decay-rate 150)                                        ; forgetting adjustment rate for concepts e^-lt where l = (1.0 - durabiity) / decay-rate
 ; durability of 0.5 and decay rate of 100 fully decays priority in 1000 cycles
 ; decay-rate of 10 would fully decay it in 100 cycles
 (def system-tick-interval 15)                               ;make big enough
