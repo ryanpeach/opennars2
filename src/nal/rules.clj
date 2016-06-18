@@ -245,12 +245,12 @@ So these rules are for bringing NAL-statements into a different, implied and mor
           "
          ; NAL4 - Transformations between products and images:
          ; Relations and transforming them into different representations so that arguments and the relation it'self can become the subject or predicate
-         #R[((* :list/A) --> M) Ai |- (Ai --> (/ M :list/A))
-            :pre ((:substitute-from-list Ai _) (:contains? (:list/A) Ai))
-            :post (:t/identity :d/identity)]
-         #R[(M --> (* :list/A)) Ai |- ((\ M :list/A) --> Ai)
-            :pre ((:substitute-from-list Ai _) (:contains? (:list/A) Ai))
-            :post (:t/identity :d/identity)]
+          ;#R[((* :list/A) --> M) Ai |- (Ai --> (/ M :list/A))
+          ; :pre ((:substitute-from-list Ai _) (:contains? (:list/A) Ai))
+          ; :post (:t/identity :d/identity)]
+          ;#R[(M --> (* :list/A)) Ai |- ((\ M :list/A) --> Ai)
+          ;  :pre ((:substitute-from-list Ai _) (:contains? (:list/A) Ai))
+          ;  :post (:t/identity :d/identity)]
             #R[(Ai --> (/ M :list/A )) M |- ((* :list/A) --> M)
                :pre ((:substitute-from-list _ Ai))
                :post (:t/identity :d/identity)]

@@ -46,6 +46,7 @@
             {:name "add element" :from :concept-manager :to :concept-bag :unidirectional true}
             {:name ":task-msg" :from :task-dispatcher :to :concepts :unidirectional true}
             {:name "takeout" :from :concept-bag :to :concept-selector :unidirectional true}
+            {:name "    :do-inference-msg" :from :task-creator :to :inference-request-router :unidirectional true}
             #_{:name "         add element" :from :task-dispatcher :to :event-bag :unidirectional true}])
 
 (def graph-actors [nodes edges actor-level-width actor-level-height])

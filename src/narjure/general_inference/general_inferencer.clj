@@ -31,11 +31,7 @@
   [from [msg [task-concept-id belief-concept-id bLink task belief debug]]]
   (set-state! (update @state :all-inference-requests inc))  ;for stats tracking
   (try
-    (when debug
-      (println (str "inference between: " task belief)
-               (inference task belief)))
     (when (non-overlapping-evidence? (:evidence task) (:evidence belief))
-      (println "no overlap")
       (set-state! (update @state :non-overlapping-inference-requests inc))      ;for stats tracking
       (let [pre-filtered-derivations (inference task belief)]
         (let [filtered-derivations (filter #(not= (:statement %) (:parent-statement task)) pre-filtered-derivations)
@@ -69,7 +65,7 @@
                 ]
                (when (and (> (first budget) priority-threshold)
                           (or (not (:truth derived))
-                              true #_(> (expectation (:truth derived)) 0.5))) ;buffer filter of older versions
+                              (> (expectation (:truth derived)) 0.5))) ;buffer filter of older versions
                  (set-state! (update @state :filtered-derivations inc))              ;for stats tracking
                  (cast! derived-load-reducer [:derived-sentence-msg [task-concept-id
                                                                      belief-concept-id

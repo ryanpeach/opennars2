@@ -97,13 +97,9 @@
           (when (and (not= nil (deref lastevent))
                      (= (:task-type new-task) :belief)
                      (not (operation? new-task)))
-            (println "new task: " (:statement new-task) )
-            (println (str "temporal inference: " (:statement new-task) (:statement @lastevent)))
-            (cast! (whereis :inference-request-router) [:do-inference-msg [(:statement new-task) (:statement @lastevent) nil new-task @lastevent true]])
-            (println "sent"))
+            (cast! (whereis :inference-request-router) [:do-inference-msg [(:statement new-task) (:statement @lastevent) nil new-task @lastevent true]]))
           (when (= (:task-type new-task) :belief)
-            (reset! lastevent new-task)
-            (println (str "\nnew last event: " (:statement @lastevent))))
+            (reset! lastevent new-task))
           (cast! task-dispatcher [:task-msg [nil nil (create-eternal-task new-task)]]))))))
 
 (defn derived-sentence-handler
