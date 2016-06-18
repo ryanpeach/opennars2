@@ -43,23 +43,24 @@
 (defn mouse-pressed [graphs debugmessage hud state event]                           ;also HGUI click check here
   (when (not= [] graphs)
     (doseq [[V E w h] @graphs]
-     (doseq [v V]
-       (let [px (:px v)
-             py (:py v)
-             mousex (if hud (:x event) (mouse-to-world-coord-x state (:x event)))
-             mousey (if hud (:y event) (mouse-to-world-coord-y state (:y event)))]
-         (when (and (> mousex px) (> mousey py)
-                    (< mousex (+ px w)) (< mousey (+ py h)))
-           (when (not (= (:onclick v) nil))
-             ((:onclick v) state))
-           (when (not= nil (:name v))
-             (spit-clipboard (str (:name v))))
-           (when (contains? debugmessage (:name v))
-             (let [debugentry ((:name v) debugmessage)]
-               (when (not= nil debugentry)
-                 (spit-clipboard (str (slurp-clipboard) (display-string debugmessage (:name v))))
-                 (when (> (count debugentry) 1)
-                   (reset! input-string (second debugentry)))))))))))
+      (doseq [v V]
+        (let [px (:px v)
+              py (:py v)
+              mousex (if hud (:x event) (mouse-to-world-coord-x state (:x event)))
+              mousey (if hud (:y event) (mouse-to-world-coord-y state (:y event)))]
+          (when (and (> mousex px) (> mousey py)
+                     (< mousex (+ px (if (:custom-w v) (:custom-w v) w)))
+                     (< mousey (+ py (if (:custom-w h) (:custom-w h) w))))
+            (when (not (= (:onclick v) nil))
+              ((:onclick v) state))
+            (when (not= nil (:name v))
+              (spit-clipboard (str (:name v))))
+            (when (contains? debugmessage (:name v))
+              (let [debugentry ((:name v) debugmessage)]
+                (when (not= nil debugentry)
+                  (spit-clipboard (str (slurp-clipboard) (display-string debugmessage (:name v))))
+                  (when (> (count debugentry) 1)
+                    (reset! input-string (second debugentry)))))))))))
   (assoc state :savepx (:x event) :savepy (:y event) :md true))
 
 (defn mouse-dragged [state event]
