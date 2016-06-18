@@ -53,9 +53,10 @@
                     (truth-to-quality (:truth derived-task))
                     (w2c 1.0))
           quality (/ qual complexity)
-          [target _] (b/get-by-id @c-bag belief-concept-id)
+          #_[target _] #_(b/get-by-id @c-bag belief-concept-id)
           #_[source _] #_(b/get-by-id @c-bag (:id @state))
-          activation (:priority target) #_(t-and (:priority target) (:priority source))
+          [result-concept _]  (b/get-by-id @c-bag (:statement derived-task))
+          activation (:priority result-concept) #_(:priority result-concept) #_(Peis)  #_(t-and (:priority target) (:priority source)) #_("1.7.0")
           [p d] ((:termlinks @state) belief-concept-id)]
       (when (and p d qual)
         (add-termlink belief-concept-id [(t-or p (t-or quality activation))
