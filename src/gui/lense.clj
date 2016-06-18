@@ -24,7 +24,8 @@
             [narjure.global-atoms :refer :all]
             [narjure.debug-util :refer :all]
             [narjure.bag :as b]
-            [narjure.defaults :refer [priority-threshold]]))
+            [narjure.defaults :refer [priority-threshold]]
+            [clojure.set :as set]))
 
 (defn bag-format [st]
   (clojure.string/replace st "}" "}\n"))
@@ -115,7 +116,8 @@
               namepos-x (pxtransform namepos) namepos-y (pytransform namepos)
               pointf (fn [a b] {:px a :py b})
               name (:name c)]
-          (when (or (in-picture state (pointf left-x left-y) hud)
+          (when (or (:no-in-picture-check c)
+                    (in-picture state (pointf left-x left-y) hud)
                     name
                     (and @link-labels
                          (in-picture state (pointf namepos-x namepos-y) hud)))
@@ -176,19 +178,34 @@
   ;concept graph
   (when (> (hnav/mouse-to-world-coord-x state (hnav/width)) 1600)
     (try (let [elems (apply vector (:priority-index (deref c-bag)))
+               a 75.0
+               pxfun (fn [ratio] (+ 3500 (* a ratio (Math/cos ratio))))
+               pyfun (fn [ratio] (+ 200 (* a ratio (Math/sin ratio))))
+               isin
+               (apply set/union
+                      (for [i (range (count elems))]
+                        (let [elem (elems i)
+                              ratio (* 30.0 (+ 0.10 (/ i (count elems))))
+                              px (pxfun ratio)
+                              py (pyfun ratio)]
+                          (when (in-picture state {:px px :py py} false)
+                            (set/union (set (keys (@lense-termlinks (:id elem))))
+                                       #{(:id elem)})))))
                nodes (for [i (range (count elems))]
                        (let [elem (elems i)
                              ratio (* 30.0 (+ 0.10 (/ i (count elems))))
-                             a 75.0
                              id (:id elem)
-                             px (+ 3500 (* a ratio (Math/cos ratio)))
-                             py (+ 200 (* a ratio (Math/sin ratio)))
+                             px (pxfun ratio)
+                             py (pyfun ratio)
                              priority (:priority elem)
                              quality (:quality ((:elements-map (deref c-bag)) id))]
-                         (when (and (.contains (str id) (deref concept-filter))
-                                    (> priority priority-threshold)
-                                    (> priority @prio-threshold)
-                                    (in-picture state {:px px :py py} false))
+                         (when (try
+                                 (and (.contains (str id) (deref concept-filter))
+                                      (> priority priority-threshold)
+                                      (> priority @prio-threshold)
+                                      (or (isin id)
+                                          (in-picture state {:px px :py py} false)))
+                                 (catch Exception e false))
                            {:name          (str "\n" (narsese-print id)
                                                 (if (= id @selected-concept)
                                                   (str "\npriority: " priority " " "quality: " quality " "
@@ -214,6 +231,7 @@
                              bterm (/ (if (< freq 0.5) (* 510.0 disttomiddle) 0.0) 2.0)]
                          {:from                 (:id n)
                           :to                   k :unidirectional true
+                          :no-in-picture-check true
                           :stroke-weight        (* 0.5 conf)
                           :link-color           (if @invert-colors
                                                   (invert-color [(+ 128.0 rterm) 128.0 (+ 128.0 bterm)])
@@ -225,7 +243,7 @@
                           :ghost-opposite       true}))
                concept-graph [(filter #(not= % nil) nodes) edges 10 10]]
            (reset! graphs (concat static-graphs [concept-graph])))
-         (catch Exception e (println e))))
+         (catch Exception e (println "test"))))
   (q/pop-matrix)
   (draw-graph state hud true)
   )
@@ -256,4 +274,3 @@
              :middleware [m/fun-mode]
              :features [ :resizable ]
              :title "OpenNARS 2.0.0: Lense")
-
