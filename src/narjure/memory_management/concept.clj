@@ -82,13 +82,11 @@
 
   (try
     (let [concept-state @state
-          task-bag (:tasks concept-state)
-          newbag (b/add-element task-bag {:id (get-task-id task) :priority (first (:budget task))})]
-      (let [newtermlinks (merge (apply merge (for [tl (:terms task)] ;prefer existing termlinks strengths
+          task-bag (:tasks concept-state)]
+      (let [newtermlinks (merge (apply merge (for [tl (filter (fn [z] (not= z (:id @state))) (:terms task))] ;prefer existing termlinks strengths
                                                {tl  termlink-default-budget ;priority durability model testing now!!
                                                 #_[1.0 termlink-single-sample-evidence-amount]})) (:termlinks concept-state))]
-        (set-state! (merge concept-state {;:tasks     newbag
-                                          :termlinks (select-keys newtermlinks
+        (set-state! (merge concept-state {:termlinks (select-keys newtermlinks
                                                                   (filter #(b/exists? @c-bag %) (keys newtermlinks))) ;only these keys which exist in concept bag
                                           }))))
     (catch Exception e (debuglogger search display (str "task add error " (.toString e)))))
