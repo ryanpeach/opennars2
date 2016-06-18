@@ -47,8 +47,8 @@
     (nars-input-narsese "<ballpos --> [equal]>! :|:"))
   (when (= (mod (:iteration state) 1000) 1)
     (println "rand action")
-    (nars-input-narsese (str (rand-nth ["<(*,{SELF}) --> op_up>!  :|:"
-                                        "<(*,{SELF}) --> op_down>!  :|:"
+    (nars-input-narsese (str (rand-nth ["<(*,{SELF}) --> op_up>!  :|: %1.0;0.1%"
+                                        "<(*,{SELF}) --> op_down>!  :|: %1.0;0.1%"
                                         #_"<(*,{SELF}) --> op_stop>! :|:"]))))
 
   (when (= (mod (:iteration state) 53) 0)
