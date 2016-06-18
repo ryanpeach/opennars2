@@ -181,11 +181,14 @@
                             ratio (* 30.0 (+ 0.10 (/ i (count elems))))
                             a 75.0
                             id (:id elem)
+                            px (+ 3500 (* a ratio (Math/cos ratio)))
+                            py (+ 200 (* a ratio (Math/sin ratio)))
                             priority (:priority elem)
                             quality (:quality ((:elements-map (deref c-bag)) id))]
                         (when (and (.contains (str id) (deref concept-filter))
                                    (> priority priority-threshold)
-                                   (> priority @prio-threshold))
+                                   (> priority @prio-threshold)
+                                   (in-picture state {:px px :py py} false))
                           {:name          (str "\n" (narsese-print id)
                                                (if (= id @selected-concept)
                                                  (str "\npriority: " priority " " "quality: " quality " "
@@ -195,8 +198,8 @@
                                                         (limit-string (str (apply vector
                                                                                   (:elements-map (@lense-taskbags id)))) 20000)))
                                                  ""))       ;"\n" @lense-termlinks
-                           :px            (+ 3500 (* a ratio (Math/cos ratio)))
-                           :py            (+ 200 (* a ratio (Math/sin ratio)))
+                           :px            px
+                           :py            py
                            :displaysize   1.0
                            :backcolor     [(- 255 (* priority 255.0)) 255 255]
                            :titlesize     2.0
