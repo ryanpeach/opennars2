@@ -35,7 +35,8 @@
                                              (* (first (:budget anticipation))
                                                 confidence-of-lack
                                                 anticipation-disappointment-priority-gain))
-                                        (second (:budget anticipation))])
+                                        (second (:budget anticipation))
+                                        (nth (:budget anticipation) 2)])
            :expiry)))
 
 (defn confirmable-observable? [task]

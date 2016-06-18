@@ -77,7 +77,7 @@
     (set-state! (assoc @state :tasks bag'))))
 
 (defn update-task-in-tasks [state task old-task]
-  (let [[element bag] (b/get-by-id (:tasks @state) old-task)]
+  #_(let [[element bag] (b/get-by-id (:tasks @state) old-task)]
     (when (not= nil element)
       (set-state! (assoc @state :tasks bag))))
   (add-to-tasks state task))
@@ -106,20 +106,20 @@
         budget (:budget goal)
         p (first budget)
         p-new (t-and p (- 1.0 satisfaction))]
-    (assoc goal :budget [p-new (second budget)])))
+    (assoc goal :budget [p-new (second budget) (nth budget 2)])))
 
 (defn reduced-question-budget-by-belief [question belief]
   (let [budget (:budget question)
         p (first budget)
         p-new (t-and p (- 1.0 (confidence belief)))]
-    (assoc question :budget [p-new (second budget)])))
+    (assoc question :budget [p-new (second budget) (nth budget 2)])))
 
 (defn increased-belief-budget-by-question [belief question]  ;useful belief, answered a question
   (let [budget (:budget belief)
         d (second budget)
         k 1.0
         d-new (t-or d (* k (confidence belief)))]
-    (assoc belief :budget [(first budget) d-new])))                                                 ;1-confidence(solution)
+    (assoc belief :budget [(first budget) d-new (nth budget 2)])))                                                 ;1-confidence(solution)
 
 (defn reduced-quest-budget-by-goal [quest goal]                     ;by goal satisfied quest
   (reduced-question-budget-by-belief quest goal))
@@ -142,7 +142,8 @@
         solution (:solution question)]
     ;todo improve budget function here
     (let [new-budget [(* (- 1.0 (confidence solution)) (first budget))
-                      (second budget)]] ;TODO dependent on solution confidence
+                      (second budget)
+                      (nth budget 2)]] ;TODO dependent on solution confidence
       (assoc question :budget new-budget))))
 
 (defn decrease-quest-budget-by-solution [quest]

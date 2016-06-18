@@ -170,7 +170,7 @@
                      ;3. if it is a better solution, set belief as solution of task
                      (let [budget (:budget task)
                            new-prio (* (- 1.0 (expectation (:truth belief))) (first budget))
-                           new-budget [new-prio (second budget)]
+                           new-budget [new-prio (second budget) (nth budget 2)]
                            newtask (assoc task :solution belief :priority new-prio :budget new-budget)]
                        ;4. print our result
                        (output-task [:answer-to (str (narsese-print (:statement task)) "?")] (:solution newtask))
@@ -192,15 +192,15 @@
   (:quality ((:elements-map @c-bag) (:id @state))))
 
 (defn forget-task [el last-forgotten]
-  (let [budget (:budget (:task el))
-        ;new-priority (round2 4 (* (:priority el) (second budget)))
+  (let [task (:task el)
+        budget (:budget task)
         lambda (/ (- 1.0 (second budget)) decay-rate)
         fr (Math/exp (* -1.0 (* lambda (- @nars-time last-forgotten))))
         new-priority (max (round2 4 (* (:priority el) fr))
                           (/ (concept-quality) (+ 1.0 (b/count-elements (:tasks @state))))
-                          (nth budget 2)) ;dont fall below 1/N*quality
+                          (nth budget 2))                ;dont fall below 1/N*quality
         new-budget [new-priority (second budget) (nth budget 2)]]
-    (let [updated-task (assoc (:task el) :budget new-budget)]
+    (let [updated-task (assoc task :budget new-budget)]
       (assoc el :priority new-priority
                 :task updated-task))))
 
@@ -208,7 +208,7 @@
   (let [tasks (:elements-map (:tasks @state))
         last-forgotten (:last-forgotten @state)]
     (set-state! (assoc @state :tasks (b/default-bag max-tasks)))
-    (doseq [[_ el] tasks]
+    (doseq [[id el] tasks]                       ;{ id {:staement :type :occurrence}
       (let [el' (forget-task el last-forgotten)]
         ;(println (str "forgetting: " (get-in el' [:task :statement])))
         (set-state! (assoc @state :tasks (b/add-element (:tasks @state) el')))))
@@ -241,9 +241,6 @@
             (forget-tasks)
             (update-concept-budget)
             (catch Exception e (debuglogger search display (str "forget/update error " (.toString e)))))
-
-          ;(forget-tasks)
-          ;(update-concept-budget)
           (debuglogger search display ["selected inference task:" el])
           ;now search through termlinks, get the endpoint concepts, and form a bag of them
           (let [initbag (b/default-bag concept-max-termlinks)
