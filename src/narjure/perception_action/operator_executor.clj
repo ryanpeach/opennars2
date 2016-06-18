@@ -25,7 +25,7 @@
         operator (nth operation 2)]
     (try (let [func (@registered-operator-functions operator)]
            (when (not= nil func)
-             (func arguments)))
+             (func arguments operationgoal)))
       (catch Exception e (debuglogger search display (str "operator execution error " (.toString e)))))
     (output-task :execution operationgoal)
     (cast! (whereis :task-creator) [:sentence-msg feedback]))) ;derived-sentence so we keep evidence trail

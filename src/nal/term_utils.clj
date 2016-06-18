@@ -34,7 +34,7 @@
 (defn termlink-subterms
   "Extract the termlink relevant subterms of the term up to 3 levels as demanded by the NAL rules"
   ([level content]
-   (if (and (< level 3) (compound? content))
+   (if (and (< level 4) (compound? content))
      (reduce set/union #{content} (map (partial termlink-subterms (inc level)) content))
      #{content}))
   ([content]

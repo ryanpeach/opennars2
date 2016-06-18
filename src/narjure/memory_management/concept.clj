@@ -185,7 +185,7 @@
   "Update the concept budget"
   (let [concept-state @state
         tasks (:priority-index (:tasks concept-state))      ; :priority-index ok here
-        priority-sum (round2 3 (reduce t-or (for [x tasks] (:priority x))))
+        priority-sum (round2 3 (reduce max (for [x tasks] (:priority x))))
         quality-rescale 0.1
         el {:id       (:id @state)
             :priority priority-sum
@@ -263,7 +263,6 @@
                :quality            0.0
                :tasks              (b/default-bag max-tasks)
                :termlinks          {}
-               :anticipations      (b/default-bag max-anticipations)
                :concept-manager    (whereis :concept-manager)
                :inference-request-router (whereis :inference-request-router)
                :last-forgotten     @nars-time

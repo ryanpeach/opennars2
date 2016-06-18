@@ -49,7 +49,8 @@
                                 (expectation (:truth derived)))
                               (occurrence-penalty-tr (:occurrence derived)))
                            (/ 1.0 (+ 1.0 derivation-depth (syntactic-complexity (:statement derived)))) 0.0]]
-               (when (> (first budget) priority-threshold)
+               (when (and (> (first budget) priority-threshold)
+                          (> (expectation (:truth derived)) 0.5))
                  (set-state! (update @state :filtered-derivations inc))              ;for stats tracking
                  (cast! derived-load-reducer [:derived-sentence-msg (assoc derived :budget [(round2 4 (first budget)) (round2 4 (second budget)) 0.0]
                                                                                    :parent-statement (:statement task) :depth (inc derivation-depth)

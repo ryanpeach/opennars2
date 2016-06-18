@@ -43,20 +43,18 @@
 (def temporal-window-duration 10)                           ; number of system cycles to consider as concurrent
 (def max-term-complexity 20)                                ; maximum number of terms and sub terms in a statement - syntactic complexity
 (def priority-threshold 0.001)                              ; concepts and tasks have to be above this to be processed
-(def max-concept-selections 10)                             ; don't set higher if not on a sumpercomputer, will cause trouble
+(def max-concept-selections 15)                             ; don't set higher if not on a sumpercomputer, will cause trouble
 (def concept-selection-parameter 5)                         ; bias for adjusting bag selection function :- 1.0 = random selection, > 1.0 = increasing bias towards high priority
 (def termlink-single-sample-evidence-amount 0.01)           ; default conf for termlink truth value
 (def concept-max-termlinks 10)                              ; max size of termlink bag per concept
 (def max-tasks 10)                                          ; max size of task bag per concept
-(def max-anticipations 5)                                   ; max size of anticipation bag per concept
-(def max-concepts 100)                                      ; do not make too small (less than 50) as causes cyclic issue between task-dispatcher and concept-manager
-(def max-derived-sentences 50)                              ; derived task bag capacity
-(def max-derived-selections 10)                             ; max derived selections per cycle
-(def max-event-selections 10)                               ; no longer used - number of events to select per cycle
-(def decay-rate 100)                                        ; forgetting adjustment rate for concepts e^-lt where l = (1.0 - durabiity) / decay-rate
+(def max-concepts 1000)                                   ; do not make too small (less than 50) as causes cyclic issue between task-dispatcher and concept-manager
+(def max-derived-sentences 500)                             ; derived task bag capacity
+(def max-derived-selections 100)                            ; max derived selections per cycle
+(def decay-rate 150)                                        ; forgetting adjustment rate for concepts e^-lt where l = (1.0 - durabiity) / decay-rate
 ; durability of 0.5 and decay rate of 100 fully decays priority in 1000 cycles
 ; decay-rate of 10 would fully decay it in 100 cycles
-(def system-tick-interval 15)                               ;make big enough
-(def inference-tick-interval 75)
+(def system-tick-interval 10)                               ;make big enough
+(def inference-tick-interval 25)
 (def anticipation-scale-dependent-tolerance 2.0)
 (def anticipation-disappointment-priority-gain 1.5)         ;should be >=1.0 !

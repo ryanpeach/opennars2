@@ -10,7 +10,7 @@
   (let [factor (Math/pow 10 precision)]
     (/ (Math/round (* d factor)) factor)))
 
-(defn selection-fn
+(defn selection-fn-old
   ""
   [bag _]
   (let [count (b/count-elements bag)
@@ -18,7 +18,7 @@
     ;(println (str "i: " i " count: " count))
     i))
 
-(defn selection-fn-old
+(defn selection-fn
   ""
   [bag param]
   (let [count (b/count-elements bag)
