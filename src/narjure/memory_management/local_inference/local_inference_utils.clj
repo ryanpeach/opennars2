@@ -77,10 +77,10 @@
     (set-state! (assoc @state :tasks bag'))))
 
 (defn update-task-in-tasks [state task old-task]
-  #_(let [[element bag] (b/get-by-id (:tasks @state) (get-task-id old-task))]
-    (when element
+  (let [[element bag] (b/get-by-id (:tasks @state) (get-task-id old-task))]
+    (when (not= nil element)
       (set-state! (assoc @state :tasks bag))))
-  (add-to-tasks state task))
+  (set-state! (assoc @state :tasks (b/add-element (:tasks @state) (make-element task)))))
 
 (defn no-duplicate [M]
   (= (count (set M)) (count M)))
