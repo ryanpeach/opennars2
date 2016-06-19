@@ -102,6 +102,7 @@
              operation (if (not-empty possible-operations)
                     (apply max-key confidence possible-operations)
                     nil)]
-         (when-not (= nil operation)
-           ;(println (str  "goal: " operation))
-           (cast! (whereis :operator-executor) [:operator-execution-msg operation])))))))
+         (when (not= (:occurrence task) :eternal)
+           (when-not (= nil operation)
+            ;(println (str  "goal: " operation))
+            (cast! (whereis :operator-executor) [:operator-execution-msg operation]))))))))
