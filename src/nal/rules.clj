@@ -470,37 +470,37 @@ So these rules are for bringing NAL-statements into a different, implied and mor
                                     ((S --> $X) ==> (P --> $X)) :post (:t/induction)
                                     ((P --> $X) <=> (S --> $X)) :post (:t/comparison)
                                     (&& (S --> #Y) (P --> #Y)) :post (:t/intersection))
-                                         :pre ((:!= S P))]
+                                         :pre (:belief? (:!= S P))]
 
          #R[(S --> M) (P --> M) |- (((&/ (P --> $X) I) =/> (S --> $X)) :post (:t/induction :linkage-temporal :measure-time)
                                     ((S --> $X) =\> (&/ (P --> $X) I)) :post (:t/abduction :linkage-temporal :measure-time)
                                     ((&/ (P --> $X) I) </> (S --> $X)) :post (:t/comparison :linkage-temporal :measure-time)
                                     (&/ (P --> #Y) I (S --> #Y)) :post (:t/intersection :linkage-temporal :measure-time))
-                                       :pre ((:!= S P) (:measure-time I))]
+                                       :pre (:belief? (:!= S P) (:measure-time I))]
 
          #R[(S --> M) (P --> M) |- (((P --> $X) =|> (S --> $X)) :post (:t/abduction :linkage-temporal)
                                     ((S --> $X) =|> (P --> $X)) :post (:t/induction :linkage-temporal)
                                     ((P --> $X) <|> (S --> $X)) :post (:t/comparison :linkage-temporal)
                                     (&| (P --> #Y) (S --> #Y)) :post (:t/intersection :linkage-temporal))
-                                         :pre ((:!= S P) (:concurrent Task Belief))]
+                                         :pre (:belief? (:!= S P) (:concurrent Task Belief))]
 
          #R[(M --> S) (M --> P) |- ((($X --> S) ==> ($X --> P)) :post (:t/induction)
                                     (($X --> P) ==> ($X --> S)) :post (:t/abduction)
                                     (($X --> S) <=> ($X --> P)) :post (:t/comparison)
                                     (&& (#Y --> S) (#Y --> P)) :post (:t/intersection))
-            :pre ((:!= S P)) ]
+            :pre (:belief? (:!= S P)) ]
 
          #R[(M --> S) (M --> P) |- (((&/ ($X --> P) I) =/> ($X --> S))  :post (:t/induction :linkage-temporal :measure-time)
                                     (($X --> S) =\> (&/ ($X --> P) I)) :post (:t/abduction :linkage-temporal :measure-time)
                                     ((&/ ($X --> P) I) </> ($X --> S)) :post (:t/comparison :linkage-temporal :measure-time)
                                     (&/ (#Y --> P) I (#Y --> S)) :post (:t/intersection :linkage-temporal :measure-time))
-            :pre ((:!= S P) (:measure-time I))]
+            :pre (:belief? (:!= S P) (:measure-time I))]
 
          #R[(M --> S) (M --> P) |- ((($X --> S) =|> ($X --> P)) :post (:t/induction :linkage-temporal)
                                     (($X --> P) =|> ($X --> S)) :post (:t/abduction :linkage-temporal)
                                     (($X --> S) <|> ($X --> P)) :post (:t/comparison :linkage-temporal)
                                     (&| (#Y --> S) (#Y --> P)) :post (:t/intersection :linkage-temporal))
-            :pre ((:!= S P) (:concurrent (M --> P) (M --> S)))]
+            :pre (:belief? (:!= S P) (:concurrent (M --> P) (M --> S)))]
 
          )
 
@@ -599,11 +599,11 @@ So these rules are for bringing NAL-statements into a different, implied and mor
                      (P =\> (&/ S I)) :post (:t/abduction :linkage-temporal :measure-time)
                      ((&/ S I) </> P) :post (:t/comparison :linkage-temporal :measure-time)
                      (&/ S I P) :post (:t/intersection :linkage-temporal :measure-time))
-            :pre ((:measure-time I) (:not-implication-or-equivalence P) (:not-implication-or-equivalence S) (:!= S P))]
+            :pre (:belief? (:measure-time I) (:not-implication-or-equivalence P) (:not-implication-or-equivalence S) (:!= S P))]
          #R[P S |- ((S =|> P) :post (:t/induction :linkage-temporal)
                      (S <|> P) :post (:t/comparison :linkage-temporal)
                      (&| S P) :post (:t/intersection :linkage-temporal))
-            :pre [(:concurrent Task Belief) (:not-implication-or-equivalence P) (:not-implication-or-equivalence S) (:!= S P)]]
+            :pre [:belief? (:concurrent Task Belief) (:not-implication-or-equivalence P) (:not-implication-or-equivalence S) (:!= S P)]]
          )
 
 (defrules backward-only-inference
