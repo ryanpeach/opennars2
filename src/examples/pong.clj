@@ -32,6 +32,11 @@
                       :barheight 200
                       :iteration 0}))
 
+"
+<(&&,<(*,{SELF}) --> op_down>,(&/,<ballpos --> [below]>,i2048)) =/> <ballpos --> [equal]>>.
+<(&&,<(*,{SELF}) --> op_up>,(&/,<ballpos --> [above]>,i2048)) =/> <ballpos --> [equal]>>.
+"
+
 (def fieldmax 760)
 (def fieldmin 20)
 (def allow-continuous-feedback true)

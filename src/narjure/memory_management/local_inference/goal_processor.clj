@@ -58,7 +58,7 @@
                 new-quest-with-solution (assoc new-quest :solution goal-task)]
             (update-task-in-tasks state new-quest-with-solution quest))
           (let [new-goal (increased-goal-budget-by-quest goal-task-projected-to-quest quest)]
-            (update-task-in-tasks state new-goal goal-task)))))))
+            (update-task-in-tasks state (assoc goal-task :budget (:budget new-goal)) goal-task)))))))
 
 (def truth-tolerance 0.005)                                 ;TODO put to nal.deriver.truth?
 ;<(&&,<(*,{SELF}) --> op_down>,(&/,<ballpos --> [above]>,i2048)) =/> <ballpos --> [below]>>. :|12197|: %1.0;0.20954585215002955%" "

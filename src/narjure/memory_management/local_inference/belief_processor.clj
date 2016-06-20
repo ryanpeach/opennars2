@@ -63,7 +63,7 @@
                 new-goal-with-solution (assoc new-goal :solution belief-task)]
             (update-task-in-tasks state new-goal-with-solution goal))
           (let [new-belief (increased-belief-budget-by-goal belief-task-projected-to-goal goal)]
-            (update-task-in-tasks state new-belief belief-task)))))))
+            (update-task-in-tasks state (assoc belief-task :budget (:budget new-belief)) belief-task)))))))
 
 (defn answer-based-budget-change [state belief-task questions]
   ;filter goals matching concept content

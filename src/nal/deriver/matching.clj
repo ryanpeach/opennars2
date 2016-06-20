@@ -61,7 +61,8 @@
         get-func (fn [f] (let [secure (fn [func t1 t2 task belief swapped time-measure]
                                         (let [belief-truth (fn [t task belief] ;2. this is why args are necessary here
                                                              (if (or (= nil belief)
-                                                                     time-measure) ;as task and belief are not aviable on rule generation
+                                                                     time-measure
+                                                                     (not (:truth belief))) ;as task and belief are not aviable on rule generation
                                                                t
                                                                (:truth (project-eternalize-to (:occurrence task)
                                                                                                 belief @nars-time))))]
