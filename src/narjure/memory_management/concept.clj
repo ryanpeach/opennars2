@@ -212,6 +212,20 @@
         (set-state! (assoc @state :tasks (b/add-element (:tasks @state) el')))))
     (set-state! (assoc @state :last-forgotten @nars-time))))
 
+
+(defn max-statement-confidence-projected-to-now [task-type]
+  (let [li (filter (fn [z] (and (= (:task-type (:task (second z))) task-type)
+                                (= (:statement (:task (second z))) (:id @state))))
+                   (:elements-map (:tasks @state)))]
+    (if (= (count li) 0)
+      {:truth [0.5 0.0]}
+      (project-eternalize-to
+        (deref nars-time)
+        (:task (second (apply max-key (fn [y]
+                                        (second (:truth (:task (second y)))))
+                              li)))
+        (deref nars-time)))))
+
 (defn update-concept-budget []
   "Update the concept budget"
   (let [concept-state @state
@@ -221,7 +235,10 @@
         el {:id       (:id @state)
             :priority priority-sum
             :quality  (round2 3 (Math/max (concept-quality) (* quality-rescale priority-sum)))
-            :ref      @self}]
+            :ref      @self
+            :strongest-belief-about-now (max-statement-confidence-projected-to-now :belief)
+            ;:strongest-desire-about-now
+            }]
     ;update c-bag directly instead of message passing
     (swap! c-bag b/add-element el)))
 

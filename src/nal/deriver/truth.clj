@@ -50,6 +50,9 @@
 (defn analogy [[^double f1 ^double c1] [^double f2 ^double c2]]
   [(t-and f1 f2) (t-and c1 c2 f2)])
 
+(defn desire-strong [a b]
+  (analogy a b))
+
 (defn resemblance [[^double f1 ^double c1] [^double f2 ^double c2]]
   [(t-and f1 f2) (t-and c1 c2 (t-or f1 f2))])
 

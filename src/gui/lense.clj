@@ -155,7 +155,8 @@
 (def selected-concept (atom []))
 
 (defn max-statement-confidence-projected-to-now [concept-term task-type]
-  (let [li (filter (fn [z] (= (:task-type (:task (second z))) task-type))
+  (let [li (filter (fn [z] (and (= (:task-type (:task (second z))) task-type)
+                                (= (:statement (:task (second z))) concept-term)))
                    (:elements-map ((deref lense-taskbags) concept-term)))]
     (if (= (count li) 0)
       {:truth [0.5 0.0]}

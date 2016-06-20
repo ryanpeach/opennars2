@@ -105,7 +105,8 @@
             (add-to-tasks state task))
           ;check if it satisfies a goal or question and change budget accordingly
           (satisfaction-based-budget-change state total-revision goals)
-          (answer-based-budget-change state total-revision questions)))
+          (answer-based-budget-change state (:task (first (b/get-by-id (:tasks @state) (get-task-id total-revision)))) questions)
+          ))
 
     ; processing revised anticipations
     (when (and (event? task) (= (:source task) :input))
