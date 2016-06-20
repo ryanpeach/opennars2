@@ -160,7 +160,7 @@
     (let [projected-goals (map #(project-eternalize-to (:occurrence task) % @nars-time) (filter #(= (:statement %) (:statement task)) goals))]
 
       (let [total-revision (reduce (fn [a b] (if (non-overlapping-evidence? (:evidence a) (:evidence b))
-                                               (revise a b :goal)
+                                               (revise a (project-eternalize-to (:occurrence a) b @nars-time) :goal)
                                                a))
                                    task (shuffle projected-goals))]
         ;add revised task to bag

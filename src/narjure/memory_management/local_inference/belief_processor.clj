@@ -95,7 +95,7 @@
     (let [projected-beliefs (map #(project-eternalize-to (:occurrence task) % @nars-time) (filter #(= (:statement %) (:statement task)) beliefs))]
 
         (let [total-revision (reduce (fn [a b] (if (non-overlapping-evidence? (:evidence a) (:evidence b))
-                                                 (revise a b :belief)
+                                                 (revise a (project-eternalize-to (:occurrence a) b @nars-time) :belief)
                                                  a))
                                      task (shuffle projected-beliefs))]
           ;add revised task to bag:
