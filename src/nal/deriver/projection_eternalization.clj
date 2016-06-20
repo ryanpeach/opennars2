@@ -4,7 +4,7 @@
 
 ;temporally project task to ref task (note: this is only for event tasks!!)"
 (defn project-to [target-time t cur-time]
-  (when (= :eternal (:occurence t))
+  (when (= :eternal (:occurrence t))
     (println "ERROR: Project called on eternal task!!"))
   (let [source-time (:occurrence t)
         dist (fn [a b] (Math/abs (- a b)))]
@@ -20,7 +20,7 @@
 
 ;eternalize an event task to a task of eternal occurrence time
 (defn eternalize [t]
-  (when (= (:occurence t) :eternal)
+  (when (= (:occurrence t) :eternal)
     (println "error: eternalization on eternal task"))
   (if (or (= (:task-type t) :belief) (= (:task-type t) :goal))
     (assoc t :truth [(frequency t) (w2c (confidence t))]

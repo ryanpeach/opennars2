@@ -23,6 +23,9 @@
 (def display (atom '()))
 (def search (atom ""))
 
+(defn concept-quality []
+  (:quality ((:elements-map @c-bag) (:id @state))))
+
 (defn forget-termlinks []
   (while (> (count (:termlinks @state)) concept-max-termlinks)
     (let [worst (apply min-key (comp first second) (:termlinks @state))]
@@ -63,7 +66,35 @@
                                          (t-or d quality)]))
       )
     (catch Exception e (println "fail"))))
-;TODO UPDATE TERMLINK TO belief-concept-id by USEFULNESS (TRUTH QUALITY) OF task
+
+(defn max-statement-confidence-projected-to-now [task-type]
+  (let [li (filter (fn [z] (and (= (:task-type (:task (second z))) task-type)
+                                (= (:statement (:task (second z))) (:id @state))))
+                   (:elements-map (:tasks @state)))]
+    (if (= (count li) 0)
+      {:truth [0.5 0.0]}
+      (project-eternalize-to
+        (deref nars-time)
+        (:task (second (apply max-key (fn [y]
+                                        (second (:truth (:task (second y)))))
+                              li)))
+        (deref nars-time)))))
+
+(defn update-concept-budget []
+  "Update the concept budget"
+  (let [concept-state @state
+        tasks (:priority-index (:tasks concept-state))      ; :priority-index ok here
+        priority-sum (round2 3 (reduce t-or (for [x tasks] (:priority x))))
+        quality-rescale 0.1
+        el {:id       (:id @state)
+            :priority priority-sum
+            :quality  (round2 3 (Math/max (concept-quality) (* quality-rescale priority-sum)))
+            :ref      @self
+            :strongest-belief-about-now (max-statement-confidence-projected-to-now :belief)
+            ;:strongest-desire-about-now
+            }]
+    ;update c-bag directly instead of message passing
+    (swap! c-bag b/add-element el)))
 
 (defn task-handler
   [from [_ [task]]]
@@ -90,7 +121,8 @@
                                                                   (filter #(b/exists? @c-bag %) (keys newtermlinks))) ;only these keys which exist in concept bag
                                           }))))
     (catch Exception e (debuglogger search display (str "task add error " (.toString e)))))
-  (forget-termlinks))
+  (forget-termlinks)
+  (update-concept-budget))
 
 (defn unifies [b a]
   (= a (unifier a b)))
@@ -162,7 +194,7 @@
                  (let [answer-fqual (fn [answer] (if (= nil answer)
                                                    0
                                                    (/ (expectation (:truth answer)) (syntactic-complexity (:statement answer)))))
-                       newqual (answer-fqual (project-eternalize-to (:occurence task) belief @nars-time))
+                       newqual (answer-fqual (project-eternalize-to (:occurrence task) belief @nars-time))
                        oldqual (answer-fqual (project-eternalize-to (:occurrence task) (:solution task) @nars-time))] ;PROJECT!!
                    (when (> newqual oldqual)
                      ;3. if it is a better solution, set belief as solution of task
@@ -186,9 +218,6 @@
          )
        (catch Exception e (debuglogger search display (str "belief request error " (.toString e))))))
 
-(defn concept-quality []
-  (:quality ((:elements-map @c-bag) (:id @state))))
-
 (defn forget-task [el last-forgotten]
   (let [task (:task el)
        budget (:budget task)
@@ -211,36 +240,6 @@
         ;(println (str "forgetting: " (get-in el' [:task :statement])))
         (set-state! (assoc @state :tasks (b/add-element (:tasks @state) el')))))
     (set-state! (assoc @state :last-forgotten @nars-time))))
-
-
-(defn max-statement-confidence-projected-to-now [task-type]
-  (let [li (filter (fn [z] (and (= (:task-type (:task (second z))) task-type)
-                                (= (:statement (:task (second z))) (:id @state))))
-                   (:elements-map (:tasks @state)))]
-    (if (= (count li) 0)
-      {:truth [0.5 0.0]}
-      (project-eternalize-to
-        (deref nars-time)
-        (:task (second (apply max-key (fn [y]
-                                        (second (:truth (:task (second y)))))
-                              li)))
-        (deref nars-time)))))
-
-(defn update-concept-budget []
-  "Update the concept budget"
-  (let [concept-state @state
-        tasks (:priority-index (:tasks concept-state))      ; :priority-index ok here
-        priority-sum (round2 3 (reduce t-or (for [x tasks] (:priority x))))
-        quality-rescale 0.1
-        el {:id       (:id @state)
-            :priority priority-sum
-            :quality  (round2 3 (Math/max (concept-quality) (* quality-rescale priority-sum)))
-            :ref      @self
-            :strongest-belief-about-now (max-statement-confidence-projected-to-now :belief)
-            ;:strongest-desire-about-now
-            }]
-    ;update c-bag directly instead of message passing
-    (swap! c-bag b/add-element el)))
 
 (defn inference-request-handler
   ""

@@ -45,7 +45,7 @@
 (defn create-anticipation-task [task]
   (assoc task :task-type :anticipation :expiry (let [k anticipation-scale-dependent-tolerance
                                                      scale (/ (Math/abs (- (:occurrence task) @nars-time)) k)]
-                                                 (+ (:occurence task scale))))) ;left side limit not needed since projection in revision
+                                                 (+ (:occurrence task scale))))) ;left side limit not needed since projection in revision
 
 (defn satisfaction-based-budget-change [state belief-task goals]
   ;filter goals matching concept content
@@ -115,7 +115,7 @@
           (doseq [projected-anticipation (project-eternalize-to (:occurrence task) anticipation @nars-time)]
             ;revise anticipation and add to tasks
             (when (non-overlapping-evidence? (:evidence task) (:evidence projected-anticipation))
-              (set-state! (assoc @state :anticipation (revise projected-anticipation task :anticipation))))))))
+               (set-state! (assoc @state :anticipation (revise projected-anticipation task :anticipation))))))))
 
     ;generate neg confirmation for expired anticipations
     ;and add to tasks
