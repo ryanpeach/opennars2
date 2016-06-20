@@ -37,7 +37,7 @@
          get-eternal (fn [x] (if (= x :eternal) :eternal :temporal))]
      (case [(get-eternal target-time) (get-eternal source-time)]
        [:eternal :eternal] t
-       [:temporal :eternal] t
+       [:temporal :eternal] (assoc t :occurrence target-time)
        [:eternal :temporal] (eternalize t)
        [:temporal :temporal] (let [t-eternal (eternalize t)
                                    t-project (project-to target-time t cur-time)]

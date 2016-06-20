@@ -101,12 +101,9 @@
                                      task (shuffle same-content-beliefs))]
           ;add revised task to bag:
           (add-to-tasks state total-revision)
-          ;add task to bag also:
-          #_(when (not= task total-revision)
-            (add-to-tasks state task))
           ;check if it satisfies a goal or question and change budget accordingly
-          #_(satisfaction-based-budget-change state total-revision goals)
-          #_(answer-based-budget-change state (:task (first (b/get-by-id (:tasks @state) (get-task-id total-revision)))) questions)
+          (satisfaction-based-budget-change state total-revision goals)
+          (answer-based-budget-change state (:task (first (b/get-by-id (:tasks @state) (get-task-id total-revision)))) questions)
           ))
 
     ; processing revised anticipations
@@ -126,7 +123,7 @@
         ;add neg-confirmation to tasks bag and remove anticiptaion
         (set-state! (assoc @state :anticipation nil))
         ;(println (str "neg conf: " neg-confirmation))
-        #_(add-to-tasks state neg-confirmation)))
+        (add-to-tasks state neg-confirmation)))
 
     ;when task is confirmable and observabnle
     ;add an anticipation tasks to tasks

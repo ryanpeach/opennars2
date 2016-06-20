@@ -31,7 +31,7 @@
 
               ;Update goal also:
               (let [new-belief (increased-belief-budget-by-question projected-belief question)]
-                (update-task-in-tasks state new-belief belief))
+                (update-task-in-tasks state (assoc belief :budget (:budget new-belief)) belief))
 
               (add-to-tasks state result)                   ;its a new question
               ;if answer to user quest ouput answer

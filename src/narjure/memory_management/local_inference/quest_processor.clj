@@ -32,7 +32,7 @@
 
               ;Update goal also:
               (let [new-goal (increased-goal-budget-by-quest projected-goal quest)]
-                (update-task-in-tasks state new-goal goal))
+                (update-task-in-tasks state (assoc goal :budget (:budget new-goal)) goal))
 
               (add-to-tasks state result)                   ;its a new quest
 
