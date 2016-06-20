@@ -27,7 +27,7 @@
   (if (or (= (:task-type t) :belief) (= (:task-type t) :goal))
     (assoc t :truth [(frequency t) (w2c (confidence t))]
             :occurrence :eternal)
-    t))
+    (assoc t :occurrence :eternal)))
 
 ;temporally projecting/eternalizing a task to ref time
 (defn project-eternalize-to [target-time t cur-time]

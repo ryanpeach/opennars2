@@ -182,12 +182,12 @@
         quests (filter #(= (:task-type %) :quest ) tasks)]
 
     ;also allow revision in subterm concepts! this is why statement is compared to task statement, not to ID!!
-    (let [projected-goals (map #(project-eternalize-to (:occurrence task) % @nars-time) (filter #(= (:statement %) (:statement task)) goals))]
+    (let [related-goals (filter #(= (:statement %) (:statement task)) goals)]
 
       (let [total-revision (reduce (fn [a b] (if (non-overlapping-evidence? (:evidence a) (:evidence b))
                                                (revise a (project-eternalize-to (:occurrence a) b @nars-time) :goal)
                                                a))
-                                   task (shuffle projected-goals))]
+                                   task (shuffle related-goals))]
         ;add revised task to bag
         (add-to-tasks state total-revision)
         ;add task to bag
