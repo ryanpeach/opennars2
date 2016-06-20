@@ -98,11 +98,13 @@
   <{ball} --> [equal]>>. %0.4;09%"
 
   ;1.: find all beliefs that predict the goal ''=/> =|>  <|> </>''
-  (when (and (not= (:occurrence goal) :eternal)
-          (= (:id @state) (:statement goal)))
-    (let [;2. filter those with (precondition,op) => goal
+  (when (and (= (:occurrence goal) :eternal)                ;this should not change as long as intervals are not handled
+          (= (:id @state) (:statement goal)))               ;properly it wont be necessary anyway though in this case
+    (let [;2. filter those with (precondition,op) => goal   ;so this one is for future improvement
           #_print1 #_(println "step 1,2")
-         precondition-op-forms ['[pred-impl [conj ?operation [seq-conj ?precondition ?interval]] ?goal]] ;TODO add others
+         precondition-op-forms ['[pred-impl [conj ?operation [seq-conj ?precondition ?interval]] ?goal]
+                                '[pred-impl [conj [seq-conj ?precondition ?interval] ?operation] ?goal]
+                                '[pred-impl [seq-conj ?precondition ?interval1 ?operation ?interval2] ?goal]] ;TODO add others
          precondition-op-beliefs-and-assigment-tuple (filter
                                                        (fn [z] (and (not= (second z) nil)
                                                                     (= ((second z) '?goal) (:statement goal))
