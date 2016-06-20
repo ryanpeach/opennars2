@@ -153,3 +153,7 @@
   (let [tasks (vec (for [x (:elements-map (:tasks @state))] (:task (val x))))]
     ;(println (str "count: "  (count (:elements-map (:tasks @state))) " gt tasks: " tasks))
     tasks))
+
+(defn same-occurrence-type [t1 t2]
+  (or (and (= (:occurrence t1) :eternal) (= (:occurrence t2) :eternal))
+      (and (not= (:occurrence t1) :eternal) (not= (:occurrence t2) :eternal))))

@@ -92,7 +92,8 @@
         questions (filter #(= (:task-type %) :question ) tasks)]
 
     ;also allow revision in subterm concepts! this is why statement is compared to task statement, not to ID!!
-    (let [same-content-beliefs (filter #(= (:statement %) (:statement task)) beliefs)]
+    (let [same-content-beliefs (filter (fn [z] (and (same-occurrence-type z task)
+                                                    (= (:statement z) (:statement task)))) beliefs)]
 
         (let [total-revision (reduce (fn [a b] (if (non-overlapping-evidence? (:evidence a) (:evidence b))
                                                  (revise a (project-eternalize-to (:occurrence a) b @nars-time) :belief)

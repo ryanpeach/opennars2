@@ -182,7 +182,8 @@
         quests (filter #(= (:task-type %) :quest ) tasks)]
 
     ;also allow revision in subterm concepts! this is why statement is compared to task statement, not to ID!!
-    (let [related-goals (filter #(= (:statement %) (:statement task)) goals)]
+    (let [related-goals (filter (fn [z] (and (same-occurrence-type z task)
+                                             (= (:statement z) (:statement task))))  goals)]
 
       (let [total-revision (reduce (fn [a b] (if (non-overlapping-evidence? (:evidence a) (:evidence b))
                                                (revise a (project-eternalize-to (:occurrence a) b @nars-time) :goal)
