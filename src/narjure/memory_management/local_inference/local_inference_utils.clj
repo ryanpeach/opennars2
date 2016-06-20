@@ -56,9 +56,9 @@
         (assoc result :solution best-solution))
       result)))
 
-(defn better-task [t1 t2]
-  (if (= t2 nil)                                            ;no previous bag entry exists
-    t1                                                      ;so take the new one
+(defn better-task [t1 t2]                                   ;take care here with t1 t2!! ^^
+  (if (= t1 nil)                                            ;no previous bag entry exists
+    t2                                                      ;so take the new one
     (if (not= nil (:truth t1))
       (take-better-solution (max-key (comp measure-truth :truth) t1 t2) t1 t2)
       (take-better-solution (max-key (comp measure-budget :budget) t1 t2) t1 t2))))
@@ -67,7 +67,7 @@
   (let [bag (:tasks @state)
         el (make-element task)
         [{t2 :task :as existing-el} _] (b/get-by-id bag (:id el))
-        chosen-task (better-task task t2)
+        chosen-task (better-task t2 task)                   ;the second one is kept if equal so the order is important here!!
         new-budget (if existing-el
                      (max-budget (:budget task)
                                  (:budget t2))

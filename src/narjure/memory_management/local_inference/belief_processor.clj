@@ -105,8 +105,8 @@
           #_(when (not= task total-revision)
             (add-to-tasks state task))
           ;check if it satisfies a goal or question and change budget accordingly
-          (satisfaction-based-budget-change state total-revision goals)
-          (answer-based-budget-change state (:task (first (b/get-by-id (:tasks @state) (get-task-id total-revision)))) questions)
+          #_(satisfaction-based-budget-change state total-revision goals)
+          #_(answer-based-budget-change state (:task (first (b/get-by-id (:tasks @state) (get-task-id total-revision)))) questions)
           ))
 
     ; processing revised anticipations
@@ -138,7 +138,7 @@
         (let [anticipated-task (create-anticipation-task task)
               with-anticipated-truth (fn [t] (assoc t :source :derived :anticipated-truth (:truth t) :truth [0.5 0.0]))]
           (if (not= nil anticipation)
-            (set-state! (assoc @state :anticipation (with-anticipated-truth (better-task anticipated-task anticipation))))
+            (set-state! (assoc @state :anticipation (with-anticipated-truth (better-task anticipation anticipated-task))))
             (set-state! (assoc @state :anticipation (with-anticipated-truth anticipated-task))))
           (println (str "created anticipation: " (:anticipation @state))))))
     ))
