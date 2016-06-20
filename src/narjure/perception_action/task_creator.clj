@@ -93,8 +93,9 @@
         (output-task :input new-task)
         (when (event? sentence)
           ;uncomment for STM induction:
-          #_(when (and (not= nil (deref lastevent))
-                     (= (:task-type new-task) :belief))
+          (when (and (not= nil (deref lastevent))
+                     (= (:task-type new-task) :belief)
+                     (not (operation? (:statement new-task))))
             (cast! (whereis :inference-request-router) [:do-inference-msg [(:statement new-task) (:statement @lastevent) nil new-task @lastevent true]]))
           (when (= (:task-type new-task) :belief)
             (reset! lastevent new-task))

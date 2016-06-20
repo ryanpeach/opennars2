@@ -3,6 +3,7 @@
             [quil.middleware :as m]
             [gui.hnav :as hnav]
             [gui.gui-utils :refer [invert-comp]]
+            [narjure.global-atoms :refer :all]
             [narjure.core :as nar]
             [narjure.sensorimotor :refer :all]))
 
@@ -44,6 +45,8 @@
   (when (= @direction 1)
     (reset! py (+ @py 3)))
   (when (= (mod (:iteration state) 25) 0)
+    (println (str "above below truth" [(:truth (lense-max-statement-confidence-projected-to-now '[--> ballpos [int-set above]] :belief))
+               (:truth (lense-max-statement-confidence-projected-to-now '[--> ballpos [int-set below]] :belief))]))
     (nars-input-narsese "<ballpos --> [equal]>! :|:"))
   (when (= (mod (:iteration state) 500) 1)
     (println "rand action")

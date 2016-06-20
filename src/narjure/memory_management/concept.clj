@@ -88,7 +88,7 @@
         quality-rescale 0.1
         el {:id       (:id @state)
             :priority priority-sum
-            :quality  (round2 3 (Math/max (concept-quality) (* quality-rescale priority-sum)))
+            :quality  (round2 3 (max (concept-quality) (* quality-rescale priority-sum)))
             :ref      @self
             :strongest-belief-about-now (max-statement-confidence-projected-to-now :belief)
             ;:strongest-desire-about-now

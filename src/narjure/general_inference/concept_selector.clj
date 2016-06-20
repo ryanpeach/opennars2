@@ -26,7 +26,7 @@
       (swap! lense-termlinks (fn [old] (dissoc old k)))))
   ; (dotimes [n (min (b/count-elements @c-bag) 1)]
   ;one concept for inference is enough for now ^^
-  (when false
+  (when true
     (try (doseq [_ (range max-concept-selections)]
           (when (pos? (b/count-elements @c-bag))
             (let [[selected bag] (b/lookup-by-index @c-bag (selection-fn @c-bag))
@@ -35,8 +35,8 @@
               (let [last-selected (:last-selected @state)]
                 (when (and last-selected
                            (not= (:ref last-selected) (:ref selected)))
-                  (cast! ref [:termlink-create-msg [(:id last-selected)]])
-                  (cast! (:ref last-selected) [:termlink-create-msg [(:id selected)]])))
+                  #_(cast! ref [:termlink-create-msg [(:id last-selected)]])
+                  #_(cast! (:ref last-selected) [:termlink-create-msg [(:id selected)]])))
               ;2. remember last selected concept for "temporal" termlinks
               (set-state! (assoc @state :last-selected selected))
               (when (> (:priority selected) priority-threshold)

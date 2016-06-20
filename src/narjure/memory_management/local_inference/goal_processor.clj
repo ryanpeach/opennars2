@@ -4,6 +4,7 @@
      [core :refer :all]
      [actors :refer :all]]
     [taoensso.timbre :refer [debug info]]
+    [narjure.debug-util :refer [narsese-print]]
     [narjure.bag :as b]
     [narjure.debug-util :refer :all]
     [narjure.control-utils :refer :all]
@@ -94,13 +95,30 @@
           (= (:id @state) (:statement goal)))               ;properly it wont be necessary anyway though in this case
     (let [;2. filter those with (precondition,op) => goal   ;so this one is for future improvement
           #_print1 #_(println "step 1,2")
-         precondition-op-forms ['[pred-impl [conj ?operation [seq-conj ?precondition ?interval]] ?goal]
+         precondition-op-forms ['[pred-impl [conj ?precondition [seq-conj ?operation ?interval]] ?goal]
+                                '[pred-impl [conj [seq-conj ?operation ?interval] ?precondition] ?goal]
+                                '[pred-impl [conj ?operation [seq-conj ?precondition ?interval]] ?goal]
                                 '[pred-impl [conj [seq-conj ?precondition ?interval] ?operation] ?goal]
-                                '[pred-impl [seq-conj ?precondition ?interval1 ?operation ?interval2] ?goal]] ;TODO add others
+                                '[pred-impl [seq-conj ?precondition ?interval1 [seq-conj ?operation ?interval]] ?goal]
+                                '[pred-impl [seq-conj [seq-conj ?operation ?interval] ?interval1 ?precondition] ?goal]
+                                '[pred-impl [seq-conj ?operation ?interval1 [seq-conj ?precondition ?interval]] ?goal]
+                                '[pred-impl [seq-conj [seq-conj ?precondition ?interval] ?interval1 ?operation] ?goal]
+                                '[pred-impl [seq-conj ?precondition ?interval1 ?operation ?interval2] ?goal]
+
+                                '[</> [conj ?precondition [seq-conj ?operation ?interval]] ?goal]
+                                '[</> [conj [seq-conj ?operation ?interval] ?precondition] ?goal]
+                                '[</> [conj ?operation [seq-conj ?precondition ?interval]] ?goal]
+                                '[</> [conj [seq-conj ?precondition ?interval] ?operation] ?goal]
+                                '[</> [seq-conj ?precondition ?interval1 [seq-conj ?operation ?interval]] ?goal]
+                                '[</> [seq-conj [seq-conj ?operation ?interval] ?interval1 ?precondition] ?goal]
+                                '[</> [seq-conj ?operation ?interval1 [seq-conj ?precondition ?interval]] ?goal]
+                                '[</> [seq-conj [seq-conj ?precondition ?interval] ?interval1 ?operation] ?goal]
+                                '[</> [seq-conj ?precondition ?interval1 ?operation ?interval2] ?goal]] ;TODO add others
          precondition-op-beliefs-and-assigment-tuple (filter
                                                        (fn [z] (and (not= (second z) nil)
                                                                     (= ((second z) '?goal) (:statement goal))
-                                                                    (operation? ((second z) '?operation))))
+                                                                    (operation? ((second z) '?operation))
+                                                                    (not (operation? ((second z) '?precondition)))))
                                                        (for [form precondition-op-forms
                                                              belief (for [b beliefs]
                                                                       (project-eternalize-to @nars-time b @nars-time))]
@@ -110,11 +128,18 @@
          ;3.1 truth_A = getting the strongest truth value of the precondition concept projected to current moment
          ;3.2 truth_B = get the truth value of the implication statement
          truth-A-B-unification-maps (for [[belief unificaton-map] precondition-op-beliefs-and-assigment-tuple]
-                                      (let [precondition (unificaton-map '?precondition)
-                                            [precondition-concept bag] (b/get-by-id @c-bag precondition)
-                                            strongest-belief-about-now (:strongest-belief-about-now precondition-concept)]
-                                        (when precondition-concept
-                                          [(:truth strongest-belief-about-now) (:truth belief) (:evidence strongest-belief-about-now) (:evidence belief) unificaton-map])))
+                                      (do
+                                        ;reward belief uality also for having this for control useful structure
+                                        (println (str "rewarded belief" (narsese-print (:statement belief)) " " (:truth belief)))
+                                        (update-task-in-tasks state (assoc belief :budget [1.0
+                                                                                           0.95 ;(second (:budget belief))
+                                                                                           0.9]) ;new quality
+                                                              belief)
+                                        (let [precondition (unificaton-map '?precondition)
+                                             [precondition-concept bag] (b/get-by-id @c-bag precondition)
+                                             strongest-belief-about-now (:strongest-belief-about-now precondition-concept)]
+                                         (when precondition-concept
+                                           [(:truth strongest-belief-about-now) (:truth belief) (:evidence strongest-belief-about-now) (:evidence belief) unificaton-map]))))
          #_print3 #_(println (str "step 3.3\n" (vec truth-A-B-unification-maps)))
          ;3.3 desire = desire value of goal
          desire (:truth (project-eternalize-to @nars-time goal @nars-time))

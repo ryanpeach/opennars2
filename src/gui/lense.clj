@@ -155,19 +155,6 @@
 
 (def selected-concept (atom []))
 
-(defn max-statement-confidence-projected-to-now [concept-term task-type]
-  (let [li (filter (fn [z] (and (= (:task-type (:task (second z))) task-type)
-                                (= (:statement (:task (second z))) concept-term)))
-                   (:elements-map ((deref lense-taskbags) concept-term)))]
-    (if (= (count li) 0)
-      {:truth [0.5 0.0]}
-      (project-eternalize-to
-        (deref nars-time)
-        (:task (second (apply max-key (fn [y]
-                                        (second (:truth (:task (second y)))))
-                              li)))
-        (deref nars-time)))))
-
 ;copy of draw below marked as draw2
 (defn draw [state]
   (q/background (first (invert-color [255 255 255])))
@@ -211,8 +198,8 @@
                            {:name          (str "\n" (narsese-print id)
                                                 (if (= id @selected-concept)
                                                   (str "\npriority: " priority " " "quality: " quality " "
-                                                       "truth: " (:truth (max-statement-confidence-projected-to-now id :belief)) " "
-                                                       "desire: " (:truth (max-statement-confidence-projected-to-now id :goal)) "\n"
+                                                       "truth: " (:truth (lense-max-statement-confidence-projected-to-now id :belief)) " "
+                                                       "desire: " (:truth (lense-max-statement-confidence-projected-to-now id :goal)) "\n"
                                                        (bag-format
                                                          (limit-string (str (apply vector
                                                                                    (:elements-map (@lense-taskbags id)))) 20000)))
