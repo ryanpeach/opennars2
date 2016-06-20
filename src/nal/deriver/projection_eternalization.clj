@@ -43,5 +43,5 @@
                                    t-project (project-to target-time t cur-time)]
                                (if (> (confidence t-eternal)
                                       (confidence t-project))
-                                 t-eternal
+                                 (assoc t-eternal :occurrence target-time)
                                  t-project))))))
