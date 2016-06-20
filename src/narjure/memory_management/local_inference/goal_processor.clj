@@ -33,7 +33,7 @@
                 new-goal-with-solution (assoc new-goal :solution belief)]
             (update-task-in-tasks state new-goal-with-solution goal-task))
           (let [new-belief (increased-belief-budget-by-goal belief-task-projected-to-goal goal-task)]
-            (update-task-in-tasks state new-belief belief)))))))
+            (update-task-in-tasks state (assoc belief :budget (:budget new-belief)) belief)))))))
 
 
 

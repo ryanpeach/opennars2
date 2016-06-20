@@ -81,7 +81,7 @@
                 new-question-with-solution (assoc new-question :solution belief-task)]
             (update-task-in-tasks state new-question-with-solution question))
           (let [new-belief (increased-belief-budget-by-question belief-task-projected-to-question question)]
-            (update-task-in-tasks state new-belief belief-task)))))))
+            (update-task-in-tasks state (assoc belief-task :budget (:budget new-belief)) belief-task)))))))
 
 (defn process-belief [state task cnt]
   ;group-by :task-type tasks
@@ -126,7 +126,7 @@
         ;add neg-confirmation to tasks bag and remove anticiptaion
         (set-state! (assoc @state :anticipation nil))
         ;(println (str "neg conf: " neg-confirmation))
-        (add-to-tasks state neg-confirmation)))
+        #_(add-to-tasks state neg-confirmation)))
 
     ;when task is confirmable and observabnle
     ;add an anticipation tasks to tasks
