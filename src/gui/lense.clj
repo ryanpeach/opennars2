@@ -10,6 +10,7 @@
             [seesaw.core :refer :all]
             [gui.globals :refer :all]
             [narjure.core :as nar]
+            [co.paralleluniverse.pulsar.actors :refer [whereis cast!]]
             [narjure.general-inference.inference-request-router :as inference-request-router]
             [narjure.general-inference.concept-selector :as concept-selector]
             [narjure.general-inference.general-inferencer :as general-inferencer]

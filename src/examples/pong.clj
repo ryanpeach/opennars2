@@ -43,7 +43,7 @@
     (reset! py (+ @py -3)))
   (when (= @direction 1)
     (reset! py (+ @py 3)))
-  (when (= (mod (:iteration state) 150) 0)
+  (when (= (mod (:iteration state) 25) 0)
     (nars-input-narsese "<ballpos --> [equal]>! :|:"))
   (when (= (mod (:iteration state) 500) 1)
     (println "rand action")
