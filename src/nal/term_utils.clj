@@ -7,6 +7,17 @@
   [content]
   (and (sequential? content) (= (first content) :interval)))
 
+(defn operation? [st]
+  (if (and (coll? st)
+           (= (first st) '-->)
+           (coll? (second st))
+           (= (first (second st)) '*)
+           (= (second (second st)) ['ext-set 'SELF]))
+    (let [op (nth st 2)]
+      (and (not (coll? op))
+           (clojure.string/starts-with? (name op) "op_")))
+    false))
+
 (defn variable? [t]
   (and (coll? t) (or (= (first t) 'ind-var)
                      (= (first t) 'dep-var)

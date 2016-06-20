@@ -78,6 +78,7 @@
   [sentence]
   (not= :eternal (:occurrence sentence)))
 
+(def lastevent (atom nil))
 (defn sentence-handler
   "Processes a :sentence-msg and generates a task, and an eternal task
    if the sentence is an event, and posts to task-dispatcher."
@@ -91,6 +92,12 @@
         (cast! task-dispatcher [:task-msg [nil nil new-task]])
         (output-task :input new-task)
         (when (event? sentence)
+          ;uncomment for STM induction:
+          #_(when (and (not= nil (deref lastevent))
+                     (= (:task-type new-task) :belief))
+            (cast! (whereis :inference-request-router) [:do-inference-msg [(:statement new-task) (:statement @lastevent) nil new-task @lastevent true]]))
+          (when (= (:task-type new-task) :belief)
+            (reset! lastevent new-task))
           (cast! task-dispatcher [:task-msg [nil nil (create-eternal-task new-task)]]))))))
 
 (defn derived-sentence-handler

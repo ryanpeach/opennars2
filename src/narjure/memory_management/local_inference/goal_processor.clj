@@ -9,6 +9,7 @@
     [narjure.control-utils :refer :all]
     [narjure.global-atoms :refer :all]
     [clojure.core.unify :refer [unify]]
+    [nal.term_utils :refer [operation?]]
     [narjure.memory-management.local-inference.local-inference-utils :refer :all]
     [nal.deriver.truth :refer [t-or frequency confidence expectation desire-strong]]
     [nal.deriver.projection-eternalization :refer [project-eternalize-to]])
@@ -33,16 +34,7 @@
           (let [new-belief (increased-belief-budget-by-goal belief-task-projected-to-goal goal-task)]
             (update-task-in-tasks state new-belief belief)))))))
 
-(defn operation? [st]
-    (if (and (coll? st)
-             (= (first st) '-->)
-             (coll? (second st))
-             (= (first (second st)) '*)
-             (= (second (second st)) ['ext-set 'SELF]))
-      (let [op (nth st 2)]
-        (and (not (coll? op))
-             (clojure.string/starts-with? (name op) "op_")))
-      false))
+
 
 (def decision-threshold 0.5)
 
