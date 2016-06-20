@@ -191,8 +191,8 @@
                                    task (shuffle related-goals))]
         ;add revised task to bag
         (add-to-tasks state total-revision)
-        ;add task to bag
-        (when (not= task total-revision)
+        ;add task to bag also
+        #_(when (not= task total-revision)
           (add-to-tasks state task))
         ; check to see if revised or task is answer to quest and increase budget accordingly
         ;check whether it is fullfilled by belief and decrease budget accordingly

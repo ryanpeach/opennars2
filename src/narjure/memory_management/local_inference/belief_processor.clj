@@ -102,7 +102,7 @@
           ;add revised task to bag:
           (add-to-tasks state total-revision)
           ;add task to bag also:
-          (when (not= task total-revision)
+          #_(when (not= task total-revision)
             (add-to-tasks state task))
           ;check if it satisfies a goal or question and change budget accordingly
           (satisfaction-based-budget-change state total-revision goals)
