@@ -153,6 +153,3 @@
   (let [tasks (vec (for [x (:elements-map (:tasks @state))] (:task (val x))))]
     ;(println (str "count: "  (count (:elements-map (:tasks @state))) " gt tasks: " tasks))
     tasks))
-
-(defn get-anticipations [state]
-  (vec (for [x (:elements-map (:anticipations @state))] (:task (val x)))))

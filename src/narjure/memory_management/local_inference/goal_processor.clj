@@ -183,7 +183,7 @@
         (try
           (best-operation-selection (filter #(= (:task-type %) :belief) (get-tasks state))
                                    (:task (first (b/get-by-id (:tasks @state) (get-task-id total-revision)))))
-          (catch Exception e (println "operator selector error")))
+          (catch Exception e () #_(println "operator selector error")))
         ))
 
     ;best operation project goal to current time

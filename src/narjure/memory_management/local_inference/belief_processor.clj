@@ -109,12 +109,13 @@
           ))
 
     ; processing revised anticipations
-    (when (and (event? task) (= (:source task) :input))
+    (when (and (event? task) (= (:source task) :input) (= (:task-type task) :belief))
       (when anticipation
         (when (= (:statement anticipation) (:statement task))
-          (doseq [projected-anticipation (project-eternalize-to (:occurrence task) anticipation @nars-time)]
+          (let [projected-anticipation (project-eternalize-to (:occurrence task) anticipation @nars-time)]
             ;revise anticipation and add to tasks
             (when (non-overlapping-evidence? (:evidence task) (:evidence projected-anticipation))
+               (println (str "projected anticipation: " projected-anticipation "\ntask: " task))
                (set-state! (assoc @state :anticipation (revise projected-anticipation task :anticipation))))))))
 
     ;generate neg confirmation for expired anticipations
@@ -128,12 +129,15 @@
 
     ;when task is confirmable and observabnle
     ;add an anticipation tasks to tasks
-    (when (= (:statement task)                              ;only allow anticipation with concept content
-             (:id @state))
-      (when (confirmable-observable? task)
+    (when (and (= (:task-type task) :belief)
+            (= (:statement task)                             ;only allow anticipation with concept content
+              (:id @state)))
+      (when (and (confirmable-observable? task)
+                 (> (:occurrence task) @nars-time))
         (let [anticipated-task (create-anticipation-task task)
               with-anticipated-truth (fn [t] (assoc t :source :derived :anticipated-truth (:truth t) :truth [0.5 0.0]))]
           (if (not= nil anticipation)
             (set-state! (assoc @state :anticipation (with-anticipated-truth (better-task anticipated-task anticipation))))
-            (set-state! (assoc @state :anticipation (with-anticipated-truth anticipated-task)))))))
+            (set-state! (assoc @state :anticipation (with-anticipated-truth anticipated-task))))
+          (println (str "created anticipation: " (:anticipation @state))))))
     ))

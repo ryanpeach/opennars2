@@ -45,7 +45,7 @@
     (reset! py (+ @py 3)))
   (when (= (mod (:iteration state) 150) 0)
     (nars-input-narsese "<ballpos --> [equal]>! :|:"))
-  (when (= (mod (:iteration state) 1000) 1)
+  (when (= (mod (:iteration state) 500) 1)
     (println "rand action")
     (nars-input-narsese (str (rand-nth ["<(*,{SELF}) --> op_up>!  :|: %1.0;0.1%"
                                         "<(*,{SELF}) --> op_down>!  :|: %1.0;0.1%"
