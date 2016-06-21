@@ -4,7 +4,7 @@
     [nal.deriver.truth :refer [t-or t-and w2c]]
     [narjure.global-atoms :refer :all]
     [narjure.control-utils :refer [round2]]
-    [nal.term_utils :refer [syntactic-complexity]]
+    [nal.term_utils :refer [syntactic-complexity precondition-operation-consequent-statement]]
     [nal.deriver.truth :refer [expectation]]))
 
 (defn occurrence-penalty-tr [occ]
@@ -13,11 +13,26 @@
       1.0
       (/ 1.0 (+ 1.0 (* k (Math/abs (- @nars-time occ))))))))
 
+
+(defn structural-reward-budget [budget derived-task]
+  "returns a budget"
+  (let [match (precondition-operation-consequent-statement derived-task)
+        quality (max (nth budget 2) 0.9)]
+    (if match
+      [(max (first budget) quality)
+       (do (println "tet")
+         (second budget))
+       quality]
+      budget))
+
+  )
+
 (defn derived-budget
   "
   "
   ;TRADITIONAL BUDGET INFERENCE (DERIVED TASK PART)
   [task derived-task bLink]
+
   (let    [priority (first (:budget task))
            durability (* (second (:budget task))
                          (/ 1.0 (+ 1.0 (syntactic-complexity (:statement derived-task)))))
@@ -32,4 +47,4 @@
                               (w2c 1.0)))
                    ]
            ]
-    budget))
+    (structural-reward-budget budget derived-task)))

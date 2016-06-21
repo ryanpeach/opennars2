@@ -26,7 +26,7 @@
       (swap! lense-termlinks (fn [old] (dissoc old k)))))
   ; (dotimes [n (min (b/count-elements @c-bag) 1)]
   ;one concept for inference is enough for now ^^
-  (when true
+  (when false
     (try (doseq [_ (range max-concept-selections)]
           (when (pos? (b/count-elements @c-bag))
             (let [[selected bag] (b/lookup-by-index @c-bag (selection-fn @c-bag))

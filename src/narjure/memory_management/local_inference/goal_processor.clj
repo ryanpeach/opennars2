@@ -133,8 +133,8 @@
          truth-A-B-unification-maps (for [[belief unificaton-map] precondition-op-beliefs-and-assigment-tuple]
                                       (do
                                         ;reward belief uality also for having this for control useful structure
-                                        (println (str "rewarded belief" (narsese-print (:statement belief)) " " (:truth belief) " budg: " (:budget belief)))
-                                        (let [new-quality 0.95]
+                                        #_(println (str "rewarded belief" (narsese-print (:statement belief)) " " (:truth belief) " budg: " (:budget belief)))
+                                        #_(let [new-quality 0.95]
                                           (update-task-in-tasks state (assoc belief :budget [(max new-quality
                                                                                                  (first (:budget belief)))
                                                                                             (second (:budget belief))

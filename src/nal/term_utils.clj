@@ -1,6 +1,7 @@
 (ns nal.term_utils
   (:require [clojure.set :as set]
-            [narjure.defaults :refer :all]))
+            [narjure.defaults :refer :all]
+            [clojure.core.unify :refer [unify]]))
 
 (defn interval?
   "Is the term an interval?"
@@ -227,3 +228,35 @@
          (apply vector (for [x st]
                          (normalize-variables x m)))))
      st)))
+
+(defn precondition-operation-consequent-statement [task] ;(doseq [op ['pred-impl '</>]])
+  (let [precondition-op-forms ['[pred-impl [conj ?precondition [seq-conj ?operation ?interval]] ?goal]
+                               '[pred-impl [conj [seq-conj ?operation ?interval] ?precondition] ?goal]
+                               '[pred-impl [conj ?operation [seq-conj ?precondition ?interval]] ?goal]
+                               '[pred-impl [conj [seq-conj ?precondition ?interval] ?operation] ?goal]
+                               '[pred-impl [seq-conj ?precondition ?interval1 [seq-conj ?operation ?interval]] ?goal]
+                               '[pred-impl [seq-conj [seq-conj ?operation ?interval] ?interval1 ?precondition] ?goal]
+                               '[pred-impl [seq-conj ?operation ?interval1 [seq-conj ?precondition ?interval]] ?goal]
+                               '[pred-impl [seq-conj [seq-conj ?precondition ?interval] ?interval1 ?operation] ?goal]
+                               '[pred-impl [seq-conj ?precondition ?interval1 ?operation ?interval2] ?goal]
+
+                               '[</> [conj ?precondition [seq-conj ?operation ?interval]] ?goal]
+                               '[</> [conj [seq-conj ?operation ?interval] ?precondition] ?goal]
+                               '[</> [conj ?operation [seq-conj ?precondition ?interval]] ?goal]
+                               '[</> [conj [seq-conj ?precondition ?interval] ?operation] ?goal]
+                               '[</> [seq-conj ?precondition ?interval1 [seq-conj ?operation ?interval]] ?goal]
+                               '[</> [seq-conj [seq-conj ?operation ?interval] ?interval1 ?precondition] ?goal]
+                               '[</> [seq-conj ?operation ?interval1 [seq-conj ?precondition ?interval]] ?goal]
+                               '[</> [seq-conj [seq-conj ?precondition ?interval] ?interval1 ?operation] ?goal]
+                               '[</> [seq-conj ?precondition ?interval1 ?operation ?interval2] ?goal]]
+
+        additional-condition (fn [z] (and (not= (second z) nil)
+                                          (operation? ((second z) '?operation))
+                                          (not (operation? ((second z) '?precondition)))
+                                          (not (negation-of-operation? ((second z) '?precondition)))
+                                          (not (operation? ((second z) '?goal)))
+                                          (not (negation-of-operation? ((second z) '?goal)))))]
+    (first
+      (filter additional-condition
+             (for [form precondition-op-forms]
+               [task (unify form (:statement task))])))))
