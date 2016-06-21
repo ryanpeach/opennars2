@@ -82,7 +82,7 @@
                                            @nars-time))))
                              fil)))
                              @nars-time)
-      {:truth [0.5 0.0]})))
+      nil)))
 
 
 (defn update-concept-budget []
@@ -96,6 +96,7 @@
             :quality  (round2 3 (max (concept-quality) (* quality-rescale priority-sum)))
             :ref      @self
             :strongest-belief-about-now (max-statement-confidence-projected-to-now :belief)
+            :strongest-desire-about-now-about-now (max-statement-confidence-projected-to-now :goal)
             ;:strongest-desire-about-now
             }]
     ;update c-bag directly instead of message passing
@@ -253,35 +254,36 @@
         task-bag (:tasks concept-state)
         concept-priority (first (:budget @state))]
     ; and sending budget update message to concept mgr
-    (try
-      (when (pos? (b/count-elements task-bag))
-        (let [[el] (b/lookup-by-index task-bag (selection-fn task-bag))]
-          (try
-            (forget-tasks)
-            (update-concept-budget)
-            (catch Exception e (debuglogger search display (str "forget/update error " (.toString e)))))
-          (debuglogger search display ["selected inference task:" el])
-          ;now search through termlinks, get the endpoint concepts, and form a bag of them
-          (let [initbag (b/default-bag concept-max-termlinks)
-                resbag (reduce (fn [a b] (b/add-element a b)) initbag (for [[k v] (:termlinks @state)]
-                                                                        {:priority (t-or (first v)
-                                                                                      (:priority (first (b/get-by-id @c-bag k))))
-                                                                         :id       k}))
-                ;now select an element from this bag
-                [beliefconcept bag1] (b/get-by-index resbag (selection-fn resbag))]
-            ;and create a belief request message
-            (set-state! (assoc @state :termlinks
-                                      (assoc (:termlinks @state)
-                                        (:id beliefconcept)
-                                        (let [[p d] ((:termlinks @state) (:id beliefconcept))] ;apply forgetting for termlinks only on selection
-                                          [(* p d) d]))))
-            (when-let [{c-ref :ref} ((:elements-map @c-bag) (:id beliefconcept))]
-              (try
-                #_(update-termlink (:id beliefconcept))          ;belief concept here
-                (catch Exception e (debuglogger search display (str "task side termlink strength error " (.toString e)))))
-              (cast! c-ref [:belief-request-msg [(:id @state) ((:termlinks @state) (:id beliefconcept)) (:task el)]])
-              ))))
-      (catch Exception e (debuglogger search display (str "inference request error " (.toString e)))))
+    (when true
+      (try
+       (when (pos? (b/count-elements task-bag))
+         (let [[el] (b/lookup-by-index task-bag (selection-fn task-bag))]
+           (try
+             (forget-tasks)
+             (update-concept-budget)
+             (catch Exception e (debuglogger search display (str "forget/update error " (.toString e)))))
+           (debuglogger search display ["selected inference task:" el])
+           ;now search through termlinks, get the endpoint concepts, and form a bag of them
+           (let [initbag (b/default-bag concept-max-termlinks)
+                 resbag (reduce (fn [a b] (b/add-element a b)) initbag (for [[k v] (:termlinks @state)]
+                                                                         {:priority (t-or (first v)
+                                                                                          (:priority (first (b/get-by-id @c-bag k))))
+                                                                          :id       k}))
+                 ;now select an element from this bag
+                 [beliefconcept bag1] (b/get-by-index resbag (selection-fn resbag))]
+             ;and create a belief request message
+             (set-state! (assoc @state :termlinks
+                                       (assoc (:termlinks @state)
+                                         (:id beliefconcept)
+                                         (let [[p d] ((:termlinks @state) (:id beliefconcept))] ;apply forgetting for termlinks only on selection
+                                           [(* p d) d]))))
+             (when-let [{c-ref :ref} ((:elements-map @c-bag) (:id beliefconcept))]
+               (try
+                 #_(update-termlink (:id beliefconcept))    ;belief concept here
+                 (catch Exception e (debuglogger search display (str "task side termlink strength error " (.toString e)))))
+               (cast! c-ref [:belief-request-msg [(:id @state) ((:termlinks @state) (:id beliefconcept)) (:task el)]])
+               ))))
+       (catch Exception e (debuglogger search display (str "inference request error " (.toString e))))))
     )
   )
 

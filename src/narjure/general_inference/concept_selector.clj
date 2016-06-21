@@ -26,7 +26,6 @@
       (swap! lense-termlinks (fn [old] (dissoc old k)))))
   ; (dotimes [n (min (b/count-elements @c-bag) 1)]
   ;one concept for inference is enough for now ^^
-  (when false
     (try (doseq [_ (range max-concept-selections)]
           (when (pos? (b/count-elements @c-bag))
             (let [[selected bag] (b/lookup-by-index @c-bag (selection-fn @c-bag))
@@ -43,7 +42,7 @@
                 (cast! ref [:inference-request-msg (:id selected)])
                 ;(info (str "Concept selected: " [:id (:id selected) :priority (:priority selected)]))
                 (debuglogger search display (str "Concept selected: " [:task selected :priority (:priority selected)]))))))
-        (catch Exception e (debuglogger search display (str "concept select error " (.toString e)))))))
+        (catch Exception e (debuglogger search display (str "concept select error " (.toString e))))))
 
 (defn initialise
   "Initialises actor:

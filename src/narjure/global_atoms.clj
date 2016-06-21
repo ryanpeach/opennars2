@@ -20,19 +20,7 @@
 ;this variable is purely for visualization/debugging purposes!!
 
 (defn lense-max-statement-confidence-projected-to-now [concept-term task-type]
-  (let [fil (filter (fn [z] (and (= (:task-type (:task (second z))) task-type)
-                                 (= (:statement (:task (second z))) concept-term)))
-                    (:elements-map ((deref lense-taskbags) concept-term)))]
-    (if (not= fil [])
-      (project-eternalize-to @nars-time
-                             (:task (second (apply max-key
-                                                   (fn [y]
-                                                     (second (:truth
-                                                               (project-eternalize-to
-                                                                 @nars-time
-                                                                 (:task (second y))
-                                                                 @nars-time))))
-                                                   fil)))
-                             @nars-time)
-      {:truth [0.5 0.0]})))
+  (if (= task-type :goal)
+    (:strongest-desire-about-now ((:elements-map @c-bag) concept-term))
+    (:strongest-belief-about-now ((:elements-map @c-bag) concept-term))))
 
