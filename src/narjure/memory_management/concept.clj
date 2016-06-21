@@ -68,17 +68,22 @@
     (catch Exception e (println "fail"))))
 
 (defn max-statement-confidence-projected-to-now [task-type]
-  (let [li (filter (fn [z] (and (= (:task-type (:task (second z))) task-type)
-                                (= (:statement (:task (second z))) (:id @state))))
-                   (:elements-map (:tasks @state)))]
-    (if (= (count li) 0)
-      {:truth [0.5 0.0]}
-      (project-eternalize-to
-        (deref nars-time)
-        (:task (second (apply max-key (fn [y]
-                                        (second (:truth (:task (second y)))))
-                              li)))
-        (deref nars-time)))))
+  (let [fil (filter (fn [z] (and (= (:task-type (:task (second z))) task-type)
+                                 (= (:statement (:task (second z))) (:id @state))))
+                    (:elements-map (:tasks @state)))]
+    (if (not= fil [])
+      (project-eternalize-to @nars-time
+                             (:task (second (apply max-key
+                             (fn [y]
+                               (second (:truth
+                                         (project-eternalize-to
+                                           @nars-time
+                                           (:task (second y))
+                                           @nars-time))))
+                             fil)))
+                             @nars-time)
+      {:truth [0.5 0.0]})))
+
 
 (defn update-concept-budget []
   "Update the concept budget"

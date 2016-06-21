@@ -37,8 +37,8 @@
 (defn max-budget [budg1 budg2]                            ;the one with higher priority determines the budget
   (apply max-key measure-budget [budg1 budg2]))
 
-(defn measure-truth [tv]                                    ; higher confidence means higher evaluation
-  (second tv))
+(defn measure-truth [task]                                    ; higher confidence means higher evaluation
+  (second (:truth (project-eternalize-to @nars-time task @nars-time)))) ;prefer current events
 
 (defn make-element [task]
   {:id (get-task-id task) :priority (first (:budget task)) :task task})
@@ -60,7 +60,7 @@
   (if (= t1 nil)                                            ;no previous bag entry exists
     t2                                                      ;so take the new one
     (if (not= nil (:truth t1))
-      (take-better-solution (max-key (comp measure-truth :truth) t1 t2) t1 t2)
+      (take-better-solution (max-key (comp measure-truth) t1 t2) t1 t2)
       (take-better-solution (max-key (comp measure-budget :budget) t1 t2) t1 t2))))
 
 (defn add-to-tasks [state task]

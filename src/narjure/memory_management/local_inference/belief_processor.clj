@@ -92,19 +92,22 @@
         questions (filter #(= (:task-type %) :question ) tasks)]
 
     ;also allow revision in subterm concepts! this is why statement is compared to task statement, not to ID!!
-    (let [same-content-beliefs (filter (fn [z] (and (same-occurrence-type z task)
-                                                    (= (:statement z) (:statement task)))) beliefs)]
+    (when true #_(not (and (:observable @state)                    ;no eternalization fo observable belief events
+                    (= (:task-type task) :belief)
+                    (= (:occurrence task) :eternal)))         ;for discussion!!
+      (let [same-content-beliefs (filter (fn [z] (and (same-occurrence-type z task)
+                                                     (= (:statement z) (:statement task)))) beliefs)]
 
-        (let [total-revision (reduce (fn [a b] (if (non-overlapping-evidence? (:evidence a) (:evidence b))
-                                                 (revise a (project-eternalize-to (:occurrence a) b @nars-time) :belief)
-                                                 a))
-                                     task (shuffle same-content-beliefs))]
-          ;add revised task to bag:
-          (add-to-tasks state total-revision)
-          ;check if it satisfies a goal or question and change budget accordingly
-          (satisfaction-based-budget-change state total-revision goals)
-          (answer-based-budget-change state (:task (first (b/get-by-id (:tasks @state) (get-task-id total-revision)))) questions)
-          ))
+       (let [total-revision (reduce (fn [a b] (if (non-overlapping-evidence? (:evidence a) (:evidence b))
+                                                (revise a (project-eternalize-to (:occurrence a) b @nars-time) :belief)
+                                                a))
+                                    task (shuffle same-content-beliefs))]
+         ;add revised task to bag:
+         (add-to-tasks state total-revision)
+         ;check if it satisfies a goal or question and change budget accordingly
+         (satisfaction-based-budget-change state total-revision goals)
+         (answer-based-budget-change state (:task (first (b/get-by-id (:tasks @state) (get-task-id total-revision)))) questions)
+         )))
 
     ; processing revised anticipations
     (when (and (event? task) (= (:source task) :input) (= (:task-type task) :belief))
