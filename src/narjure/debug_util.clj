@@ -99,6 +99,7 @@
                         ""
                         (str "%" (first truth) ";" (second truth) "%")))]
     (debuglogger output-search output-display (str (type-print type)
+                                                   " "
                                                    (narsese-print (:statement task))
                                                    (punctuation-print (:task-type task))
                                                    " "

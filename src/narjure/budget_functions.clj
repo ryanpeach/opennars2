@@ -21,7 +21,7 @@
   (let    [priority (first (:budget task))
            durability (* (second (:budget task))
                          (/ 1.0 (+ 1.0 (syntactic-complexity (:statement derived-task)))))
-           priority' (if bLink (t-or priority (first bLink)) priority)
+           priority' (if bLink (t-and priority (first bLink)) priority) ;t-or traditionally
            durability' (if bLink (t-and durability (second bLink)) durability)
            complexity (syntactic-complexity (:statement derived-task))
            budget [(round2 4 (* priority' (occurrence-penalty-tr (:occurrence derived-task))))

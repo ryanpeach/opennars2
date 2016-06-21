@@ -10,7 +10,7 @@
     [narjure.control-utils :refer :all]
     [narjure.global-atoms :refer :all]
     [clojure.core.unify :refer [unify]]
-    [nal.term_utils :refer [operation?]]
+    [nal.term_utils :refer [operation? negation-of-operation?]]
     [narjure.memory-management.local-inference.local-inference-utils :refer :all]
     [nal.deriver.truth :refer [t-or frequency confidence expectation desire-strong]]
     [nal.deriver.projection-eternalization :refer [project-eternalize-to]])
@@ -118,7 +118,10 @@
                                                        (fn [z] (and (not= (second z) nil)
                                                                     (= ((second z) '?goal) (:statement goal))
                                                                     (operation? ((second z) '?operation))
-                                                                    (not (operation? ((second z) '?precondition)))))
+                                                                    (not (operation? ((second z) '?precondition)))
+                                                                    (not (negation-of-operation? ((second z) '?precondition)))
+                                                                    (not (operation? ((second z) '?goal)))
+                                                                    (not (negation-of-operation? ((second z) '?goal)))))
                                                        (for [form precondition-op-forms
                                                              belief (for [b beliefs]
                                                                       (project-eternalize-to @nars-time b @nars-time))]
@@ -130,11 +133,13 @@
          truth-A-B-unification-maps (for [[belief unificaton-map] precondition-op-beliefs-and-assigment-tuple]
                                       (do
                                         ;reward belief uality also for having this for control useful structure
-                                        #_(println (str "rewarded belief" (narsese-print (:statement belief)) " " (:truth belief)))
-                                        #_(update-task-in-tasks state (assoc belief :budget [1.0
-                                                                                           0.95 ;(second (:budget belief))
-                                                                                           0.9]) ;new quality
-                                                              belief)
+                                        (println (str "rewarded belief" (narsese-print (:statement belief)) " " (:truth belief) " budg: " (:budget belief)))
+                                        (let [new-quality 0.95]
+                                          (update-task-in-tasks state (assoc belief :budget [(max new-quality
+                                                                                                 (first (:budget belief)))
+                                                                                            (second (:budget belief))
+                                                                                             new-quality]) ;new quality
+                                                               belief))
                                         (let [precondition (unificaton-map '?precondition)
                                              [precondition-concept bag] (b/get-by-id @c-bag precondition)
                                              strongest-belief-about-now (:strongest-belief-about-now precondition-concept)]

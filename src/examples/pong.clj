@@ -50,16 +50,16 @@
   (when (= @direction 1)
     (reset! py (+ @py 3)))
   (when (= (mod (:iteration state) 25) 0)
-    (println (str "above below truth" [(:truth (lense-max-statement-confidence-projected-to-now '[--> ballpos [int-set above]] :belief))
-               (:truth (lense-max-statement-confidence-projected-to-now '[--> ballpos [int-set below]] :belief))]))
+    (println (str "above truth " (:truth (lense-max-statement-confidence-projected-to-now '[--> ballpos [int-set above]] :belief))
+                  " below truth " (:truth (lense-max-statement-confidence-projected-to-now '[--> ballpos [int-set below]] :belief))))
     (nars-input-narsese "<ballpos --> [equal]>! :|:"))
-  (when (= (mod (:iteration state) 500) 1)
+  (when (= (mod (:iteration state) 150) 1)
     (println "rand action")
     (nars-input-narsese (str (rand-nth ["<(*,{SELF}) --> op_up>!  :|: %1.0;0.1%"
                                         "<(*,{SELF}) --> op_down>!  :|: %1.0;0.1%"
                                         #_"<(*,{SELF}) --> op_stop>! :|:"]))))
 
-  (when (= (mod (:iteration state) 53) 0)
+  (when (= (mod (:iteration state) 1) 0)
     #_(nars-input-narsese (str "<{" (int (* 100 (quot (:ball-py state) 100))) "} --> ballpos>. :|:" ))
     #_(nars-input-narsese (str "<{" (int (* 100 (quot @py 100))) "} --> barpos>. :|:" ))
     (if (and (>= (:ball-py state) @py)

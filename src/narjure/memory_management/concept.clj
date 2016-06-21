@@ -56,10 +56,10 @@
                     (truth-to-quality (:truth derived-task))
                     (w2c 1.0))
           quality (/ qual complexity)
-          #_[target _] #_(b/get-by-id @c-bag belief-concept-id)
+          [target _] (b/get-by-id @c-bag belief-concept-id)
           #_[source _] #_(b/get-by-id @c-bag (:id @state))
           [result-concept _]  (b/get-by-id @c-bag (:statement derived-task))
-          activation (:priority result-concept) #_(:priority result-concept) #_(Peis)  #_(t-and (:priority target) (:priority source)) #_("1.7.0")
+          activation (t-and (:priority target) (:priority result-concept)) #_(:priority result-concept) #_(Peis)  #_(t-and (:priority target) (:priority source)) #_("1.7.0")
           [p d] ((:termlinks @state) belief-concept-id)]
       (when (and p d qual)
         (add-termlink belief-concept-id [(t-or p (t-or quality activation))
@@ -229,8 +229,8 @@
        lambda (/ (- 1.0 (second budget)) decay-rate)
        fr (Math/exp (* -1.0 (* lambda (- @nars-time last-forgotten))))
        new-priority (max (round2 4 (* (:priority el) fr))
-                         (/ (concept-quality) (+ 1.0 (b/count-elements (:tasks @state))))
-                         (nth budget 2))                ;dont fall below 1/N*quality
+                         (/ (concept-quality) (+ 1.0 (b/count-elements (:tasks @state)))) ;dont fall below 1/N*concept_quality
+                         (nth budget 2)) ;quality of task
        new-budget [new-priority (second budget) (nth budget 2)]]
    (let [updated-task (assoc task :budget new-budget)]
      (assoc el :priority new-priority

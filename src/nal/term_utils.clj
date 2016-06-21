@@ -18,6 +18,11 @@
            (clojure.string/starts-with? (name op) "op_")))
     false))
 
+(defn negation-of-operation? [st]
+  (and (coll? st)
+       (= (first st) '--)
+       (operation? (second st))))
+
 (defn variable? [t]
   (and (coll? t) (or (= (first t) 'ind-var)
                      (= (first t) 'dep-var)
