@@ -25,11 +25,11 @@
                                         (reset! direction 1))))
   #_(nars-register-operation 'op_stop (fn [args]
                                         (reset! direction 0)))
-  (merge hnav/states {:ball-px 80
-                      :ball-py 280
+  (merge hnav/states {:ball-px 380
+                      :ball-py 400
                       :direction-x 1
                       :direction-y 1
-                      :barheight 200
+                      :barheight 50
                       :iteration 0}))
 
 "
@@ -50,16 +50,16 @@
   (when (= @direction 1)
     (reset! py (+ @py 3)))
   (when (= (mod (:iteration state) 25) 0)
-    (println (str "above truth " (:truth (lense-max-statement-confidence-projected-to-now '[--> ballpos [int-set above]] :belief))
+    #_(println (str "above truth " (:truth (lense-max-statement-confidence-projected-to-now '[--> ballpos [int-set above]] :belief))
                   " below truth " (:truth (lense-max-statement-confidence-projected-to-now '[--> ballpos [int-set below]] :belief))))
     (nars-input-narsese "<ballpos --> [equal]>! :|:"))
-  (when (= (mod (:iteration state) 150) 1)
+  (when (= (mod (:iteration state) 200) 1)
     (println "rand action")
     (nars-input-narsese (str (rand-nth ["<(*,{SELF}) --> op_up>!  :|: %1.0;0.1%"
                                         "<(*,{SELF}) --> op_down>!  :|: %1.0;0.1%"
                                         #_"<(*,{SELF}) --> op_stop>! :|:"]))))
 
-  (when (= (mod (:iteration state) 1) 0)
+  (when (= (mod (:iteration state) 1) 0)                    ;1
     #_(nars-input-narsese (str "<{" (int (* 100 (quot (:ball-py state) 100))) "} --> ballpos>. :|:" ))
     #_(nars-input-narsese (str "<{" (int (* 100 (quot @py 100))) "} --> barpos>. :|:" ))
     (if (and (>= (:ball-py state) @py)
@@ -88,8 +88,8 @@
   (let [kset-x (+ 0.6 (/ (Math/random) 2.0))
         kset-y (+ 0.6 (/ (Math/random) 2.0))
         state2 (assoc state
-                 :ball-px (+ (:ball-px state) (* (:direction-x state) 1 3))
-                 :ball-py (+ (:ball-py state) (* (:direction-y state) 1 3)))
+                 :ball-px (:ball-px state) #_(+ (:ball-px state) (* (:direction-x state) 1 3))
+                 :ball-py (:ball-py state) #_(+ (:ball-py state) (* (:direction-y state) 1 3)))
 
         state3 (if (>= (:ball-px state2)                     ;collided on right wall
                        fieldmax)

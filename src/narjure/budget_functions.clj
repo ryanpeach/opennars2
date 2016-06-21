@@ -4,6 +4,7 @@
     [nal.deriver.truth :refer [t-or t-and w2c]]
     [narjure.global-atoms :refer :all]
     [narjure.control-utils :refer [round2]]
+    [narjure.debug-util :refer :all]
     [nal.term_utils :refer [syntactic-complexity precondition-operation-consequent-statement]]
     [nal.deriver.truth :refer [expectation]]))
 
@@ -19,10 +20,12 @@
   (let [match (precondition-operation-consequent-statement derived-task)
         quality (max (nth budget 2) 0.9)]
     (if match
-      [(max (first budget) quality)
-         (second budget)
-       quality]
-      budget))
+      (do
+        (println (narsese-print (:statement derived-task)) " " (:truth derived-task) " " (:occurrence derived-task))
+        [(max (first budget) quality)
+        (second budget)
+        quality])
+      [(* (first budget) 0.75) (second budget) (nth budget 2)])) ;tODO too radical
 
   )
 

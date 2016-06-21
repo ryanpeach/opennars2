@@ -56,16 +56,16 @@
                     (truth-to-quality (:truth derived-task))
                     (w2c 1.0))
           quality (/ qual complexity)
-          [target _] (b/get-by-id @c-bag belief-concept-id)
+          #_[target _] #_(b/get-by-id @c-bag belief-concept-id)
           #_[source _] #_(b/get-by-id @c-bag (:id @state))
           [result-concept _]  (b/get-by-id @c-bag (:statement derived-task))
-          activation (t-and (:priority target) (:priority result-concept)) #_(:priority result-concept) #_(Peis)  #_(t-and (:priority target) (:priority source)) #_("1.7.0")
+          activation (:priority result-concept) #_(:priority result-concept) #_(Peis)  #_(t-and (:priority target) (:priority source)) #_("1.7.0")
           [p d] ((:termlinks @state) belief-concept-id)]
       (when (and p d qual)
         (add-termlink belief-concept-id [(t-or p (t-or quality activation))
                                          (t-or d quality)]))
       )
-    (catch Exception e (println "fail"))))
+    (catch Exception e () #_(println "fail"))))
 
 (defn max-statement-confidence-projected-to-now [task-type]
   (let [fil (filter (fn [z] (and (= (:task-type (:task (second z))) task-type)
