@@ -20,8 +20,7 @@
         quality (max (nth budget 2) 0.9)]
     (if match
       [(max (first budget) quality)
-       (do (println "tet")
-         (second budget))
+         (second budget)
        quality]
       budget))
 
