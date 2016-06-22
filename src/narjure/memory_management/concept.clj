@@ -11,6 +11,8 @@
     [narjure.control-utils :refer :all]
     [narjure.defaults :refer :all]
     [nal.term_utils :refer [syntactic-complexity]]
+    [narjure.memory-management.concept-utils :refer :all]
+    [narjure.memory-management.termlink-utils :refer :all]
     [narjure.memory-management.local-inference.local-inference-utils :refer [get-task-id get-tasks]]
     [narjure.memory-management.local-inference.belief-processor :refer [process-belief]]
     [narjure.memory-management.local-inference.goal-processor :refer [process-goal]]
@@ -22,9 +24,6 @@
 
 (def display (atom '()))
 (def search (atom ""))
-
-(defn concept-quality []
-  (:quality ((:elements-map @c-bag) (:id @state))))
 
 (defn forget-termlinks []
   (while (> (count (:termlinks @state)) concept-max-termlinks)
@@ -99,7 +98,6 @@
             :strongest-desire-about-now-about-now (max-statement-confidence-projected-to-now :goal)
             ;:strongest-desire-about-now
             }]
-    ;update c-bag directly instead of message passing
     (swap! c-bag b/add-element el)))
 
 (defn task-handler
@@ -117,16 +115,7 @@
     :question (process-question state task)
     :quest (process-quest state task))
 
-  (try
-    (let [concept-state @state
-          task-bag (:tasks concept-state)]
-      (let [newtermlinks (merge (apply merge (for [tl (filter (fn [z] (not= z (:id @state))) (:terms task))] ;prefer existing termlinks strengths
-                                               {tl  termlink-default-budget ;priority durability model testing now!!
-                                                #_[1.0 termlink-single-sample-evidence-amount]})) (:termlinks concept-state))]
-        (set-state! (merge concept-state {:termlinks (select-keys newtermlinks
-                                                                  (filter #(b/exists? @c-bag %) (keys newtermlinks))) ;only these keys which exist in concept bag
-                                          }))))
-    (catch Exception e (debuglogger search display (str "task add error " (.toString e)))))
+  (refresh-termlinks task)
   (forget-termlinks)
   (update-concept-budget))
 
@@ -224,29 +213,6 @@
          )
        (catch Exception e (debuglogger search display (str "belief request error " (.toString e))))))
 
-(defn forget-task [el last-forgotten]
-  (let [task (:task el)
-       budget (:budget task)
-       lambda (/ (- 1.0 (second budget)) decay-rate)
-       fr (Math/exp (* -1.0 (* lambda (- @nars-time last-forgotten))))
-       new-priority (max (round2 4 (* (:priority el) fr))
-                         (/ (concept-quality) (+ 1.0 (b/count-elements (:tasks @state)))) ;dont fall below 1/N*concept_quality
-                         (nth budget 2)) ;quality of task
-       new-budget [new-priority (second budget) (nth budget 2)]]
-   (let [updated-task (assoc task :budget new-budget)]
-     (assoc el :priority new-priority
-               :task updated-task))))
-
-(defn forget-tasks []
-  (let [tasks (:elements-map (:tasks @state))
-        last-forgotten (:last-forgotten @state)]
-    (set-state! (assoc @state :tasks (b/default-bag max-tasks)))
-    (doseq [[id el] tasks]                       ;{ id {:staement :type :occurrence}
-      (let [el' (forget-task el last-forgotten)]
-        ;(println (str "forgetting: " (get-in el' [:task :statement])))
-        (set-state! (assoc @state :tasks (b/add-element (:tasks @state) el')))))
-    (set-state! (assoc @state :last-forgotten @nars-time))))
-
 (defn inference-request-handler
   ""
   [from message]
@@ -258,11 +224,10 @@
       (try
        (when (pos? (b/count-elements task-bag))
          (let [[el] (b/lookup-by-index task-bag (selection-fn (b/count-elements task-bag)))]
-           (try
-             (forget-tasks)
-             (update-concept-budget)
-             (catch Exception e (debuglogger search display (str "forget/update error " (.toString e)))))
+           (forget-tasks)
+           (update-concept-budget)
            (debuglogger search display ["selected inference task:" el])
+
            ;now search through termlinks, get the endpoint concepts, and form a bag of them
            (let [initbag (b/default-bag concept-max-termlinks)
                  resbag (reduce (fn [a b] (b/add-element a b)) initbag (for [[k v] (:termlinks @state)]
@@ -277,15 +242,14 @@
                                          (:id beliefconcept)
                                          (let [[p d] ((:termlinks @state) (:id beliefconcept))] ;apply forgetting for termlinks only on selection
                                            [(* p d) d]))))
-             (when-let [{c-ref :ref} ((:elements-map @c-bag) (:id beliefconcept))]
+
+             (when-let [c-ref (get-ref-from-term (:id beliefconcept))]
                (try
                  #_(update-termlink (:id beliefconcept))    ;belief concept here
                  (catch Exception e (debuglogger search display (str "task side termlink strength error " (.toString e)))))
                (cast! c-ref [:belief-request-msg [(:id @state) ((:termlinks @state) (:id beliefconcept)) (:task el)]])
                ))))
-       (catch Exception e (debuglogger search display (str "inference request error " (.toString e))))))
-    )
-  )
+       (catch Exception e (debuglogger search display (str "inference request error " (.toString e))))))))
 
 (defn termlink-create-handler
   ""
