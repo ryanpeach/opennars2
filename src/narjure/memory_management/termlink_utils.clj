@@ -55,10 +55,14 @@
 (defn refresh-termlinks [task]
   ""
   ; :termlinks {term [budget]}
-  (let [newtermlinks (merge (apply merge
+  (let [concept-prio (fn [z] (let [prio (concept-priority z)]
+                               (if prio
+                                 prio
+                                 0.0)))
+        newtermlinks (merge (apply merge
                                    (for [tl (get-linkable-terms task)] ;prefer existing termlinks strengths
                                      {tl [(* (first termlink-default-budget)
-                                             (concept-priority tl)) (second termlink-default-budget)]}))
+                                             (concept-prio tl)) (second termlink-default-budget)]}))
                             (:termlinks @state))
         valid-links (select-keys newtermlinks (get-existing-terms-from-links newtermlinks))];only these keys which exist in concept bag
     (set-state! (merge @state {:termlinks valid-links}))))
