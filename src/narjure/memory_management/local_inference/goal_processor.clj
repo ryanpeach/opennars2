@@ -160,7 +160,7 @@
 
           #_print5 #_(println (str "3 get best\n" (vec D-unification-maps)))
          ;by using the one whose expectation(D) is highest
-          k-expectation-randomize 20.0
+          k-expectation-randomize 50.0
          best-option (apply max-key (comp (fn [a] (+ a (/ (rand) k-expectation-randomize))) expectation :D) ;not always the best one but tend to.
                             (filter (fn [z] true #_(and (non-overlapping-evidence? (:evidence goal) (:evidence-A z))
                                                  (non-overlapping-evidence? (:evidence-A z) (:evidence-B z)) ;overlap check is not transitive: A {1 2 3} B {5} C {1 2 3}

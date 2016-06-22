@@ -8,7 +8,7 @@
     (println "ERROR: Project called on eternal task!!"))
   (let [source-time (:occurrence t)
         dist (fn [a b] (Math/abs (- a b)))
-        a 50.0]
+        a 60.0]
     (if (= target-time source-time)
       t
       (assoc t
