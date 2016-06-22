@@ -116,8 +116,8 @@
   (let [kset-x (+ 0.6 (/ (Math/random) 2.0))
         kset-y (+ 0.6 (/ (Math/random) 2.0))
         state2 (assoc state
-                 :ball-px (:ball-px state) #_(+ (:ball-px state) (* (:direction-x state) 1 3))
-                 :ball-py (:ball-py state) #_(+ (:ball-py state) (* (:direction-y state) 1 3)))
+                 :ball-px #_(:ball-px state) (+ (:ball-px state) (* (:direction-x state) 1 3))
+                 :ball-py #_(:ball-py state) (+ (:ball-py state) (* (:direction-y state) 1 3)))
 
         state3 (if (>= (:ball-px state2)                     ;collided on right wall
                        fieldmax)
