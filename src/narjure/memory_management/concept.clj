@@ -40,7 +40,7 @@
             :quality  (round2 3 (max (concept-quality) (* quality-rescale priority-sum)))
             :ref      self
             :strongest-belief-about-now (max-statement-confidence-projected-to-now state :belief)
-            :strongest-desire-about-now-about-now (max-statement-confidence-projected-to-now state :goal)
+            :strongest-desire-about-now (max-statement-confidence-projected-to-now state :goal)
             ;:strongest-desire-about-now
             }]
     (swap! c-bag b/add-element el)))

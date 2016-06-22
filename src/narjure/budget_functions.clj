@@ -7,7 +7,8 @@
     [narjure
      [global-atoms :refer :all]
      [control-utils :refer [round2]]
-     [debug-util :refer :all]]))
+     [debug-util :refer :all]]
+    [narjure.memory-management.concept-utils :refer :all]))
 
 (defn truth-to-quality [t]
   (let [exp (expectation t)
@@ -20,17 +21,32 @@
       1.0
       (/ 1.0 (+ 1.0 (* k (Math/abs (- @nars-time occ))))))))
 
+(defn highest-desire-in-respect-to-now [concept-term]
+  (:truth (:strongest-desire-about-now ((:elements-map @c-bag) concept-term))))            ;also projected to now!!
+
 (defn structural-reward-budget [budget derived-task]
   "returns a budget"
-  (let [match (precondition-operation-consequent-statement derived-task)
-        quality (max (nth budget 2) 0.9)]
+  (let [not-matched-or-not-desired-budget [(* (first budget) 0.75) (second budget) (nth budget 2)]
+        match (second (precondition-operation-consequent-statement derived-task))]
     (if match
       (do
-        #_(println (narsese-print (:statement derived-task)) " " (:truth derived-task) " " (:occurrence derived-task))
-        [(max (first budget) quality)
-        (second budget)
-        quality])
-      [(* (first budget) 0.75) (second budget) (nth budget 2)])) ;tODO too radical
+        (println "1")
+        (println (str "1.1" match))
+        (println (str "1.2" (match '?goal)))
+        (println (str "1.3" (highest-desire-in-respect-to-now (match '?goal))))
+        (let [goal (match '?goal)
+              goal-desire (highest-desire-in-respect-to-now goal)]
+         (println (str "2: " goal))
+         (if goal-desire
+           (let [quality (max (nth budget 2) (t-or (second goal-desire) 0.9))]
+             (do
+               (println "3")
+               (println (narsese-print (:statement derived-task)) " " (:truth derived-task) " " (:occurrence derived-task))
+               [(max (first budget) quality)
+                (second budget)
+                quality]))
+           not-matched-or-not-desired-budget)))
+      not-matched-or-not-desired-budget)) ;tODO too radical
 
   )
 

@@ -23,8 +23,8 @@
   [question-priority question-durability question-quality])
 
 (def goal-confidence 0.9)
-(def goal-priority 0.9)
-(def goal-quality 0.5)
+(def goal-priority 0.99)                                    ;set higher than potential quality rewards in the system (best-operation-selection, structural reinforcement)
+(def goal-quality 0.99)
 (def goal-durability 0.7)
 
 (def goal-budget
