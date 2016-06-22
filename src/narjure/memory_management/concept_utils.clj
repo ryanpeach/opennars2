@@ -23,6 +23,9 @@
 (defn concept-quality []
   (:quality ((:elements-map @c-bag) (:id @state))))
 
+(defn concept-priority [term]
+  (:priority ((:elements-map @c-bag) term)))
+
 (defn get-ref-from-term [term]
   (:ref ((:elements-map @c-bag) term)))
 

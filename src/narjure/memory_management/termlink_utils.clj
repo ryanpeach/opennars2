@@ -11,6 +11,8 @@
      [control-utils :refer :all]
      [defaults :refer :all]
      [budget-functions :refer :all]]
+    [narjure.memory-management
+     [concept-utils :refer :all]]
     [clojure.core.unify :refer [unifier]]
     [nal.term_utils :refer [syntactic-complexity]]
     [narjure.memory-management.local-inference
@@ -55,10 +57,12 @@
   ; :termlinks {term [budget]}
   (let [newtermlinks (merge (apply merge
                                    (for [tl (get-linkable-terms task)] ;prefer existing termlinks strengths
-                                     {tl  termlink-default-budget}))
+                                     {tl [(* (first termlink-default-budget)
+                                             (concept-priority tl)) (second termlink-default-budget)]}))
                             (:termlinks @state))
         valid-links (select-keys newtermlinks (get-existing-terms-from-links newtermlinks))];only these keys which exist in concept bag
     (set-state! (merge @state {:termlinks valid-links}))))
+
 (defn link-feedback-handler
   [from [_ [derived-task belief-concept-id]]]                       ;this one uses the usual priority durability semantics
   (try
