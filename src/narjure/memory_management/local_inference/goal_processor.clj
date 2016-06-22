@@ -37,7 +37,7 @@
 
 
 
-(def decision-threshold 0.1)
+(def decision-threshold 0.6)
 
 (defn execute? [task]
   (> (expectation (:truth task)) decision-threshold))
@@ -135,7 +135,7 @@
                                         ;reward belief uality also for having this for control useful structure
                                         #_(println (str "rewarded belief" (narsese-print (:statement belief)) " " (:truth belief) " budg: " (:budget belief)))
                                         (let [new-quality 0.98]
-                                          (println (str "rewarding " (narsese-print (:statement belief)) " " (:truth belief)) )
+                                          #_(println (str "rewarding " (narsese-print (:statement belief)) " " (:truth belief)) )
                                           (update-task-in-tasks state (assoc belief :budget [(max new-quality
                                                                                                  (first (:budget belief)))
                                                                                             (second (:budget belief))
@@ -177,7 +177,7 @@
                        :budget     (:budget goal)
                        :depth      (inc (:depth goal))
                        :task-type  :goal}]
-         (println (str "operator selector sending to task-creator " (:truth new-task)))
+         (println (str "operator selector sending to task-creator " (:statement new-task) (:truth new-task)))
          (cast! (whereis :task-creator) [:derived-sentence-msg [nil nil new-task]]))))))
 
 (defn process-goal [state task cnt]
@@ -188,24 +188,26 @@
         quests (filter #(= (:task-type %) :quest ) tasks)]
 
     ;also allow revision in subterm concepts! this is why statement is compared to task statement, not to ID!!
-    (let [related-goals (filter (fn [z] (and (same-occurrence-type z task)
-                                             (= (:statement z) (:statement task))))  goals)]
+    (when-not (and (= (:occurrence task) :eternal)
+                   (operation? (:statement task)))         ;do not eternalize operations
+      (let [related-goals (filter (fn [z] (and (same-occurrence-type z task)
+                                              (= (:statement z) (:statement task)))) goals)]
 
-      (let [total-revision (reduce (fn [a b] (if (non-overlapping-evidence? (:evidence a) (:evidence b))
-                                               (revise a (project-eternalize-to (:occurrence a) b @nars-time) :goal)
-                                               a))
-                                   task (shuffle related-goals))]
-        ;add revised task to bag
-        (add-to-tasks state total-revision)
-        ; check to see if revised or task is answer to quest and increase budget accordingly
-        ;check whether it is fullfilled by belief and decrease budget accordingly
-        (satisfaction-based-budget-change state total-revision beliefs)
-        (answer-based-budget-change state (:task (first (b/get-by-id (:tasks @state) (get-task-id total-revision)))) quests)
-        (try
-          (best-operation-selection (filter #(= (:task-type %) :belief) (get-tasks state))
-                                   (:task (first (b/get-by-id (:tasks @state) (get-task-id total-revision)))))
-          (catch Exception e () #_(println "operator selector error")))
-        ))
+       (let [total-revision (reduce (fn [a b] (if (non-overlapping-evidence? (:evidence a) (:evidence b))
+                                                (revise a (project-eternalize-to (:occurrence a) b @nars-time) :goal)
+                                                a))
+                                    task (shuffle related-goals))]
+         ;add revised task to bag
+         (add-to-tasks state total-revision)
+         ; check to see if revised or task is answer to quest and increase budget accordingly
+         ;check whether it is fullfilled by belief and decrease budget accordingly
+         (satisfaction-based-budget-change state total-revision beliefs)
+         (answer-based-budget-change state (:task (first (b/get-by-id (:tasks @state) (get-task-id total-revision)))) quests)
+         (try
+           (best-operation-selection (filter #(= (:task-type %) :belief) (get-tasks state))
+                                     (:task (first (b/get-by-id (:tasks @state) (get-task-id total-revision)))))
+           (catch Exception e () #_(println "operator selector error")))
+         )))
 
     ;best operation project goal to current time
     ; if above decision threshold then execute
@@ -220,5 +222,6 @@
                     nil)]
          (when (not= (:occurrence task) :eternal)
            (when-not (= nil operation)                      ;todo change to - when operation
+             (println (str (:truth operation) (expectation (:truth operation))))
             ;(println (str  "goal: " operation))
             (cast! (whereis :operator-executor) [:operator-execution-msg operation]))))))))
