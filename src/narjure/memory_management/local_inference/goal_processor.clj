@@ -37,7 +37,7 @@
 
 
 
-(def decision-threshold 0.6)
+(def decision-threshold 0.53)
 
 (defn execute? [task]
   (> (expectation (:truth task)) decision-threshold))
@@ -145,21 +145,23 @@
                                              [precondition-concept bag] (b/get-by-id @c-bag precondition)
                                              strongest-belief-about-now (:strongest-belief-about-now precondition-concept)]
                                          (when precondition-concept
-                                           [(:truth strongest-belief-about-now) (:truth belief) (:evidence strongest-belief-about-now) (:evidence belief) unificaton-map]))))
+                                           [(:truth strongest-belief-about-now) (:truth belief) (:evidence strongest-belief-about-now) (:evidence belief) unificaton-map belief]))))
          #_print3 #_(println (str "step 3.3\n" (vec truth-A-B-unification-maps)))
          ;3.3 desire = desire value of goal
          desire (:truth (project-eternalize-to @nars-time goal @nars-time))
           ;print4 ;(println (str "step 3.4\n" desire))
          ;3.4 execution desire expectation is: D=desire_strong(desire_strong(desire,truth_B),truth_A)
-         D-unification-maps (for [[truth-A truth-B evidence-A evidence-B unification-map] truth-A-B-unification-maps]
+         D-unification-maps (for [[truth-A truth-B evidence-A evidence-B unification-map debug-belief] truth-A-B-unification-maps]
                               {:D                (desire-strong (desire-strong desire truth-B) truth-A)
                                :evidence-A       evidence-A
                                :evidence-B       evidence-B
-                               :unification-map unification-map})
+                               :unification-map unification-map
+                               :debug-belief debug-belief})
 
           #_print5 #_(println (str "3 get best\n" (vec D-unification-maps)))
          ;by using the one whose expectation(D) is highest
-         best-option (apply max-key (comp expectation :D)
+          k-expectation-randomize 20.0
+         best-option (apply max-key (comp (fn [a] (+ a (/ (rand) k-expectation-randomize))) expectation :D) ;not always the best one but tend to.
                             (filter (fn [z] true #_(and (non-overlapping-evidence? (:evidence goal) (:evidence-A z))
                                                  (non-overlapping-evidence? (:evidence-A z) (:evidence-B z)) ;overlap check is not transitive: A {1 2 3} B {5} C {1 2 3}
                                                  (non-overlapping-evidence? (:evidence goal) (:evidence-B z)))) D-unification-maps))
@@ -169,7 +171,7 @@
      (when (and best-option
                 (best-option :D)
                 (> (second (best-option :D)) truth-tolerance))
-       (println (str "had best operator option " (best-option :D)))
+       #_(println (str "had best operator option " (best-option :D)))
        (let [new-task {:statement  ((:unification-map best-option) '?operation)
                        :truth      (best-option :D)
                        :evidence   (make-evidence (make-evidence (best-option :evidence-A) (best-option :evidence-B)) (:evidence goal))
@@ -177,7 +179,8 @@
                        :budget     (:budget goal)
                        :depth      (inc (:depth goal))
                        :task-type  :goal}]
-         (println (str "operator selector sending to task-creator " (:statement new-task) (:truth new-task)))
+         (println (str "based on " (best-option :debug-belief)))
+         (println (str "operator selector sending to task-creator " (:statement new-task) (:truth new-task) (expectation (:truth new-task))))
          (cast! (whereis :task-creator) [:derived-sentence-msg [nil nil new-task]]))))))
 
 (defn process-goal [state task cnt]

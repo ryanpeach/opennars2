@@ -21,7 +21,7 @@
         quality (max (nth budget 2) 0.9)]
     (if match
       (do
-        (println (narsese-print (:statement derived-task)) " " (:truth derived-task) " " (:occurrence derived-task))
+        #_(println (narsese-print (:statement derived-task)) " " (:truth derived-task) " " (:occurrence derived-task))
         [(max (first budget) quality)
         (second budget)
         quality])

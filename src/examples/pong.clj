@@ -50,7 +50,7 @@
   (when (= @direction 1)
     (reset! py (+ @py 3)))
   (when (= (mod (:iteration state) 25) 0)
-    #_(println (str "above truth " (:truth (lense-max-statement-confidence-projected-to-now '[--> ballpos [int-set above]] :belief))
+    (println (str "above truth " (:truth (lense-max-statement-confidence-projected-to-now '[--> ballpos [int-set above]] :belief))
                   " below truth " (:truth (lense-max-statement-confidence-projected-to-now '[--> ballpos [int-set below]] :belief))))
     (nars-input-narsese "<ballpos --> [equal]>! :|:"))
   (when (= (mod (:iteration state) 200) 1)
@@ -58,6 +58,34 @@
     (nars-input-narsese (str (rand-nth ["<(*,{SELF}) --> op_up>! :|:"
                                         "<(*,{SELF}) --> op_down>! :|:"
                                         #_"<(*,{SELF}) --> op_stop>! :|:"]))))
+
+
+  ;also give info from time to time
+  (when (= (mod (:iteration state) 50) 0)                    ;1
+    #_(nars-input-narsese (str "<{" (int (* 100 (quot (:ball-py state) 100))) "} --> ballpos>. :|:" ))
+    #_(nars-input-narsese (str "<{" (int (* 100 (quot @py 100))) "} --> barpos>. :|:" ))
+    (if (and (>= (:ball-py state) @py)
+             (<= (:ball-py state) (+ @py (:barheight state))))
+      (when true
+        (nars-input-narsese "<ballpos --> [equal]>. :|: %1.0;0.9%")
+        (reset! updown-state "equal")
+        #_(when allow-continuous-feedback
+            ;(println "good NARS")
+            (nars-input-narsese "<{SELF} --> [good]>. :|: %1.0;0.9%")))
+
+      (if (> (:ball-py state) @py)
+        (when true
+          (nars-input-narsese (str "<ballpos --> [below]>. :|:"))
+          (reset! updown-state "below")
+          #_(when allow-continuous-feedback
+              ;(println "bad NARS")
+              (nars-input-narsese "<{SELF} --> [good]>. :|: %0.0;0.9%")))
+        (when true
+          (nars-input-narsese (str "<ballpos --> [above]>. :|:"))
+          (reset! updown-state "above")
+          #_(when allow-continuous-feedback
+              ;(println "bad NARS")
+              (nars-input-narsese "<{SELF} --> [good]>. :|: %0.0;0.9%"))))))
 
   (when (= (mod (:iteration state) 1) 0)                    ;1
     #_(nars-input-narsese (str "<{" (int (* 100 (quot (:ball-py state) 100))) "} --> ballpos>. :|:" ))
@@ -136,7 +164,7 @@
       :iteration (inc (:iteration state7)))))
 
 
-(defn draw-pong [state]
+(defn draw-pong [state]<
   (q/background (invert-comp 255))
   (q/stroke (invert-comp 0))
   (q/reset-matrix)
