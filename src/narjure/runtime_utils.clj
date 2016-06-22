@@ -21,6 +21,7 @@
 (defn load-NAL-file [file]
   (doseq [narsese-str (get-lines file)]
     (println (str narsese-str))
+    (Thread/sleep 200)
     (cast! (whereis :sentence-parser) [:narsese-string-msg narsese-str]))
   )
 

@@ -1,7 +1,7 @@
 (ns narjure.control-utils
   (:require
     [narjure.bag :as b]
-    [narjure.defaults :refer [max-evidence]]
+    [narjure.defaults :refer :all]
     [clojure.math.numeric-tower :as math]))
 
 (defn round2
@@ -58,3 +58,21 @@
 
 (defn non-overlapping-evidence? [e1 e2]
   (empty? (clojure.set/intersection (set e1) (set e2))))
+
+(defn select-concepts-rec
+  "select n concepts from c-bag ensuring the same concept is not selected twice"
+  [n bag selected]
+  (if (and (pos? n) (pos? (b/count-elements bag)))
+    (let [[element bag'] (b/get-by-index bag (selection-fn bag))
+          selected' (conj selected element)]
+      (select-concepts-rec (dec n) bag' selected'))
+    selected))
+
+(defn select-concepts
+  "wrapper for: select-concepts-rec
+   select n concepts from c-bag ensuring the same concept is not selected twice"
+  [n bag]
+  (select-concepts-rec n bag []))
+
+(defn sufficient-priority? [selected]
+  (> (:priority selected) priority-threshold))
