@@ -4,98 +4,43 @@
      [core :refer :all]
      [actors :refer :all]]
     [taoensso.timbre :refer [debug info]]
-    [narjure.global-atoms :refer :all]
-    [narjure.bag :as b]
     [clojure.core.unify :refer [unifier]]
-    [narjure.debug-util :refer :all]
-    [narjure.control-utils :refer :all]
-    [narjure.defaults :refer :all]
     [nal.term_utils :refer [syntactic-complexity]]
-    [narjure.memory-management.concept-utils :refer :all]
-    [narjure.memory-management.termlink-utils :refer :all]
-    [narjure.memory-management.local-inference.local-inference-utils :refer [get-task-id get-tasks]]
-    [narjure.memory-management.local-inference.belief-processor :refer [process-belief]]
-    [narjure.memory-management.local-inference.goal-processor :refer [process-goal]]
-    [narjure.memory-management.local-inference.quest-processor :refer [process-quest]]
-    [narjure.memory-management.local-inference.question-processor :refer [process-question]]
-    [nal.deriver.truth :refer [w2c t-or t-and confidence frequency expectation revision]]
-    [nal.deriver.projection-eternalization :refer [project-eternalize-to]])
+    [nal.deriver
+     [truth :refer [w2c t-or t-and confidence frequency expectation revision]]
+     [projection-eternalization :refer [project-eternalize-to]]]
+    [narjure
+     [global-atoms :refer :all]
+     [bag :as b]
+     [debug-util :refer :all]
+     [control-utils :refer :all]
+     [defaults :refer :all]
+     [projection-utils :refer [max-statement-confidence-projected-to-now]]]
+    [narjure.memory-management
+     [concept-utils :refer :all]
+     [termlink-utils :refer :all]]
+    [narjure.memory-management.local-inference
+     [local-inference-utils :refer [get-task-id get-tasks]]
+     [belief-processor :refer [process-belief]]
+     [goal-processor :refer [process-goal]]
+     [quest-processor :refer [process-quest]]
+     [question-processor :refer [process-question]]])
   (:refer-clojure :exclude [promise await]))
 
 (def display (atom '()))
 (def search (atom ""))
 
-(defn forget-termlinks []
-  (while (> (count (:termlinks @state)) concept-max-termlinks)
-    (let [worst (apply min-key (comp first second) (:termlinks @state))]
-      (set-state! (assoc @state :termlinks (dissoc (:termlinks @state) (first worst))))))
-  ;apply weak forget also:
-  #_(set-state!
-    (assoc @state :termlinks
-                  (apply merge (for [[tl [p d]] (:termlinks @state)]
-                                 {tl [(* p d) d]}))))
-  )
-
-(defn add-termlink [tl strength]
-  (set-state! (assoc @state :termlinks (assoc (:termlinks @state)
-                                         tl strength)))
-  (forget-termlinks))
-
-(defn truth-to-quality [t]
-  (let [exp (expectation t)
-        positive-truth-bias 0.75]
-        (max exp (* (- 1.0 exp) positive-truth-bias))))
-
-(defn link-feedback-handler
-  [from [_ [derived-task belief-concept-id]]]                       ;this one uses the usual priority durability semantics
-  (try
-    ;TRADITIONAL BUDGET INFERENCE (BLINK PART)
-    (let [complexity (if (:truth derived-task) (syntactic-complexity belief-concept-id) 1.0)
-          qual (if (:truth derived-task)
-                    (truth-to-quality (:truth derived-task))
-                    (w2c 1.0))
-          quality (/ qual complexity)
-          #_[target _] #_(b/get-by-id @c-bag belief-concept-id)
-          #_[source _] #_(b/get-by-id @c-bag (:id @state))
-          [result-concept _]  (b/get-by-id @c-bag (:statement derived-task))
-          activation (:priority result-concept) #_(:priority result-concept) #_(Peis)  #_(t-and (:priority target) (:priority source)) #_("1.7.0")
-          [p d] ((:termlinks @state) belief-concept-id)]
-      (when (and p d qual)
-        (add-termlink belief-concept-id [(t-or p (t-or quality activation))
-                                         (t-or d quality)]))
-      )
-    (catch Exception e () #_(println "fail"))))
-
-(defn max-statement-confidence-projected-to-now [task-type]
-  (let [fil (filter (fn [z] (and (= (:task-type (:task (second z))) task-type)
-                                 (= (:statement (:task (second z))) (:id @state))))
-                    (:elements-map (:tasks @state)))]
-    (if (not= fil [])
-      (project-eternalize-to @nars-time
-                             (:task (second (apply max-key
-                             (fn [y]
-                               (second (:truth
-                                         (project-eternalize-to
-                                           @nars-time
-                                           (:task (second y))
-                                           @nars-time))))
-                             fil)))
-                             @nars-time)
-      nil)))
-
-
-(defn update-concept-budget []
+(defn update-concept-budget [state, self]
   "Update the concept budget"
-  (let [concept-state @state
-        tasks (:priority-index (:tasks concept-state))      ; :priority-index ok here
+  (let [tasks (:priority-index (:tasks state))      ; :priority-index ok here
         priority-sum (round2 3 (reduce t-or (for [x tasks] (:priority x))))
         quality-rescale 0.1
-        el {:id       (:id @state)
+        el {:id       (:id state)
             :priority priority-sum
             :quality  (round2 3 (max (concept-quality) (* quality-rescale priority-sum)))
-            :ref      @self
-            :strongest-belief-about-now (max-statement-confidence-projected-to-now :belief)
-            :strongest-desire-about-now-about-now (max-statement-confidence-projected-to-now :goal)
+            :ref      self
+            :strongest-belief-about-now (max-statement-confidence-projected-to-now state :belief)
+            :strongest-desire-about-now-about-now (max-statement-confidence-projected-to-now state :goal)
             ;:strongest-desire-about-now
             }]
     (swap! c-bag b/add-element el)))
@@ -117,7 +62,7 @@
 
   (refresh-termlinks task)
   (forget-termlinks)
-  (update-concept-budget))
+  (update-concept-budget @state @self))
 
 (defn unifies [b a]
   (= a (unifier a b)))
@@ -225,7 +170,7 @@
        (when (pos? (b/count-elements task-bag))
          (let [[el] (b/lookup-by-index task-bag (selection-fn (b/count-elements task-bag)))]
            (forget-tasks)
-           (update-concept-budget)
+           (update-concept-budget @state @self)
            (debuglogger search display ["selected inference task:" el])
 
            ;now search through termlinks, get the endpoint concepts, and form a bag of them

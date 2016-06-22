@@ -4,20 +4,24 @@
      [core :refer :all]
      [actors :refer :all]]
     [taoensso.timbre :refer [debug info]]
-    [narjure.global-atoms :refer :all]
-    [narjure.bag :as b]
+    [narjure
+     [global-atoms :refer :all]
+     [bag :as b]
+     [debug-util :refer :all]
+     [control-utils :refer :all]
+     [defaults :refer :all]
+     [budget-functions :refer :all]]
     [clojure.core.unify :refer [unifier]]
-    [narjure.debug-util :refer :all]
-    [narjure.control-utils :refer :all]
-    [narjure.defaults :refer :all]
     [nal.term_utils :refer [syntactic-complexity]]
-    [narjure.memory-management.local-inference.local-inference-utils :refer [get-task-id get-tasks]]
-    [narjure.memory-management.local-inference.belief-processor :refer [process-belief]]
-    [narjure.memory-management.local-inference.goal-processor :refer [process-goal]]
-    [narjure.memory-management.local-inference.quest-processor :refer [process-quest]]
-    [narjure.memory-management.local-inference.question-processor :refer [process-question]]
-    [nal.deriver.truth :refer [w2c t-or t-and confidence frequency expectation revision]]
-    [nal.deriver.projection-eternalization :refer [project-eternalize-to]])
+    [narjure.memory-management.local-inference
+     [local-inference-utils :refer [get-task-id get-tasks]]
+     [belief-processor :refer [process-belief]]
+     [goal-processor :refer [process-goal]]
+     [quest-processor :refer [process-quest]]
+     [question-processor :refer [process-question]]]
+    [nal.deriver
+     [truth :refer [w2c t-or t-and confidence frequency expectation revision]]
+     [projection-eternalization :refer [project-eternalize-to]]])
   (:refer-clojure :exclude [promise await]))
 
 (defn get-linkable-terms
@@ -30,6 +34,22 @@
   [links]
   (filter #(b/exists? @c-bag %) (keys links)))
 
+(defn forget-termlinks []
+  (while (> (count (:termlinks @state)) concept-max-termlinks)
+    (let [worst (apply min-key (comp first second) (:termlinks @state))]
+      (set-state! (assoc @state :termlinks (dissoc (:termlinks @state) (first worst))))))
+  ;apply weak forget also:
+  #_(set-state!
+      (assoc @state :termlinks
+                    (apply merge (for [[tl [p d]] (:termlinks @state)]
+                                   {tl [(* p d) d]}))))
+  )
+
+(defn add-termlink [tl strength]
+  (set-state! (assoc @state :termlinks (assoc (:termlinks @state)
+                                         tl strength)))
+  (forget-termlinks))
+
 (defn refresh-termlinks [task]
   ""
   ; :termlinks {term [budget]}
@@ -39,3 +59,22 @@
                             (:termlinks @state))
         valid-links (select-keys newtermlinks (get-existing-terms-from-links newtermlinks))];only these keys which exist in concept bag
     (set-state! (merge @state {:termlinks valid-links}))))
+(defn link-feedback-handler
+  [from [_ [derived-task belief-concept-id]]]                       ;this one uses the usual priority durability semantics
+  (try
+    ;TRADITIONAL BUDGET INFERENCE (BLINK PART)
+    (let [complexity (if (:truth derived-task) (syntactic-complexity belief-concept-id) 1.0)
+          qual (if (:truth derived-task)
+                 (truth-to-quality (:truth derived-task))
+                 (w2c 1.0))
+          quality (/ qual complexity)
+          #_[target _] #_(b/get-by-id @c-bag belief-concept-id)
+          #_[source _] #_(b/get-by-id @c-bag (:id @state))
+          [result-concept _]  (b/get-by-id @c-bag (:statement derived-task))
+          activation (:priority result-concept) #_(:priority result-concept) #_(Peis)  #_(t-and (:priority target) (:priority source)) #_("1.7.0")
+          [p d] ((:termlinks @state) belief-concept-id)]
+      (when (and p d qual)
+        (add-termlink belief-concept-id [(t-or p (t-or quality activation))
+                                         (t-or d quality)]))
+      )
+    (catch Exception e () #_(println "fail"))))

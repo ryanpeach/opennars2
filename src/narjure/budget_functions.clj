@@ -1,19 +1,24 @@
-
 (ns narjure.budget-functions
   (:require
-    [nal.deriver.truth :refer [t-or t-and w2c]]
-    [narjure.global-atoms :refer :all]
-    [narjure.control-utils :refer [round2]]
-    [narjure.debug-util :refer :all]
-    [nal.term_utils :refer [syntactic-complexity precondition-operation-consequent-statement]]
-    [nal.deriver.truth :refer [expectation]]))
+    [nal
+     [term_utils :refer [syntactic-complexity precondition-operation-consequent-statement]]]
+    [nal.deriver
+     [truth :refer [expectation t-or t-and w2c]]]
+    [narjure
+     [global-atoms :refer :all]
+     [control-utils :refer [round2]]
+     [debug-util :refer :all]]))
+
+(defn truth-to-quality [t]
+  (let [exp (expectation t)
+        positive-truth-bias 0.75]
+    (max exp (* (- 1.0 exp) positive-truth-bias))))
 
 (defn occurrence-penalty-tr [occ]
   (let [k 0.0001]
     (if (= occ :eternal)
       1.0
       (/ 1.0 (+ 1.0 (* k (Math/abs (- @nars-time occ))))))))
-
 
 (defn structural-reward-budget [budget derived-task]
   "returns a budget"
@@ -50,3 +55,4 @@
                    ]
            ]
     (structural-reward-budget budget derived-task)))
+
