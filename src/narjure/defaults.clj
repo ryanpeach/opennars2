@@ -39,7 +39,7 @@
 (def c-priority 0.5)                                        ; default concept priority
 
 (def ^{:type double} horizon 1)                             ; personality factor for evidential horizon
-(def max-evidence 50)                                       ; maximum length of evidence trail
+(def max-evidence 10)                                       ; maximum length of evidence trail
 (def temporal-window-duration 10)                           ; number of system cycles to consider as concurrent
 (def max-term-complexity 20)                                ; maximum number of terms and sub terms in a statement - syntactic complexity
 (def priority-threshold 0.001)                              ; concepts and tasks have to be above this to be processed
