@@ -257,7 +257,7 @@
     (when true
       (try
        (when (pos? (b/count-elements task-bag))
-         (let [[el] (b/lookup-by-index task-bag (selection-fn task-bag))]
+         (let [[el] (b/lookup-by-index task-bag (selection-fn (b/count-elements task-bag)))]
            (try
              (forget-tasks)
              (update-concept-budget)
@@ -270,7 +270,7 @@
                                                                                           (:priority (first (b/get-by-id @c-bag k))))
                                                                           :id       k}))
                  ;now select an element from this bag
-                 [beliefconcept bag1] (b/get-by-index resbag (selection-fn resbag))]
+                 [beliefconcept bag1] (b/get-by-index resbag (selection-fn (b/count-elements resbag)))]
              ;and create a belief request message
              (set-state! (assoc @state :termlinks
                                        (assoc (:termlinks @state)

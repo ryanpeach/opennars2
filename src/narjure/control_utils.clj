@@ -15,19 +15,13 @@
 
 (defn selection-fn
   ""
-  [bag]
-  (let [count (b/count-elements bag)
-        i (Math/abs (- (* (+ (rand) (rand)) count) count))]
-    ;(println (str "i: " i " count: " count))
-    i))
+  [count]
+  (Math/abs (- (* (+ (rand) (rand)) count) count)))
 
 (defn selection-fn-old
   ""
-  [bag]
-  (let [count (b/count-elements bag)
-        i (- (Math/ceil (* (math/expt (rand) concept-selection-parameter) count)) 1)]
-    ;(println (str "i: " i " count: " count))
-    i))
+  [count]
+  (- (Math/ceil (* (math/expt (rand) concept-selection-parameter) count)) 1))
 
 (defn selection-fn2
   ""
@@ -62,11 +56,12 @@
 (defn select-concepts-rec
   "select n concepts from c-bag ensuring the same concept is not selected twice"
   [n bag selected]
-  (if (and (pos? n) (pos? (b/count-elements bag)))
-    (let [[element bag'] (b/get-by-index bag (selection-fn bag))
-          selected' (conj selected element)]
-      (select-concepts-rec (dec n) bag' selected'))
-    selected))
+  (let [count (b/count-elements bag)]
+    (if (and (pos? n) (pos? count))
+      (let [[element bag'] (b/get-by-index bag (selection-fn count))
+            selected' (conj selected element)]
+        (select-concepts-rec (dec n) bag' selected'))
+      selected)))
 
 (defn select-concepts
   "wrapper for: select-concepts-rec
