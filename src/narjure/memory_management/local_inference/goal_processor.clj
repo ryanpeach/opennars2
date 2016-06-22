@@ -37,7 +37,7 @@
 
 
 
-(def decision-threshold 0.5)
+(def decision-threshold 0.1)
 
 (defn execute? [task]
   (> (expectation (:truth task)) decision-threshold))
@@ -134,7 +134,8 @@
                                       (do
                                         ;reward belief uality also for having this for control useful structure
                                         #_(println (str "rewarded belief" (narsese-print (:statement belief)) " " (:truth belief) " budg: " (:budget belief)))
-                                        #_(let [new-quality 0.95]
+                                        (let [new-quality 0.98]
+                                          (println (str "rewarding " (narsese-print (:statement belief)) " " (:truth belief)) )
                                           (update-task-in-tasks state (assoc belief :budget [(max new-quality
                                                                                                  (first (:budget belief)))
                                                                                             (second (:budget belief))
@@ -148,7 +149,7 @@
          #_print3 #_(println (str "step 3.3\n" (vec truth-A-B-unification-maps)))
          ;3.3 desire = desire value of goal
          desire (:truth (project-eternalize-to @nars-time goal @nars-time))
-          #_print4 #_(println (str "step 3.4\n" desire))
+          ;print4 ;(println (str "step 3.4\n" desire))
          ;3.4 execution desire expectation is: D=desire_strong(desire_strong(desire,truth_B),truth_A)
          D-unification-maps (for [[truth-A truth-B evidence-A evidence-B unification-map] truth-A-B-unification-maps]
                               {:D                (desire-strong (desire-strong desire truth-B) truth-A)
@@ -159,7 +160,7 @@
           #_print5 #_(println (str "3 get best\n" (vec D-unification-maps)))
          ;by using the one whose expectation(D) is highest
          best-option (apply max-key (comp expectation :D)
-                            (filter (fn [z] (and (non-overlapping-evidence? (:evidence goal) (:evidence-A z))
+                            (filter (fn [z] true #_(and (non-overlapping-evidence? (:evidence goal) (:evidence-A z))
                                                  (non-overlapping-evidence? (:evidence-A z) (:evidence-B z)) ;overlap check is not transitive: A {1 2 3} B {5} C {1 2 3}
                                                  (non-overlapping-evidence? (:evidence goal) (:evidence-B z)))) D-unification-maps))
           #_print6 #_(println (str "finished 3 \n"best-option))]
@@ -168,7 +169,7 @@
      (when (and best-option
                 (best-option :D)
                 (> (second (best-option :D)) truth-tolerance))
-       #_(println "had best operator option")
+       (println (str "had best operator option " (best-option :D)))
        (let [new-task {:statement  ((:unification-map best-option) '?operation)
                        :truth      (best-option :D)
                        :evidence   (make-evidence (make-evidence (best-option :evidence-A) (best-option :evidence-B)) (:evidence goal))
