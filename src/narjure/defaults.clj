@@ -43,9 +43,9 @@
 (def temporal-window-duration 10)                           ; number of system cycles to consider as concurrent
 (def max-term-complexity 20)                                ; maximum number of terms and sub terms in a statement - syntactic complexity
 (def priority-threshold 0.001)                              ; concepts and tasks have to be above this to be processed
-(def max-concept-selections 20)                             ; don't set higher if not on a sumpercomputer, will cause trouble
+(def max-concept-selections 10)                             ; don't set higher if not on a sumpercomputer, will cause trouble
 (def termlink-single-sample-evidence-amount 0.01)           ; default conf for termlink truth value
-(def concept-max-termlinks 20)                              ; max size of termlink bag per concept
+(def concept-max-termlinks 5)                              ; max size of termlink bag per concept
 (def max-tasks 10)                                          ; max size of task bag per concept
 (def max-anticipations 5)                                   ; max size of anticipation bag per concept
 (def max-concepts 1000)                                     ; do not make too small (less than 50) as causes cyclic issue between task-dispatcher and concept-manager
