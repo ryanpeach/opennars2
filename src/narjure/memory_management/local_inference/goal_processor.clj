@@ -134,7 +134,9 @@
                                       (do
                                         ;reward belief uality also for having this for control useful structure
                                         #_(println (str "rewarded belief" (narsese-print (:statement belief)) " " (:truth belief) " budg: " (:budget belief)))
-                                        (let [new-quality 0.98]
+                                        (let [budget (:budget belief)
+                                              new-quality (max (nth budget 2)
+                                                               (t-or (expectation (:truth belief)) (t-or (second (:truth goal)) 0.6)))] ;TODO see budget-functions (unify)
                                           #_(println (str "rewarding " (narsese-print (:statement belief)) " " (:truth belief)) )
                                           (update-task-in-tasks state (assoc belief :budget [(max new-quality
                                                                                                  (first (:budget belief)))

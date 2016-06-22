@@ -26,9 +26,10 @@
 
 (defn structural-reward-budget [budget derived-task]
   "returns a budget"
-  (let [not-matched-or-not-desired-budget [(* (first budget) 0.75) (second budget) (nth budget 2)]
+  (let [not-matched-or-not-desired-budget [(* (first budget) 0.5) (second budget) (nth budget 2)]
         match (second (precondition-operation-consequent-statement derived-task))]
-    (if match
+    (if (and (:truth derived-task)
+             match)
       (do
         (println "1")
         (println (str "1.1" match))
@@ -38,7 +39,8 @@
               goal-desire (highest-desire-in-respect-to-now goal)]
          (println (str "2: " goal))
          (if goal-desire
-           (let [quality (max (nth budget 2) (t-or (second goal-desire) 0.9))]
+           (let [quality (max (nth budget 2)
+                              (t-or (expectation (:truth derived-task)) (t-or (second goal-desire) 0.6)))] ;TODO see goal-processor (unify)
              (do
                (println "3")
                (println (narsese-print (:statement derived-task)) " " (:truth derived-task) " " (:occurrence derived-task))
