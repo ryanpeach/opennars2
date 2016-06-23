@@ -26,12 +26,16 @@
     (try (let [func (@registered-operator-functions operator)]
            (if (not= nil func)
              (let [success (func arguments operationgoal)]
-               (when success          ;when there is an operator function only give feedback if it
-                (output-task :execution operationgoal)
-                (cast! (whereis :task-creator) [:sentence-msg feedback])
-                (when (coll? success)
-                  (doseq [custom-feedback success]
-                    (cast! (whereis :task-creator) [:sentence-msg custom-feedback])))))
+               (output-task :execution operationgoal)
+               (if success          ;when there is an operator function only give feedback if it
+                 (do
+                   (cast! (whereis :task-creator) [:sentence-msg feedback])
+                   (when (coll? success)
+                     (doseq [custom-feedback success]
+                       (cast! (whereis :task-creator) [:sentence-msg custom-feedback]))))
+                 (cast! (whereis :task-creator) [:sentence-msg (assoc feedback :truth
+                                                                               [(- 1.0 (first (:truth feedback)))
+                                                                                (second (:truth feedback))])])))
              (do
                (output-task :execution operationgoal)
                (cast! (whereis :task-creator) [:sentence-msg feedback]))))
