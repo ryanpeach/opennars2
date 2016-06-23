@@ -79,6 +79,7 @@
   (not= :eternal (:occurrence sentence)))
 
 (def lastevent (atom nil))
+
 (defn sentence-handler
   "Processes a :sentence-msg and generates a task, and an eternal task
    if the sentence is an event, and posts to task-dispatcher."

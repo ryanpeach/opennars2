@@ -40,7 +40,8 @@
            :expiry)))
 
 (defn confirmable-observable? [task]
-  (and (:observable @state) (not= (:occurrence task) :eternal)))
+  (and (:observable @state) (not= (:occurrence task) :eternal)
+       (= (:source task) :derived)))
 
 (defn create-anticipation-task [task]
   (assoc task :task-type :anticipation :expiry (let [k anticipation-scale-dependent-tolerance
@@ -134,10 +135,10 @@
     (when (and (= (:task-type task) :belief)
             (= (:statement task)                             ;only allow anticipation with concept content
               (:id @state)))
-      ;(println (str "1"))
+      (when (confirmable-observable? task) (println (str "1. nars-time:" @nars-time "2. :task occ " (:occurrence task) " task: " (:statement task))))
       (when (and (confirmable-observable? task)
                  (> (:occurrence task) @nars-time))
-        (println (str "2..."))
+        (println (str "2. nars-time:" @nars-time "2. :task " task))
         (let [anticipated-task (create-anticipation-task task)
               with-anticipated-truth (fn [t] (assoc t :source :derived :anticipated-truth (:truth t) :truth [0.5 0.0]))]
           (println (str "3..."))

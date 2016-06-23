@@ -40,10 +40,8 @@
   (when-not (:observable @state)
     ;(println "obs1")
     (let [{:keys [occurrence source]} task]
-      (when (and (= (:id @state) (:statement task)) (= source :input)) (println (str "obs2: " occurrence " " source)))
       (when (and (not= occurrence :eternal) (= source :input) (= (:statement task) (:id @state)))
-        (println "obs3")
-       (set-state! (assoc @state :observable true)))))
+        (set-state! (assoc @state :observable true)))))
 
   (case (:task-type task)
     :belief (process-belief state task 0)

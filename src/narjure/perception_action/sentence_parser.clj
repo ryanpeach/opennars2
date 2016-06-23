@@ -4,7 +4,6 @@
      [core :refer :all]
      [actors :refer :all]]
     [narjure.narsese :refer [parse2]]
-    ;[narjure.actor.utils :refer [defactor]]
     [taoensso.timbre :refer [debug info]]
     [narjure.debug-util :refer :all])
   (:refer-clojure :exclude [promise await]))
