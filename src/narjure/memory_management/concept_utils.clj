@@ -4,20 +4,24 @@
      [core :refer :all]
      [actors :refer :all]]
     [taoensso.timbre :refer [debug info]]
-    [narjure.global-atoms :refer :all]
-    [narjure.bag :as b]
+    [narjure
+     [global-atoms :refer :all]
+     [bag :as b]
+     [debug-util :refer :all]
+     [control-utils :refer :all]
+     [defaults :refer :all]
+     [projection-utils :refer [max-statement-confidence-projected-to-now2]]]
+    [narjure.memory-management.local-inference
+     [local-inference-utils :refer [get-task-id get-tasks]]
+     [belief-processor :refer [process-belief]]
+     [goal-processor :refer [process-goal]]
+     [quest-processor :refer [process-quest]]
+     [question-processor :refer [process-question]]]
     [clojure.core.unify :refer [unifier]]
-    [narjure.debug-util :refer :all]
-    [narjure.control-utils :refer :all]
-    [narjure.defaults :refer :all]
     [nal.term_utils :refer [syntactic-complexity]]
-    [narjure.memory-management.local-inference.local-inference-utils :refer [get-task-id get-tasks]]
-    [narjure.memory-management.local-inference.belief-processor :refer [process-belief]]
-    [narjure.memory-management.local-inference.goal-processor :refer [process-goal]]
-    [narjure.memory-management.local-inference.quest-processor :refer [process-quest]]
-    [narjure.memory-management.local-inference.question-processor :refer [process-question]]
-    [nal.deriver.truth :refer [w2c t-or t-and confidence frequency expectation revision]]
-    [nal.deriver.projection-eternalization :refer [project-eternalize-to]])
+    [nal.deriver
+     [truth :refer [w2c t-or t-and confidence frequency expectation revision]]
+     [projection-eternalization :refer [project-eternalize-to]]])
   (:refer-clojure :exclude [promise await]))
 
 (defn concept-quality []
@@ -51,3 +55,77 @@
         ;(println (str "forgetting: " (get-in el' [:task :statement])))
         (set-state! (assoc @state :tasks (b/add-element (:tasks @state) el')))))
     (set-state! (assoc @state :last-forgotten @nars-time))))
+
+(defn belief? [task]
+  (= (:task-type task) :belief))
+
+(defn goal? [task]
+  (= (:task-type task)) :goal)
+
+(defn update-concept-stats-rec
+  "collects stats for concept:
+    concept-priority as t-or of task priority
+    best-proj-belief-task as max-statement-confidence-projected-to-now2
+    best-proj-goal-task statement
+   only one iteration of the task bag is required due to the recursion"
+  [coll p-sum proj-belief-task proj-goal-task]
+  (if (empty? coll)
+    {:p-sum p-sum :proj-belief-task proj-belief-task :proj-goal-task proj-goal-task}
+    (let [{key :id priority :priority task :task} (second (first coll))
+          coll' (dissoc coll key)]
+      (update-concept-stats-rec coll'
+                                (t-or p-sum priority)
+                                (if (belief? task)
+                                  (max-statement-confidence-projected-to-now2 task proj-belief-task)
+                                  proj-belief-task)
+                                (if (goal? task)
+                                  (max-statement-confidence-projected-to-now2 task proj-goal-task)
+                                  proj-goal-task)))))
+
+(defn update-concept-budget
+  "Processes concept stats results"
+  [state, self]
+  (let [result (update-concept-stats-rec (:elements-map (:tasks state)) 0.0 nil nil)
+        {p-sum :p-sum
+         strongest-belief-about-now :proj-belief-task
+         strongest-desire-about-now :proj-goal-task} result
+        priority-sum (round2 4 p-sum)
+        quality-rescale 0.1
+        el {:id       (:id state)
+            :priority priority-sum
+            :quality  (round2 3 (max (concept-quality) (* quality-rescale priority-sum)))
+            :ref      self
+            :strongest-belief-about-now strongest-belief-about-now
+            :strongest-desire-about-now strongest-desire-about-now}]
+    (swap! c-bag b/add-element el)))
+
+(defn unifies [b a]
+  (= a (unifier a b)))
+
+(defn qu-var-transform [term]
+  (if (coll? term)
+    (if (= (first term) 'qu-var)
+      (symbol (str "?" (second term)))
+      (apply vector (for [x term]
+                      (qu-var-transform x))))
+    term))
+
+(defn question-unifies [question solution]
+  (unifies (qu-var-transform question) solution))
+
+(defn solution-update-handler
+  ""
+  [from [_ oldtask newtask]]
+  (let [concept-state @state
+        task (first (filter (fn [a] (let [it (:task (second a))]
+                                      (and (= (:statement it) (:statement oldtask))
+                                           (= (:occurrence it) (:occurrence oldtask))
+                                           (= (:task-type it) (:task-type oldtask))
+                                           (= (:solution it) (:solution oldtask)))))
+                            (:elements-map (:tasks concept-state))))]
+    (println "in solution-update-handler")
+    (when (not= nil task)
+      (let [[_ bag2] (b/get-by-id (:tasks concept-state) (get-task-id task)) ;todo merge old and new tasks?
+
+            bag3 (b/add-element bag2 {:id (get-task-id newtask) :priority (first (:budget newtask)) :task newtask})]
+        (set-state! (assoc concept-state :tasks bag3))))))

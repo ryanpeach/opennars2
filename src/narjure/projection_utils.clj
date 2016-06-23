@@ -22,3 +22,20 @@
                                                    fil)))
                              @nars-time)
       nil)))
+
+(defn get-conf [task]
+  (second (:truth task)))
+
+(defn max-statement-confidence-projected-to-now2
+  "returns the task with highest projected conf
+   or the first task if task t2 is nil"
+  [t1 t2]
+  (if t2
+    (let [now @nars-time
+          f project-eternalize-to]
+      (f now
+         (max-key
+           (fn [y] (get-conf (f now y now)))
+           t1 t2)
+         now))
+    t1))
