@@ -17,12 +17,14 @@
                                     (do
                                       (when (= (:source operationgoal) :derived)
                                         (println "system decided up"))
-                                      (reset! direction -1))))
+                                      (reset! direction -1)
+                                      true)))
   (nars-register-operation 'op_down (fn [args operationgoal]
                                       (do
                                         (when (= (:source operationgoal) :derived)
                                           (println "system decided down"))
-                                        (reset! direction 1))))
+                                        (reset! direction 1)
+                                        true)))
   #_(nars-register-operation 'op_stop (fn [args]
                                         (reset! direction 0)))
   (merge hnav/states {:ball-px 380

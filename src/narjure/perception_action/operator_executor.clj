@@ -24,8 +24,17 @@
         arguments (rest (second operation))
         operator (nth operation 2)]
     (try (let [func (@registered-operator-functions operator)]
-           (when (not= nil func)
-             (func arguments operationgoal)))
+           (if (not= nil func)
+             (let [success (func arguments operationgoal)]
+               (when success          ;when there is an operator function only give feedback if it
+                (output-task :execution operationgoal)
+                (cast! (whereis :task-creator) [:sentence-msg feedback])
+                (when (coll? success)
+                  (doseq [custom-feedback success]
+                    (cast! (whereis :task-creator) [:sentence-msg custom-feedback])))))
+             (do
+               (output-task :execution operationgoal)
+               (cast! (whereis :task-creator) [:sentence-msg feedback]))))
       (catch Exception e (debuglogger search display (str "operator execution error " (.toString e)))))
     (output-task :execution operationgoal)
     (cast! (whereis :task-creator) [:sentence-msg feedback]))) ;derived-sentence so we keep evidence trail
