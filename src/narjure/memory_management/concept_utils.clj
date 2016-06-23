@@ -35,10 +35,12 @@
 
 (defn forget-task [el last-forgotten]
   (let [task (:task el)
+        el-time (:occurrence task)
         budget (:budget task)
-        lambda (/ (- 1.0 (second budget)) decay-rate)
+        lambda (/ (- 1.0 (second budget)) inverse-decay-rate)
+        occurrence-decay (if (= el-time :eternal) 1.0 (/ 1.0 (+ 1.0 (Math/abs (- el-time @nars-time)))))
         fr (Math/exp (* -1.0 (* lambda (- @nars-time last-forgotten))))
-        new-priority (max (round2 4 (* (:priority el) fr))
+        new-priority (max (round2 4 (* (:priority el) fr occurrence-decay))
                           (/ (concept-quality) (+ 1.0 (b/count-elements (:tasks @state)))) ;dont fall below 1/N*concept_quality
                           (nth budget 2)) ;quality of task
         new-budget [new-priority (second budget) (nth budget 2)]]

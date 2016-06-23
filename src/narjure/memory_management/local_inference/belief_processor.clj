@@ -84,6 +84,11 @@
           (let [new-belief (increased-belief-budget-by-question belief-task-projected-to-question question)]
             (update-task-in-tasks state (assoc belief-task :budget (:budget new-belief)) belief-task)))))))
 
+(defn revision-relevant-events [task old-event]
+  (or (= (:occurrence task) :eternal)
+      (< (Math/abs (- (:occurrence task) (:occurrence old-event)))
+      revision-relevant-event-distance)))
+
 (defn process-belief [state task cnt]
   ;group-by :task-type tasks
   (let [tasks (get-tasks state)
@@ -100,7 +105,8 @@
       (let [same-content-beliefs (filter (fn [z] (and (same-occurrence-type z task)
                                                      (= (:statement z) (:statement task)))) beliefs)]
 
-       (let [total-revision (reduce (fn [a b] (if (non-overlapping-evidence? (:evidence a) (:evidence b))
+       (let [total-revision (reduce (fn [a b] (if (and (revision-relevant-events task b)
+                                                    (non-overlapping-evidence? (:evidence a) (:evidence b)))
                                                 (revise a (project-eternalize-to (:occurrence a) b @nars-time) :belief)
                                                 a))
                                     task (shuffle same-content-beliefs))]
@@ -135,7 +141,7 @@
     (when (and (= (:task-type task) :belief)
             (= (:statement task)                             ;only allow anticipation with concept content
               (:id @state)))
-      (when (confirmable-observable? task) (println (str "1. nars-time:" @nars-time "2. :task occ " (:occurrence task) " task: " (:statement task))))
+      (when (confirmable-observable? task) (println (str "1. nars-time:" @nars-time " 2. :task occ " (:occurrence task) " task: " (:statement task))))
       (when (and (confirmable-observable? task)
                  (> (:occurrence task) @nars-time))
         (println (str "2. nars-time:" @nars-time "2. :task " task))

@@ -39,7 +39,7 @@
        [:eternal :eternal] t
        [:temporal :eternal] (assoc t :occurrence target-time)
        [:eternal :temporal] (eternalize t)
-       [:temporal :temporal] (let [t-eternal (eternalize t)
+       [:temporal :temporal] (project-to target-time t cur-time) #_(let [t-eternal (eternalize t)
                                    t-project (project-to target-time t cur-time)]
                                (if (> (confidence t-eternal)
                                       (confidence t-project))

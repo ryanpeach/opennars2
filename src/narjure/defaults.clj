@@ -6,7 +6,7 @@
 (def truth-value
   [belief-frequency belief-confidence])
 
-(def belief-priority 0.5)
+(def belief-priority 0.85)
 (def belief-durability 0.7)
 ;todo clarify this
 (def belief-quality 1.0)
@@ -52,7 +52,7 @@
 (def max-derived-sentences 50)                              ; derived task bag capacity
 (def max-derived-selections 10)                             ; max derived selections per cycle
 (def max-event-selections 10)                               ; no longer used - number of events to select per cycle
-(def decay-rate 150)                                        ; forgetting adjustment rate for concepts e^-lt where l = (1.0 - durabiity) / decay-rate
+(def inverse-decay-rate 150)                                        ; forgetting adjustment rate for concepts e^-lt where l = (1.0 - durabiity) / decay-rate
 ; durability of 0.5 and decay rate of 100 fully decays priority in 1000 cycles
 ; decay-rate of 10 would fully decay it in 100 cycles
 (def system-tick-interval 100)                               ;make big enough
@@ -62,3 +62,4 @@
 (def termlink-default-budget [0.1 0.9])
 (def concept-selection-introduced-termlink-default-budget [0.1 0.1])
 (def termlink-context-adaptations-speed 0.05)
+(def revision-relevant-event-distance 0.0)                  ;TODO check its relation to temporal window and the parameter in projection
