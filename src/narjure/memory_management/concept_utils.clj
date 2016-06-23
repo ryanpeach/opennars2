@@ -56,20 +56,10 @@
         (set-state! (assoc @state :tasks (b/add-element (:tasks @state) el')))))
     (set-state! (assoc @state :last-forgotten @nars-time))))
 
-(defn update-concept-priority-rec
-  "sum task priority for concept"
-  [coll p-sum]
-  (if (empty? coll)
-    p-sum
-    (let [{id :id priority :priority} (first coll)
-          coll' (dissoc coll key)]
-      (update-concept-priority-rec coll' (t-or p-sum priority))))
-
 (defn update-concept-budget [state, self]
   "Update the concept budget"
   (let [tasks (:priority-index (:tasks state))      ; :priority-index ok here
-        ;priority-sum (round2 3 (reduce t-or (for [x tasks] (:priority x))))
-        priority-sum (update-concept-priority-rec tasks 0.0)
+        priority-sum (round2 3 (reduce t-or 0.0 (for [x tasks] (:priority x))))
         quality-rescale 0.1
         el {:id       (:id state)
             :priority priority-sum
@@ -86,15 +76,6 @@
 
 #_(defn goal? [task]
   (= (:task-type task)) :goal)
-
-(defn update-concept-priority-rec
-  "sum task priority for concept"
-  [coll p-sum]
-  (if (empty? coll)
-    p-sum
-    (let [{key :id priority :priority task :task} (second (first coll))
-          coll' (dissoc coll key)]
-      (update-concept-priority-rec coll' (t-or p-sum priority))))
 
 #_(defn update-concept-stats-rec
   "collects stats for concept:
