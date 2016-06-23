@@ -30,27 +30,10 @@
 (def display (atom '()))
 (def search (atom ""))
 
-(defn update-concept-budget [state, self]
-  "Update the concept budget"
-  (let [tasks (:priority-index (:tasks state))      ; :priority-index ok here
-        priority-sum (round2 3 (reduce t-or (for [x tasks] (:priority x))))
-        quality-rescale 0.1
-        el {:id       (:id state)
-            :priority priority-sum
-            :quality  (round2 3 (max (concept-quality) (* quality-rescale priority-sum)))
-            :ref      self
-            :strongest-belief-about-now (max-statement-confidence-projected-to-now state :belief)
-            :strongest-desire-about-now (max-statement-confidence-projected-to-now state :goal)
-            ;:strongest-desire-about-now
-            }]
-    (swap! c-bag b/add-element el)))
-
 (defn task-handler
   [from [_ [task]]]
   (debuglogger search display ["task processed:" task])
-  (forget-tasks)
   (refresh-termlinks task)
-  (forget-termlinks)
 
   ; check observable and set if necessary
   (when-not (:observable @state)
@@ -62,51 +45,7 @@
     :belief (process-belief state task 0)
     :goal (process-goal state task 0)
     :question (process-question state task)
-    :quest (process-quest state task))
-
-  (update-concept-budget @state @self))
-
-(defn unifies [b a]
-  (= a (unifier a b)))
-
-(defn qu-var-transform [term]
-  (if (coll? term)
-    (if (= (first term) 'qu-var)
-      (symbol (str "?" (second term)))
-      (apply vector (for [x term]
-                      (qu-var-transform x))))
-    term))
-
-(defn question-unifies [question solution]
-  (unifies (qu-var-transform question) solution))
-
-(defn solution-update-handler
-  ""
-  [from [_ oldtask newtask]]
-  (try
-    (let [concept-state @state
-          task (first (filter (fn [a] (let [it (:task (second a))]
-                                           (and (= (:statement it) (:statement oldtask))
-                                                (= (:occurrence it) (:occurrence oldtask))
-                                                (= (:task-type it) (:task-type oldtask))
-                                                (= (:solution it) (:solution oldtask)))))
-                                 (:elements-map (:tasks concept-state))))]
-      (println "in solution-update-handler")
-      (when (not= nil task)
-        (let [[_ bag2] (b/get-by-id (:tasks concept-state) (get-task-id task)) ;todo merge old and new tasks?
-              bag3 (b/add-element bag2 {:id (get-task-id newtask) :priority (first (:budget newtask)) :task newtask})]
-          (set-state! (assoc concept-state :tasks bag3)))))
-    (catch Exception e (debuglogger search display (str "solution update error " (.toString e))))))
-
-#_(defn update-termlink [tl]                                  ;term
- (let [prio-me (:priority ((:elements-map @c-bag) (:id @state)))
-       [p d] ((:termlinks @state) tl)
-       prio-other (:priority ((:elements-map @c-bag) tl))
-       association (t-and prio-me prio-other)
-       disassocation (t-and prio-me (- 1.0 prio-other))
-       frequency (+ 0.5 (/ (- association disassocation) 2.0))
-       newstrength [(+ p (* termlink-context-adaptations-speed frequency)) d]]
-   (add-termlink tl newstrength)))
+    :quest (process-quest state task)))
 
 (defn belief-request-handler
   ""
@@ -171,8 +110,6 @@
       (try
        (when (pos? (b/count-elements task-bag))
          (let [[el] (b/lookup-by-index task-bag (selection-fn (b/count-elements task-bag)))]
-           (forget-tasks)
-           (update-concept-budget @state @self)
            (debuglogger search display ["selected inference task:" el])
 
            ;now search through termlinks, get the endpoint concepts, and form a bag of them
@@ -244,6 +181,9 @@
   (debuglogger search display message)
 
   (when (b/exists? @c-bag (:id @state))                     ;check concept has not been removed first
+    (forget-tasks)
+    (forget-termlinks)
+
     (case type
      :termlink-create-msg (termlink-create-handler from message)
      :task-msg (task-handler from message)
@@ -255,6 +195,9 @@
      :solution-update-msg (solution-update-handler from message)
      :shutdown (shutdown-handler from message)
      (debug (str "unhandled msg: " type)))
+
+    (update-concept-budget @state @self)
+
     (when (pos? debug-messages)
       ;(reset! lense-anticipations (:anticipation @state))
       (swap! lense-taskbags
