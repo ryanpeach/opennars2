@@ -48,6 +48,10 @@
 (defn task-handler
   [from [_ [task]]]
   (debuglogger search display ["task processed:" task])
+  (forget-tasks)
+  (refresh-termlinks task)
+  (forget-termlinks)
+
   ; check observable and set if necessary
   (when-not (:observable @state)
     (let [{:keys [occurrence source]} task]
@@ -60,8 +64,6 @@
     :question (process-question state task)
     :quest (process-quest state task))
 
-  (refresh-termlinks task)
-  (forget-termlinks)
   (update-concept-budget @state @self))
 
 (defn unifies [b a]
@@ -240,26 +242,27 @@
    if there is no match it generates a log message for the unhandled message"
   [from [type :as message]]
   (debuglogger search display message)
-  (case type
-    :termlink-create-msg (termlink-create-handler from message)
-    :task-msg (task-handler from message)
-    :link-feedback-msg  (link-feedback-handler from message)
-    :belief-request-msg (belief-request-handler from message)
-    :inference-request-msg (inference-request-handler from message)
-    :concept-state-request-msg (concept-state-handler from message)
-    :set-concept-state-msg (set-concept-state-handler from message)
-    :solution-update-msg (solution-update-handler from message)
-    :shutdown (shutdown-handler from message)
-    (debug (str "unhandled msg: " type)))
-  (when (pos? debug-messages)
-    ;(reset! lense-anticipations (:anticipation @state))
-    (swap! lense-taskbags
-           (fn [dic]
-             (assoc dic (:id @state) (:tasks @state))))
-    (swap! lense-termlinks
-           (fn [dic]
-             (assoc dic (:id @state) (:termlinks @state)))))
-  )
+
+  (when (b/exists? @c-bag (:id @state))                     ;check concept has not been removed first
+    (case type
+     :termlink-create-msg (termlink-create-handler from message)
+     :task-msg (task-handler from message)
+     :link-feedback-msg (link-feedback-handler from message)
+     :belief-request-msg (belief-request-handler from message)
+     :inference-request-msg (inference-request-handler from message)
+     :concept-state-request-msg (concept-state-handler from message)
+     :set-concept-state-msg (set-concept-state-handler from message)
+     :solution-update-msg (solution-update-handler from message)
+     :shutdown (shutdown-handler from message)
+     (debug (str "unhandled msg: " type)))
+    (when (pos? debug-messages)
+      ;(reset! lense-anticipations (:anticipation @state))
+      (swap! lense-taskbags
+             (fn [dic]
+               (assoc dic (:id @state) (:tasks @state))))
+      (swap! lense-termlinks
+             (fn [dic]
+               (assoc dic (:id @state) (:termlinks @state)))))))
 
 (defn concept [name]
   (gen-server
