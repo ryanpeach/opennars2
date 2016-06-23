@@ -50,7 +50,7 @@
               mousey (if hud (:y event) (mouse-to-world-coord-y state (:y event)))]
           (when (and (> mousex px) (> mousey py)
                      (< mousex (+ px (if (:custom-w v) (:custom-w v) w)))
-                     (< mousey (+ py (if (:custom-w h) (:custom-w h) w))))
+                     (< mousey (+ py (if (:custom-h h) (:custom-h h) h))))
             (when (not (= (:onclick v) nil))
               ((:onclick v) state))
             (when (not= nil (:name v))
