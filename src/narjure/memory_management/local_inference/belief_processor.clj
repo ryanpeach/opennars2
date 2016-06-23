@@ -134,10 +134,13 @@
     (when (and (= (:task-type task) :belief)
             (= (:statement task)                             ;only allow anticipation with concept content
               (:id @state)))
+      ;(println (str "1"))
       (when (and (confirmable-observable? task)
                  (> (:occurrence task) @nars-time))
+        (println (str "2..."))
         (let [anticipated-task (create-anticipation-task task)
               with-anticipated-truth (fn [t] (assoc t :source :derived :anticipated-truth (:truth t) :truth [0.5 0.0]))]
+          (println (str "3..."))
           (if (not= nil anticipation)
             (set-state! (assoc @state :anticipation (with-anticipated-truth (better-task anticipation anticipated-task))))
             (set-state! (assoc @state :anticipation (with-anticipated-truth anticipated-task))))

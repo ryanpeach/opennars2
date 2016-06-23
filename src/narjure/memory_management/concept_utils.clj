@@ -10,7 +10,7 @@
      [debug-util :refer :all]
      [control-utils :refer :all]
      [defaults :refer :all]
-     [projection-utils :refer [max-statement-confidence-projected-to-now2]]]
+     [projection-utils :refer [max-statement-confidence-projected-to-now]]]
     [narjure.memory-management.local-inference
      [local-inference-utils :refer [get-task-id get-tasks]]
      [belief-processor :refer [process-belief]]
@@ -56,36 +56,52 @@
         (set-state! (assoc @state :tasks (b/add-element (:tasks @state) el')))))
     (set-state! (assoc @state :last-forgotten @nars-time))))
 
-(defn belief? [task]
+(defn update-concept-budget [state, self]
+  "Update the concept budget"
+  (let [tasks (:priority-index (:tasks state))      ; :priority-index ok here
+        priority-sum (round2 3 (reduce t-or (for [x tasks] (:priority x))))
+        quality-rescale 0.1
+        el {:id       (:id state)
+            :priority priority-sum
+            :quality  (round2 3 (max (concept-quality) (* quality-rescale priority-sum)))
+            :ref      self
+            :strongest-belief-about-now (max-statement-confidence-projected-to-now state :belief)
+            :strongest-desire-about-now (max-statement-confidence-projected-to-now state :goal)
+            ;:strongest-desire-about-now
+            }]
+    (swap! c-bag b/add-element el)))
+
+#_(defn belief? [task]
   (= (:task-type task) :belief))
 
-(defn goal? [task]
+#_(defn goal? [task]
   (= (:task-type task)) :goal)
 
-(defn update-concept-stats-rec
+#_(defn update-concept-stats-rec
   "collects stats for concept:
     concept-priority as t-or of task priority
     best-proj-belief-task as max-statement-confidence-projected-to-now2
     best-proj-goal-task statement
    only one iteration of the task bag is required due to the recursion"
-  [coll p-sum proj-belief-task proj-goal-task]
+  [coll content p-sum proj-belief-task proj-goal-task]
   (if (empty? coll)
     {:p-sum p-sum :proj-belief-task proj-belief-task :proj-goal-task proj-goal-task}
     (let [{key :id priority :priority task :task} (second (first coll))
           coll' (dissoc coll key)]
       (update-concept-stats-rec coll'
+                                content
                                 (t-or p-sum priority)
-                                (if (belief? task)
+                                (if (and (belief? task) (= content (:statement task)))
                                   (max-statement-confidence-projected-to-now2 task proj-belief-task)
                                   proj-belief-task)
-                                (if (goal? task)
+                                (if (and (goal? task) (= content (:statement task)))
                                   (max-statement-confidence-projected-to-now2 task proj-goal-task)
                                   proj-goal-task)))))
 
-(defn update-concept-budget
+#_(defn update-concept-budget
   "Processes concept stats results"
   [state, self]
-  (let [result (update-concept-stats-rec (:elements-map (:tasks state)) 0.0 nil nil)
+  (let [result (update-concept-stats-rec (:elements-map (:tasks state)) (:id state) 0.0 nil nil)
         {p-sum :p-sum
          strongest-belief-about-now :proj-belief-task
          strongest-desire-about-now :proj-goal-task} result

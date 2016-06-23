@@ -33,12 +33,16 @@
 (defn task-handler
   [from [_ [task]]]
   (debuglogger search display ["task processed:" task])
+
   (refresh-termlinks task)
 
   ; check observable and set if necessary
   (when-not (:observable @state)
+    ;(println "obs1")
     (let [{:keys [occurrence source]} task]
+      (when (and (= (:id @state) (:statement task)) (= source :input)) (println (str "obs2: " occurrence " " source)))
       (when (and (not= occurrence :eternal) (= source :input) (= (:statement task) (:id @state)))
+        (println "obs3")
        (set-state! (assoc @state :observable true)))))
 
   (case (:task-type task)
@@ -128,9 +132,6 @@
                                            [(* p d) d]))))
 
              (when-let [c-ref (get-ref-from-term (:id beliefconcept))]
-               (try
-                 #_(update-termlink (:id beliefconcept))    ;belief concept here
-                 (catch Exception e (debuglogger search display (str "task side termlink strength error " (.toString e)))))
                (cast! c-ref [:belief-request-msg [(:id @state) ((:termlinks @state) (:id beliefconcept)) (:task el)]])
                ))))
        (catch Exception e (debuglogger search display (str "inference request error " (.toString e))))))))

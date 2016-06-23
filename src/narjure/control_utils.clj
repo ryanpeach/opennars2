@@ -10,15 +10,15 @@
   (let [factor (Math/pow 10 precision)]
     (/ (Math/round (* d factor)) factor)))
 
-(def concept-selection-parameter 5)
+(def concept-selection-parameter 2)
 (def task-selection-parameter 1)
 
-(defn selection-fn
+(defn selection-fn-old
   ""
   [count]
   (Math/abs (- (* (+ (rand) (rand)) count) count)))
 
-(defn selection-fn-old
+(defn selection-fn
   ""
   [count]
   (- (Math/ceil (* (math/expt (rand) concept-selection-parameter) count)) 1))
