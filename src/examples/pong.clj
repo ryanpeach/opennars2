@@ -9,6 +9,13 @@
 
 (def py (atom 280))
 (def direction (atom 0))
+(def barheight 50)
+(def fieldmax 760)
+(def fieldmin 20)
+
+(defn with-print [x]
+  (println (str x))
+  x)
 
 (defn setup-pong []
   (nars-input-narsese "<ballpos --> [equal]>! :|:")
@@ -17,19 +24,19 @@
                                     (do
                                       (when (= (:source operationgoal) :derived)
                                         (println "system decided up"))
-                                      (reset! direction -1))))
+                                      (reset! direction -1)
+                                      (with-print (not= @py fieldmin)))))
   (nars-register-operation 'op_down (fn [args operationgoal]
                                       (do
                                         (when (= (:source operationgoal) :derived)
                                           (println "system decided down"))
-                                        (reset! direction 1))))
-  #_(nars-register-operation 'op_stop (fn [args]
-                                        (reset! direction 0)))
+                                        (reset! direction 1)
+                                        (with-print (not= @py (- fieldmax barheight (- fieldmin)))))))
+
   (merge hnav/states {:ball-px 380
                       :ball-py 400
                       :direction-x 1
                       :direction-y 1
-                      :barheight 50
                       :iteration 0}))
 
 "
@@ -37,8 +44,6 @@
 <(&&,<(*,{SELF}) --> op_up>,(&/,<ballpos --> [above]>,i2048)) =/> <ballpos --> [equal]>>.
 "
 
-(def fieldmax 760)
-(def fieldmin 20)
 (def allow-continuous-feedback true)
 (def updown-state (atom "equal"))
 
@@ -53,7 +58,7 @@
     (println (str "above truth " (:truth (lense-max-statement-confidence-projected-to-now '[--> ballpos [int-set above]] :belief))
                   " below truth " (:truth (lense-max-statement-confidence-projected-to-now '[--> ballpos [int-set below]] :belief))))
     (nars-input-narsese "<ballpos --> [equal]>! :|:"))
-  (when (= (mod (:iteration state) 200) 1)
+  (when (= (mod (:iteration state) 250) 1)
     (println "rand action")
     (nars-input-narsese (str (rand-nth ["<(*,{SELF}) --> op_up>! :|:"
                                         "<(*,{SELF}) --> op_down>! :|:"
@@ -91,7 +96,7 @@
     #_(nars-input-narsese (str "<{" (int (* 100 (quot (:ball-py state) 100))) "} --> ballpos>. :|:" ))
     #_(nars-input-narsese (str "<{" (int (* 100 (quot @py 100))) "} --> barpos>. :|:" ))
     (if (and (>= (:ball-py state) @py)
-             (<= (:ball-py state) (+ @py (:barheight state))))
+             (<= (:ball-py state) (+ @py barheight)))
       (when (not= @updown-state "equal")
         (nars-input-narsese "<ballpos --> [equal]>. :|: %1.0;0.9%")
         (reset! updown-state "equal")
@@ -145,7 +150,7 @@
 
         state7 (if (and (<= (:ball-px state6) 40)            ;got it
                         (>= (:ball-py state6) @py)
-                        (<= (:ball-py state6) (+ @py (:barheight state6))))
+                        (<= (:ball-py state6) (+ @py barheight)))
                  (do
                    #_(nars-input-narsese "<{SELF} --> [good]>. :|: %1.0;0.9%")
                    #_(nars-input-narsese "<{SELF} --> [good]>! :|:")
@@ -153,8 +158,8 @@
                    (assoc state6 :direction-x kset-x))
                  state6)]
 
-    (when (> @py (- fieldmax (:barheight state6) (- fieldmin)))
-      (reset! py (- fieldmax (:barheight state6) (- fieldmin))))
+    (when (> @py (- fieldmax barheight (- fieldmin)))
+      (reset! py (- fieldmax barheight (- fieldmin))))
     (when (< @py fieldmin)
       (reset! py fieldmin))
 
@@ -172,7 +177,7 @@
   (q/fill (invert-comp 255))
   (q/rect fieldmin fieldmin fieldmax fieldmax)
   (q/fill 128)
-  (q/rect 25 @py 10 (:barheight state))
+  (q/rect 25 @py 10 barheight)
   (q/rect (:ball-px state) (:ball-py state) 10 10))
 
 (q/defsketch pong

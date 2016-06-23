@@ -3,7 +3,6 @@
             [gui.globals :refer :all]
             [co.paralleluniverse.pulsar.actors :refer [whereis cast!]]
             [clojure.string :as str]
-            [gui.gui-utils :refer :all]
             [narjure.core :refer [start-timers shutdown run stop-timers]]))
 
 (defn invert-color
