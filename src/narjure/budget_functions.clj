@@ -31,19 +31,19 @@
     (if (and (:truth derived-task)
              match)
       (do
-        (println "1")
-        (println (str "1.1" match))
-        (println (str "1.2" (match '?goal)))
-        (println (str "1.3" (highest-desire-in-respect-to-now (match '?goal))))
+        ;(println "1")
+        ;(println (str "1.1" match))
+        ;(println (str "1.2" (match '?goal)))
+        ;(println (str "1.3" (highest-desire-in-respect-to-now (match '?goal))))
         (let [goal (match '?goal)
               goal-desire (highest-desire-in-respect-to-now goal)]
-         (println (str "2: " goal))
+          ;(println (str "2: " goal))
          (if goal-desire
            (let [quality (max (nth budget 2)
                               (t-or (expectation (:truth derived-task)) (t-or (second goal-desire) 0.6)))] ;TODO see goal-processor (unify)
              (do
-               (println "3")
-               (println (narsese-print (:statement derived-task)) " " (:truth derived-task) " " (:occurrence derived-task))
+               ;(println "3")
+               ;(println (narsese-print (:statement derived-task)) " " (:truth derived-task) " " (:occurrence derived-task))
                [(max (first budget) quality)
                 (second budget)
                 quality]))
