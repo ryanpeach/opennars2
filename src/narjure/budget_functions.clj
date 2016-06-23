@@ -29,6 +29,7 @@
   (let [not-matched-or-not-desired-budget [(* (first budget) 0.5) (second budget) (nth budget 2)]
         match (second (precondition-operation-consequent-statement derived-task))]
     (if (and (:truth derived-task)
+             (> (first (:truth derived-task)) 0.5) ;dont even support the negatives
              match)
       (do
         (println "1")
