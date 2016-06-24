@@ -33,7 +33,7 @@
 (defn get-ref-from-term [term]
   (:ref ((:elements-map @c-bag) term)))
 
-(defn forget-task [el last-forgotten]
+(defn forget-task [el last-forgotten n]
   (let [task (:task el)
         el-time (:occurrence task)
         budget (:budget task)
@@ -42,7 +42,7 @@
                                                                        (Math/abs (- el-time @nars-time))))))
         fr (Math/exp (* -1.0 (* lambda (- @nars-time last-forgotten))))
         new-priority (max (round2 4 (* (:priority el) fr occurrence-decay))
-                          (/ (concept-quality) (+ 1.0 (b/count-elements (:tasks @state)))) ;dont fall below 1/N*concept_quality
+                          (/ (concept-quality) (+ 1.0 n)) ;dont fall below 1/N*concept_quality
                           (nth budget 2)) ;quality of task
         new-budget [new-priority (second budget) (nth budget 2)]]
     (let [updated-task (assoc task :budget new-budget)]
@@ -51,12 +51,13 @@
 
 (defn forget-tasks []
   (let [tasks (:elements-map (:tasks @state))
-        last-forgotten (:last-forgotten @state)]
+        last-forgotten (:last-forgotten @state)
+        n (b/count-elements (:tasks @state))]
     (set-state! (assoc @state :tasks (b/default-bag max-tasks)))
-    (doseq [[id el] tasks]                       ;{ id {:staement :type :occurrence}
-      (let [el' (forget-task el last-forgotten)]
-        ;(println (str "forgetting: " (get-in el' [:task :statement])))
-        (set-state! (assoc @state :tasks (b/add-element (:tasks @state) el')))))
+    (time (doseq [[id el] tasks]                                 ;{ id {:staement :type :occurrence}
+       (let [el' (forget-task el last-forgotten n)]
+         ;(println (str "forgetting: " (get-in el' [:task :statement])))
+         (set-state! (assoc @state :tasks (b/add-element (:tasks @state) el'))))))
     (set-state! (assoc @state :last-forgotten @nars-time))))
 
 (defn update-concept-budget [state, self]
