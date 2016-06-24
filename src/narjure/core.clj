@@ -7,6 +7,7 @@
     [narjure.global-atoms :refer :all]
     [narjure.memory-management
      [concept-manager :refer [concept-manager]]
+     [forgettor :refer [forgettor]]
      [task-dispatcher :refer [task-dispatcher]]]
     [narjure.general-inference
      [concept-selector :refer [concept-selector]]
@@ -33,7 +34,8 @@
 
 (defn system-tick []
   (cast! (whereis :task-creator) [:system-time-tick-msg])
-  (cast! (whereis :derived-load-reducer) [:system-time-tick-msg]))
+  (cast! (whereis :derived-load-reducer) [:system-time-tick-msg])
+  (cast! (whereis :forgettor) [:system-time-tick-msg]))
 
 (defn sentence-tick []
   (cast! (whereis :sentence-parser) [:narsese-string-msg
@@ -74,6 +76,7 @@
 ; supervisor test code
 (def child-specs
   #(list
+    ["forgettor" :permanent 5 5 :sec 100 (forgettor)]
     ["0" :permanent 5 5 :sec 100 (inference-request-router)]
     ["1" :permanent 5 5 :sec 100 (derived-load-reducer)]
     ["2.0" :permanent 5 5 :sec 100 (general-inferencer :ge0)]

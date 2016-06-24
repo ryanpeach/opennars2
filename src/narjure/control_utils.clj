@@ -13,12 +13,12 @@
 (def concept-selection-parameter 2)
 (def task-selection-parameter 1)
 
-(defn selection-fn-old
+(defn selection-fn
   ""
   [count]
   (Math/abs (- (* (+ (rand) (rand)) count) count)))
 
-(defn selection-fn
+(defn selection-fn-old
   ""
   [count]
   (- (Math/ceil (* (math/expt (rand) concept-selection-parameter) count)) 1))

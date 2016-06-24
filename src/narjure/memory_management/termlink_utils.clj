@@ -50,7 +50,8 @@
 (defn add-termlink [tl strength]
   (set-state! (assoc @state :termlinks (assoc (:termlinks @state)
                                          tl strength)))
-  (forget-termlinks))
+  ;(forget-termlinks)
+  )
 
 (defn refresh-termlinks [task]
   ""

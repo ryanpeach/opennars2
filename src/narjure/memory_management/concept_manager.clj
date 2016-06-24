@@ -47,14 +47,6 @@
   (info (str "in load-state-handler"))
   )
 
-(defn initialise
-  "Initialises actor: registers actor and sets actor state"
-  [aname actor-ref]
-  (reset! c/display '())                                    ;we also reset concept display here
-  (reset! display '())                                      ;since concept actor startup is not
-  (register! aname actor-ref)                               ;a place where it can be done
-  (set-state! {}))
-
 (defn clean-up
   "Shutdown all concept actors"
   []

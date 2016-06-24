@@ -153,6 +153,13 @@
   [from [_ new-state]]
   (set-state! (merge @state new-state)))
 
+(defn concept-forget-handler
+  "update cocnept budget"
+  [from [_ new-state]]
+  (forget-tasks)
+  (forget-termlinks)
+  (update-concept-budget @state @self))
+
 (defn shutdown-handler
   "Processes :shutdown-msg and shuts down actor"
   [from msg]
@@ -180,10 +187,6 @@
   (debuglogger search display message)
 
   (when (b/exists? @c-bag (:id @state))                     ;check concept has not been removed first
-    (forget-tasks)
-    (forget-termlinks)
-
-    (try
       (case type
        :termlink-create-msg (termlink-create-handler from message)
        :task-msg (task-handler from message)
@@ -193,11 +196,9 @@
        :concept-state-request-msg (concept-state-handler from message)
        :set-concept-state-msg (set-concept-state-handler from message)
        :solution-update-msg (solution-update-handler from message)
+       :concept-forget-msg (concept-forget-handler from message)
        :shutdown (shutdown-handler from message)
-       (debug (str "unhandled msg: " type)))
-      (catch Exception e (println "local inference error, TODO!!")))
-
-    (update-concept-budget @state @self)
+       (debug (str "unhandled msg: " type))))
 
     (when (pos? debug-messages)
       ;(reset! lense-anticipations (:anticipation @state))
@@ -206,7 +207,7 @@
                (assoc dic (:id @state) (:tasks @state))))
       (swap! lense-termlinks
              (fn [dic]
-               (assoc dic (:id @state) (:termlinks @state)))))))
+               (assoc dic (:id @state) (:termlinks @state))))))
 
 (defn concept [name]
   (gen-server
