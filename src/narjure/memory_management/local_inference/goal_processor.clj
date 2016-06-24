@@ -182,8 +182,8 @@
                        :depth      (inc (:depth goal))
                        :task-type  :goal}]
          ;(println (str "based on " (best-option :debug-belief)))
-         ;(println (str "operator selector sending to task-creator " (:statement new-task) (:truth new-task) (expectation (:truth new-task))))
-         ;(cast! (whereis :task-creator) [:derived-sentence-msg [nil nil new-task]])
+         (println (str "operator selector sending to task-creator " (:statement new-task) (:truth new-task) (expectation (:truth new-task))))
+         (cast! (whereis :task-creator) [:derived-sentence-msg [nil nil new-task]])
          )))))
 
 (defn process-goal [state task cnt]

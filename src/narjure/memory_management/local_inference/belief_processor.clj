@@ -133,7 +133,7 @@
       (let [neg-confirmation (create-negative-confirmation-task anticipation)]
         ;add neg-confirmation to tasks bag and remove anticiptaion
         (set-state! (assoc @state :anticipation nil))
-        ;(println (str "neg conf: " neg-confirmation))
+        (println (str "neg conf: " neg-confirmation))
         (add-to-tasks state neg-confirmation)))
 
     ;when task is confirmable and observabnle
@@ -141,13 +141,22 @@
     (when (and (= (:task-type task) :belief)
             (= (:statement task)                             ;only allow anticipation with concept content
               (:id @state)))
-      (when (confirmable-observable? task) (println (str "1. nars-time:" @nars-time " 2. :task occ " (:occurrence task) " task: " (:statement task))))
+      #_(when
+        (confirmable-observable? task)
+        (println (str "1. nars-time:" @nars-time
+                      " 2. :task occ " (:occurrence task) " task: " (:statement task))))
+
+      #_(when
+        (and
+          (not= :eternal (:occurrence task))
+          (< @nars-time (:occurrence task)))
+        (println (str "blbub")))
       (when (and (confirmable-observable? task)
                  (> (:occurrence task) @nars-time))
-        (println (str "2. nars-time:" @nars-time "2. :task " task))
+        #_(println (str "2. nars-time:" @nars-time "2. :task " task))
         (let [anticipated-task (create-anticipation-task task)
               with-anticipated-truth (fn [t] (assoc t :source :derived :anticipated-truth (:truth t) :truth [0.5 0.0]))]
-          (println (str "3..."))
+          #_(println (str "3..."))
           (if (not= nil anticipation)
             (set-state! (assoc @state :anticipation (with-anticipated-truth (better-task anticipation anticipated-task))))
             (set-state! (assoc @state :anticipation (with-anticipated-truth anticipated-task))))

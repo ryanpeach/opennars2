@@ -38,7 +38,8 @@
         el-time (:occurrence task)
         budget (:budget task)
         lambda (/ (- 1.0 (second budget)) inverse-decay-rate)
-        occurrence-decay (if (= el-time :eternal) 1.0 (/ 1.0 (+ 1.0 (Math/abs (- el-time @nars-time)))))
+        occurrence-decay (if (= el-time :eternal) 1.0 (/ 1.0 (+ 1.0 (* (Math/abs (- el-time @nars-time))
+                                                                       (Math/abs (- el-time @nars-time))))))
         fr (Math/exp (* -1.0 (* lambda (- @nars-time last-forgotten))))
         new-priority (max (round2 4 (* (:priority el) fr occurrence-decay))
                           (/ (concept-quality) (+ 1.0 (b/count-elements (:tasks @state)))) ;dont fall below 1/N*concept_quality
