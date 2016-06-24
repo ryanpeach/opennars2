@@ -183,17 +183,19 @@
     (forget-tasks)
     (forget-termlinks)
 
-    (case type
-     :termlink-create-msg (termlink-create-handler from message)
-     :task-msg (task-handler from message)
-     :link-feedback-msg (link-feedback-handler from message)
-     :belief-request-msg (belief-request-handler from message)
-     :inference-request-msg (inference-request-handler from message)
-     :concept-state-request-msg (concept-state-handler from message)
-     :set-concept-state-msg (set-concept-state-handler from message)
-     :solution-update-msg (solution-update-handler from message)
-     :shutdown (shutdown-handler from message)
-     (debug (str "unhandled msg: " type)))
+    (try
+      (case type
+       :termlink-create-msg (termlink-create-handler from message)
+       :task-msg (task-handler from message)
+       :link-feedback-msg (link-feedback-handler from message)
+       :belief-request-msg (belief-request-handler from message)
+       :inference-request-msg (inference-request-handler from message)
+       :concept-state-request-msg (concept-state-handler from message)
+       :set-concept-state-msg (set-concept-state-handler from message)
+       :solution-update-msg (solution-update-handler from message)
+       :shutdown (shutdown-handler from message)
+       (debug (str "unhandled msg: " type)))
+      (catch Exception e (println "local inference error, TODO!!")))
 
     (update-concept-budget @state @self)
 

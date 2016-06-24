@@ -20,7 +20,7 @@
 ;this variable is purely for visualization/debugging purposes!!
 
 (defn lense-max-statement-confidence-projected-to-now [concept-term task-type]
-  (if (= task-type :goal)
-    (:strongest-desire-about-now ((:elements-map @c-bag) concept-term))
-    (:strongest-belief-about-now ((:elements-map @c-bag) concept-term))))
+  (project-eternalize-to @nars-time (if (= task-type :goal)
+     (:strongest-desire-about-now ((:elements-map @c-bag) concept-term))
+     (:strongest-belief-about-now ((:elements-map @c-bag) concept-term))) @nars-time))
 

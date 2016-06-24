@@ -66,11 +66,11 @@
 
 
   ;also give info from time to time
-  #_(when (= (mod (:iteration state) 50) 0)                    ;1
+  #_(when (= (mod (:iteration state) 80) 0)                    ;1
     #_(nars-input-narsese (str "<{" (int (* 100 (quot (:ball-py state) 100))) "} --> ballpos>. :|:" ))
     #_(nars-input-narsese (str "<{" (int (* 100 (quot @py 100))) "} --> barpos>. :|:" ))
     (if (and (>= (:ball-py state) @py)
-             (<= (:ball-py state) (+ @py (:barheight state))))
+             (<= (:ball-py state) (+ @py barheight)))
       (when true
         (nars-input-narsese "<ballpos --> [equal]>. :|: %1.0;0.9%")
         (reset! updown-state "equal")

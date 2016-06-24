@@ -145,7 +145,7 @@
                                                                belief))
                                         (let [precondition (unificaton-map '?precondition)
                                              [precondition-concept bag] (b/get-by-id @c-bag precondition)
-                                             strongest-belief-about-now (:strongest-belief-about-now precondition-concept)]
+                                             strongest-belief-about-now (project-eternalize-to @nars-time (:strongest-belief-about-now precondition-concept) @nars-time)]
                                          (when precondition-concept
                                            [(:truth strongest-belief-about-now) (:truth belief) (:evidence strongest-belief-about-now) (:evidence belief) unificaton-map belief]))))
          #_print3 #_(println (str "step 3.3\n" (vec truth-A-B-unification-maps)))

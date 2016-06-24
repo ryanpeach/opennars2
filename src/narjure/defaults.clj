@@ -43,7 +43,7 @@
 (def temporal-window-duration 10)                           ; number of system cycles to consider as concurrent
 (def max-term-complexity 20)                                ; maximum number of terms and sub terms in a statement - syntactic complexity
 (def priority-threshold 0.001)                              ; concepts and tasks have to be above this to be processed
-(def max-concept-selections 10)                             ; don't set higher if not on a sumpercomputer, will cause trouble
+(def max-concept-selections 5)                             ; don't set higher if not on a sumpercomputer, will cause trouble
 (def termlink-single-sample-evidence-amount 0.01)           ; default conf for termlink truth value
 (def concept-max-termlinks 5)                              ; max size of termlink bag per concept
 (def max-tasks 10)                                          ; max size of task bag per concept
@@ -55,8 +55,8 @@
 (def inverse-decay-rate 150)                                        ; forgetting adjustment rate for concepts e^-lt where l = (1.0 - durabiity) / decay-rate
 ; durability of 0.5 and decay rate of 100 fully decays priority in 1000 cycles
 ; decay-rate of 10 would fully decay it in 100 cycles
-(def system-tick-interval 50)                               ;make big enough
-(def inference-tick-interval 75)
+(def system-tick-interval 100)                               ;make big enough
+(def inference-tick-interval 100)
 (def anticipation-scale-dependent-tolerance 2.0)
 (def anticipation-disappointment-priority-gain 1.5)         ;should be >=1.0 !
 (def termlink-default-budget [0.1 0.9])
