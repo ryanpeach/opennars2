@@ -160,14 +160,14 @@
                                :unification-map unification-map
                                :debug-belief debug-belief})
 
-          #_print5 #_(println (str "3 get best\n" (vec D-unification-maps)))
+          print5 (println (str "3 get best\n" (vec D-unification-maps)))
          ;by using the one whose expectation(D) is highest
           k-expectation-randomize 50.0
          best-option (apply max-key (comp (fn [a] (+ a (/ (rand) k-expectation-randomize))) expectation :D) ;not always the best one but tend to.
                             (filter (fn [z] true #_(and (non-overlapping-evidence? (:evidence goal) (:evidence-A z))
                                                  (non-overlapping-evidence? (:evidence-A z) (:evidence-B z)) ;overlap check is not transitive: A {1 2 3} B {5} C {1 2 3}
                                                  (non-overlapping-evidence? (:evidence goal) (:evidence-B z)))) D-unification-maps))
-          #_print6 #_(println (str "finished 3 \n"best-option))]
+          print6 (println (str "finished 3 \n"best-option))]
 
      ;4. create a result operation goal task with the from the predictive statement first operation and evidence trail being the summary of all evidence trails
      (when (and best-option

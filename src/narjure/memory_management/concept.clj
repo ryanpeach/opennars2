@@ -122,12 +122,17 @@
                                                                           :id       k}))
                  ;now select an element from this bag
                  [beliefconcept bag1] (b/get-by-index resbag (selection-fn (b/count-elements resbag)))]
+
+             #_(doseq [[id beliefconcept] (:elements-map resbag)]
+               (when-let [c-ref (get-ref-from-term (:id beliefconcept))]
+                (cast! c-ref [:belief-request-msg [(:id @state) ((:termlinks @state) (:id beliefconcept)) (:task el)]])))
              ;and create a belief request message
              (set-state! (assoc @state :termlinks
                                        (assoc (:termlinks @state)
                                          (:id beliefconcept)
                                          (let [[p d] ((:termlinks @state) (:id beliefconcept))] ;apply forgetting for termlinks only on selection
                                            [(* p d) d]))))
+
 
              (when-let [c-ref (get-ref-from-term (:id beliefconcept))]
                (cast! c-ref [:belief-request-msg [(:id @state) ((:termlinks @state) (:id beliefconcept)) (:task el)]])

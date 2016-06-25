@@ -164,7 +164,8 @@
            :truth     (check-truth-value @*truth*)
            :budget    (check-budget @*budget* act)
            :statement statement
-           :terms     (terms statement)}))
+           ;:terms     (terms statement)  ; this is now done in task-creator and uses termlink-subterms
+           }))
       data)))
 
 (defn parse2 [stmt-with-potential-comment]

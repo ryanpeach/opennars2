@@ -14,7 +14,7 @@
     [narjure.memory-management
      [concept-utils :refer :all]]
     [clojure.core.unify :refer [unifier]]
-    [nal.term_utils :refer [syntactic-complexity]]
+    [nal.term_utils :refer [syntactic-complexity termlink-subterms]]
     [narjure.memory-management.local-inference
      [local-inference-utils :refer [get-task-id get-tasks]]
      [belief-processor :refer [process-belief]]
@@ -29,7 +29,7 @@
 (defn get-linkable-terms
   "disallow linking to itself"
   [task]
-  (filter #(not= % (:id @state)) (:terms task)))
+  (filter #(not= % (:id @state)) (termlink-subterms (:statement task))))
 
 (defn get-existing-terms-from-links
   "only use links whose target concept still exists"

@@ -31,7 +31,7 @@
   [from [_ [task-concept-id belief-concept-id task]]]
   (let [terms (:terms task)]
     (if (every? term-exists? terms)
-      (do
+      (let [task (dissoc task :terms)]
         (doseq [term terms]
           (when task-concept-id
             (when-let [{c-ref :ref} ((:elements-map @c-bag) task-concept-id)]
