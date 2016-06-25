@@ -202,7 +202,7 @@
                                                        "desire: " (:truth (lense-max-statement-confidence-projected-to-now id :goal)) "\n"
                                                        (bag-format
                                                          (limit-string (str (apply vector
-                                                                                   (:priority-index (@lense-taskbags id)))) 20000)))
+                                                                                   (:elements-map (@lense-taskbags id)))) 20000)))
                                                   ""))       ;"\n" @lense-termlinks
                             :px            px
                             :py            py

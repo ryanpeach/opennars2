@@ -79,17 +79,19 @@
   (not= :eternal (:occurrence sentence)))
 
 (def lastevent (atom nil))
-
+(def feedback-task (atom nil))
 (defn sentence-handler
   "Processes a :sentence-msg and generates a task, and an eternal task
    if the sentence is an event, and posts to task-dispatcher."
-  [from [_ sentence]]
+  [from [_ sentence feedback]]
   (let [syntactic-complexity (syntactic-complexity (:statement sentence))]
     (when (< syntactic-complexity max-term-complexity)
       (let [new-task (create-new-task
                        sentence
                        syntactic-complexity)
             task-dispatcher (whereis :task-dispatcher)]
+        (when feedback
+          (reset! feedback-task new-task))
         (cast! task-dispatcher [:task-msg [nil nil new-task]])
         (output-task :input new-task)
         (when (event? sentence)

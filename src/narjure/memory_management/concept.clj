@@ -19,6 +19,7 @@
     [narjure.memory-management
      [concept-utils :refer :all]
      [termlink-utils :refer :all]]
+    [narjure.perception-action.task-creator :refer [feedback-task]]
     [narjure.memory-management.local-inference
      [local-inference-utils :refer [get-task-id get-tasks]]
      [belief-processor :refer [process-belief]]
@@ -67,6 +68,9 @@
              #_(cast! (:general-inferencer @state) [:do-inference-msg [task not-projected-belief]])
              (doseq [belief beliefs]
                (debuglogger search display ["selected belief:" belief "§"])
+               (when @feedback-task
+                 (let [maybe-existing-link-strength ((:termlinks @state) (:statement @feedback-task))]
+                   (cast! (:inference-request-router @state) [:do-inference-msg [(:statement @feedback-task) (:id @state) maybe-existing-link-strength @feedback-task belief]])))
                (cast! (:inference-request-router @state) [:do-inference-msg [task-concept-id (:id @state) termlink-strength task belief]])
              (try
                ;1. check whether belief matches by unifying the question vars in task
@@ -117,7 +121,8 @@
            ;now search through termlinks, get the endpoint concepts, and form a bag of them
            (let [initbag (b/default-bag concept-max-termlinks)
                  resbag (reduce (fn [a b] (b/add-element a b)) initbag (for [[k v] (:termlinks @state)]
-                                                                         {:priority (t-or (first v)
+                                                                         {:priority (:priority (first (b/get-by-id @c-bag k)))
+                                                                                         #_(t-or (first v)
                                                                                           (:priority (first (b/get-by-id @c-bag k))))
                                                                           :id       k}))
                  ;now select an element from this bag

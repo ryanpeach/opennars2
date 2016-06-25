@@ -5,7 +5,7 @@
         [actors :refer :all]]
        [narjure.narsese :refer [parse2]]
        [nal.deriver.truth :refer [expectation]]
-       [narjure.global-atoms :refer [lense-taskbags nars-time]])
+       [narjure.global-atoms :refer [lense-termlinks lense-taskbags nars-time]])
      (:refer-clojure :exclude [promise await]))
 
 (defn get-bag-atom [atom]

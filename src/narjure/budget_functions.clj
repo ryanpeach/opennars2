@@ -42,8 +42,8 @@
            (let [quality (max (nth budget 2)
                               (t-or (expectation (:truth derived-task)) (t-or (second goal-desire) 0.6)))] ;TODO see goal-processor (unify)
              (do
-               ;(println "3")
-               ;(println (narsese-print (:statement derived-task)) " " (:truth derived-task) " " (:occurrence derived-task))
+               (println "3")
+               (println (narsese-print (:statement derived-task)) " " (:truth derived-task) " " (:occurrence derived-task))
                [(max (first budget) quality)
                 (second budget)
                 quality]))
@@ -51,6 +51,13 @@
       not-matched-or-not-desired-budget)) ;tODO too radical
 
   )
+
+
+(defn budget-consider-temporality [task budget]
+  (if (= (:occurrence task)
+         :eternal)
+    budget                                                  ;quality unchanged for eternal
+    [(first budget) (second budget) (* (nth budget 2) 0.0)])) ;less quality for events
 
 (defn derived-budget
   "
@@ -73,4 +80,3 @@
                    ]
            ]
     (structural-reward-budget budget derived-task)))
-

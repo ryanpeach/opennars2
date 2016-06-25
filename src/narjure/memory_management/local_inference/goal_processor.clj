@@ -95,79 +95,80 @@
           (= (:id @state) (:statement goal)))               ;properly it wont be necessary anyway though in this case
     (let [;2. filter those with (precondition,op) => goal   ;so this one is for future improvement
           #_print1 #_(println "step 1,2")
-         precondition-op-forms ['[pred-impl [conj ?precondition [seq-conj ?operation ?interval]] ?goal]
-                                '[pred-impl [conj [seq-conj ?operation ?interval] ?precondition] ?goal]
-                                '[pred-impl [conj ?operation [seq-conj ?precondition ?interval]] ?goal]
-                                '[pred-impl [conj [seq-conj ?precondition ?interval] ?operation] ?goal]
-                                '[pred-impl [seq-conj ?precondition ?interval1 [seq-conj ?operation ?interval]] ?goal]
-                                '[pred-impl [seq-conj [seq-conj ?operation ?interval] ?interval1 ?precondition] ?goal]
-                                '[pred-impl [seq-conj ?operation ?interval1 [seq-conj ?precondition ?interval]] ?goal]
-                                '[pred-impl [seq-conj [seq-conj ?precondition ?interval] ?interval1 ?operation] ?goal]
-                                '[pred-impl [seq-conj ?precondition ?interval1 ?operation ?interval2] ?goal]
+          precondition-op-forms ['[pred-impl [conj ?precondition [seq-conj ?operation ?interval]] ?goal]
+                                 '[pred-impl [conj [seq-conj ?operation ?interval] ?precondition] ?goal]
+                                 '[pred-impl [conj ?operation [seq-conj ?precondition ?interval]] ?goal]
+                                 '[pred-impl [conj [seq-conj ?precondition ?interval] ?operation] ?goal]
+                                 '[pred-impl [seq-conj ?precondition ?interval1 [seq-conj ?operation ?interval]] ?goal]
+                                 '[pred-impl [seq-conj [seq-conj ?operation ?interval] ?interval1 ?precondition] ?goal]
+                                 '[pred-impl [seq-conj ?operation ?interval1 [seq-conj ?precondition ?interval]] ?goal]
+                                 '[pred-impl [seq-conj [seq-conj ?precondition ?interval] ?interval1 ?operation] ?goal]
+                                 '[pred-impl [seq-conj ?precondition ?interval1 ?operation ?interval2] ?goal]
 
-                                '[</> [conj ?precondition [seq-conj ?operation ?interval]] ?goal]
-                                '[</> [conj [seq-conj ?operation ?interval] ?precondition] ?goal]
-                                '[</> [conj ?operation [seq-conj ?precondition ?interval]] ?goal]
-                                '[</> [conj [seq-conj ?precondition ?interval] ?operation] ?goal]
-                                '[</> [seq-conj ?precondition ?interval1 [seq-conj ?operation ?interval]] ?goal]
-                                '[</> [seq-conj [seq-conj ?operation ?interval] ?interval1 ?precondition] ?goal]
-                                '[</> [seq-conj ?operation ?interval1 [seq-conj ?precondition ?interval]] ?goal]
-                                '[</> [seq-conj [seq-conj ?precondition ?interval] ?interval1 ?operation] ?goal]
-                                '[</> [seq-conj ?precondition ?interval1 ?operation ?interval2] ?goal]] ;TODO add others
-         precondition-op-beliefs-and-assigment-tuple (filter
-                                                       (fn [z] (and (not= (second z) nil)
-                                                                    (= ((second z) '?goal) (:statement goal))
-                                                                    (operation? ((second z) '?operation))
-                                                                    (not (operation? ((second z) '?precondition)))
-                                                                    (not (negation-of-operation? ((second z) '?precondition)))
-                                                                    (not (operation? ((second z) '?goal)))
-                                                                    (not (negation-of-operation? ((second z) '?goal)))))
-                                                       (for [form precondition-op-forms
-                                                             belief (for [b beliefs]
-                                                                      (project-eternalize-to @nars-time b @nars-time))]
-                                                         [belief (unify form (:statement belief))]))
+                                 '[</> [conj ?precondition [seq-conj ?operation ?interval]] ?goal]
+                                 '[</> [conj [seq-conj ?operation ?interval] ?precondition] ?goal]
+                                 '[</> [conj ?operation [seq-conj ?precondition ?interval]] ?goal]
+                                 '[</> [conj [seq-conj ?precondition ?interval] ?operation] ?goal]
+                                 '[</> [seq-conj ?precondition ?interval1 [seq-conj ?operation ?interval]] ?goal]
+                                 '[</> [seq-conj [seq-conj ?operation ?interval] ?interval1 ?precondition] ?goal]
+                                 '[</> [seq-conj ?operation ?interval1 [seq-conj ?precondition ?interval]] ?goal]
+                                 '[</> [seq-conj [seq-conj ?precondition ?interval] ?interval1 ?operation] ?goal]
+                                 '[</> [seq-conj ?precondition ?interval1 ?operation ?interval2] ?goal]] ;TODO add others
+          precondition-op-beliefs-and-assigment-tuple (filter
+                                                        (fn [z] (and (not= (second z) nil)
+                                                                     (= ((second z) '?goal) (:statement goal))
+                                                                     (operation? ((second z) '?operation))
+                                                                     (not (operation? ((second z) '?precondition)))
+                                                                     (not (negation-of-operation? ((second z) '?precondition)))
+                                                                     (not (operation? ((second z) '?goal)))
+                                                                     (not (negation-of-operation? ((second z) '?goal)))))
+                                                        (for [form precondition-op-forms
+                                                              belief (for [b beliefs]
+                                                                       (project-eternalize-to @nars-time b @nars-time))]
+                                                          [belief (unify form (:statement belief))]))
           #_print2 #_(println (str "step 3.1, 3.2\n" (vec precondition-op-beliefs-and-assigment-tuple)))
-         ;3. use the one whose precondition is highest fullfilled and statement truth is highest:
-         ;3.1 truth_A = getting the strongest truth value of the precondition concept projected to current moment
-         ;3.2 truth_B = get the truth value of the implication statement
-         truth-A-B-unification-maps (for [[belief unificaton-map] precondition-op-beliefs-and-assigment-tuple]
-                                      (do
-                                        ;reward belief uality also for having this for control useful structure
-                                        #_(println (str "rewarded belief" (narsese-print (:statement belief)) " " (:truth belief) " budg: " (:budget belief)))
-                                        (let [budget (:budget belief)
-                                              new-quality (max (nth budget 2)
-                                                               (t-or (expectation (:truth belief)) (t-or (second (:truth goal)) 0.6)))] ;TODO see budget-functions (unify)
-                                          #_(println (str "rewarding " (narsese-print (:statement belief)) " " (:truth belief)) )
-                                          (update-task-in-tasks state (assoc belief :budget [(max new-quality
-                                                                                                 (first (:budget belief)))
-                                                                                            (second (:budget belief))
-                                                                                             new-quality]) ;new quality
-                                                               belief))
-                                        (let [precondition (unificaton-map '?precondition)
-                                             [precondition-concept bag] (b/get-by-id @c-bag precondition)
-                                             strongest-belief-about-now (project-eternalize-to @nars-time (:strongest-belief-about-now precondition-concept) @nars-time)]
-                                         (when precondition-concept
-                                           [(:truth strongest-belief-about-now) (:truth belief) (:evidence strongest-belief-about-now) (:evidence belief) unificaton-map belief]))))
-         #_print3 #_(println (str "step 3.3\n" (vec truth-A-B-unification-maps)))
-         ;3.3 desire = desire value of goal
-         desire (:truth (project-eternalize-to @nars-time goal @nars-time))
+          ;3. use the one whose precondition is highest fullfilled and statement truth is highest:
+          ;3.1 truth_A = getting the strongest truth value of the precondition concept projected to current moment
+          ;3.2 truth_B = get the truth value of the implication statement
+          truth-A-B-unification-maps (for [[belief unificaton-map] precondition-op-beliefs-and-assigment-tuple]
+                                       (do
+                                         ;reward belief uality also for having this for control useful structure
+                                         #_(println (str "rewarded belief" (narsese-print (:statement belief)) " " (:truth belief) " budg: " (:budget belief)))
+                                         (let [budget (:budget belief)
+                                               new-quality (max (nth budget 2)
+                                                                (t-or (expectation (:truth belief)) (t-or (second (:truth goal)) 0.6)))] ;TODO see budget-functions (unify)
+                                           #_(println (str "rewarding " (narsese-print (:statement belief)) " " (:truth belief)))
+                                           (update-task-in-tasks state (assoc belief :budget [(max new-quality
+                                                                                                   (first (:budget belief)))
+                                                                                              (second (:budget belief))
+                                                                                              new-quality]) ;new quality
+                                                                 belief))
+                                         (let [precondition (unificaton-map '?precondition)
+                                               [precondition-concept bag] (b/get-by-id @c-bag precondition)
+                                               strongest-belief-about-now (project-eternalize-to @nars-time (:strongest-belief-about-now precondition-concept) @nars-time)]
+                                           (when precondition-concept
+                                             [(:truth strongest-belief-about-now) (:truth belief) (:evidence strongest-belief-about-now) (:evidence belief) unificaton-map belief]))))
+          #_print3 #_(println (str "step 3.3\n" (vec truth-A-B-unification-maps)))
+          ;3.3 desire = desire value of goal
+          desire (:truth (project-eternalize-to @nars-time goal @nars-time))
           ;print4 ;(println (str "step 3.4\n" desire))
-         ;3.4 execution desire expectation is: D=desire_strong(desire_strong(desire,truth_B),truth_A)
-         D-unification-maps (for [[truth-A truth-B evidence-A evidence-B unification-map debug-belief] truth-A-B-unification-maps]
-                              {:D                (desire-strong (desire-strong desire truth-B) truth-A)
-                               :evidence-A       evidence-A
-                               :evidence-B       evidence-B
-                               :unification-map unification-map
-                               :debug-belief debug-belief})
+          ;3.4 execution desire expectation is: D=desire_strong(desire_strong(desire,truth_B),truth_A)
+          D-unification-maps (for [[truth-A truth-B evidence-A evidence-B unification-map debug-belief] truth-A-B-unification-maps]
+                               {:D               (desire-strong (desire-strong desire truth-B) truth-A)
+                                :evidence-A      evidence-A
+                                :evidence-B      evidence-B
+                                :unification-map unification-map
+                                :debug-belief    debug-belief})
 
-          print5 (println (str "3 get best\n" (vec D-unification-maps)))
-         ;by using the one whose expectation(D) is highest
+          ;print5 (println (str "3 get best\n" (vec D-unification-maps)))
+          ;by using the one whose expectation(D) is highest
           k-expectation-randomize 50.0
-         best-option (apply max-key (comp (fn [a] (+ a (/ (rand) k-expectation-randomize))) expectation :D) ;not always the best one but tend to.
-                            (filter (fn [z] true #_(and (non-overlapping-evidence? (:evidence goal) (:evidence-A z))
-                                                 (non-overlapping-evidence? (:evidence-A z) (:evidence-B z)) ;overlap check is not transitive: A {1 2 3} B {5} C {1 2 3}
-                                                 (non-overlapping-evidence? (:evidence goal) (:evidence-B z)))) D-unification-maps))
-          print6 (println (str "finished 3 \n"best-option))]
+          best-option (apply max-key (comp (fn [a] (+ a (/ (rand) k-expectation-randomize))) expectation :D) ;not always the best one but tend to.
+                             (filter (fn [z] true #_(and (non-overlapping-evidence? (:evidence goal) (:evidence-A z))
+                                                         (non-overlapping-evidence? (:evidence-A z) (:evidence-B z)) ;overlap check is not transitive: A {1 2 3} B {5} C {1 2 3}
+                                                         (non-overlapping-evidence? (:evidence goal) (:evidence-B z)))) D-unification-maps))
+          ;print6 (println (str "finished 3 \n"best-option))
+          ]
 
      ;4. create a result operation goal task with the from the predictive statement first operation and evidence trail being the summary of all evidence trails
      (when (and best-option
@@ -181,7 +182,7 @@
                        :budget     (:budget goal)
                        :depth      (inc (:depth goal))
                        :task-type  :goal}]
-         ;(println (str "based on " (best-option :debug-belief)))
+         (println (str "based on " (best-option :debug-belief)))
          (println (str "operator selector sending to task-creator " (:statement new-task) (:truth new-task) (expectation (:truth new-task))))
          (cast! (whereis :task-creator) [:derived-sentence-msg [nil nil new-task]])
          )))))

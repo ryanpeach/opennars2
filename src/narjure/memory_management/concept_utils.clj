@@ -38,12 +38,17 @@
         el-time (:occurrence task)
         budget (:budget task)
         lambda (/ (- 1.0 (second budget)) inverse-decay-rate)
-        occurrence-decay (if (= el-time :eternal) 1.0 (/ 1.0 (+ 1.0 (* (Math/abs (- el-time @nars-time))
-                                                                       (Math/abs (- el-time @nars-time))))))
+        temporal-distance (if (= el-time :eternal) 0.0 (Math/abs (- el-time @nars-time)))
+        occurrence-decay (if (= el-time :eternal) 1.0 (/ 1.0 (+ 1.0 (* temporal-distance
+                                                                       temporal-distance))))
+        k-quality-occurrence-decay 100.0
+        distance-for-quality (/ temporal-distance k-quality-occurrence-decay)
+        occurrence-decay-for-quality (if (= el-time :eternal) 1.0 (/ 1.0 (+ 1.0 (* distance-for-quality
+                                                                                   distance-for-quality))))
         fr (Math/exp (* -1.0 (* lambda (- @nars-time last-forgotten))))
         new-priority (max (round2 4 (* (:priority el) fr occurrence-decay))
                           (/ (concept-quality) (+ 1.0 n)) ;dont fall below 1/N*concept_quality
-                          (* occurrence-decay (nth budget 2))) ;quality of task
+                          (* occurrence-decay-for-quality (nth budget 2))) ;quality of task
         new-budget [new-priority (second budget) (nth budget 2)]]
     (let [updated-task (assoc task :budget new-budget)]
       (assoc el :priority new-priority
