@@ -1,5 +1,6 @@
 (ns narjure.debug-util
-  (:require [narjure.global-atoms :refer :all]))
+  (:require [narjure.global-atoms :refer :all]
+            [clojure.string :as str]))
 
 (def debug-messages 21)
 
@@ -12,7 +13,8 @@
   ([filter display message]
    (if (> debug-messages 0)
      (swap! display (fn [d] (let [msg (str message)]
-                              (if (.contains msg (deref filter))
+                              (if (every? (fn [x] (.contains msg x))
+                                          (str/split (deref filter) #"\n"))
                                 (if (< (count d) debug-messages)
                                  (conj d [(limit-string msg 750) "§"])
                                  (conj (drop-last d) [(limit-string msg 750) "§"]))

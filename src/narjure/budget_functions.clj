@@ -55,10 +55,16 @@
 
   )
 
+(defn budget-consider-sequence-event [task budget]
+  (if (and (not= (:occurrence task) :eternal)
+        (coll? (:statement task))
+           (= (first (:statement task)) 'seq-conj))
+    [0.99 #_(min 1.0 (t-or 0.9 (first budget))) (t-or 0.7 (second budget)) 0.99 #_(min 1.0 (t-or 0.9 (first budget)))]
+    budget))
 
 (defn budget-consider-temporality [task budget]
   (let [event-penalty 0.95] ;to give eternal version the better survival chance for entering a else full bag, everything below 1.0 works fine
-    (if (= (:occurrence task) ;(so the event version can not kick out the eternal version of the same task this way)
+    (if true #_(= (:occurrence task) ;(so the event version can not kick out the eternal version of the same task this way)
           :eternal)
      budget                                                 ;quality unchanged for eternal
      [(* (first budget) event-penalty) (second budget) (* (nth budget 2) event-penalty)]))) ;less quality for events
@@ -85,4 +91,4 @@
            ]
     (let [result1 (structural-reward-budget budget derived-task)]
       (when result1
-        (budget-consider-temporality derived-task result1)))))
+        (budget-consider-sequence-event task (budget-consider-temporality derived-task result1))))))

@@ -32,7 +32,11 @@
                   derived-task (assoc derived :budget budget
                                               :parent-statement (:statement task) :depth (inc derivation-depth)
                                               :evidence evidence)]
-              (when (and budget (> (first budget) priority-threshold))
+              (when (and budget
+                         (> (first budget) priority-threshold)
+                         (or (not (:truth derived-task))
+                             (> (rand) 0.98)
+                             (> (first (:truth derived-task)) 0.5)))
                 (cast! derived-load-reducer [:derived-sentence-msg [task-concept-id
                                                                     belief-concept-id
                                                                     derived-task]])))))))

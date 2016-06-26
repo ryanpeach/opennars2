@@ -13,7 +13,8 @@
            (= (first st) '-->)
            (coll? (second st))
            (= (first (second st)) '*)
-           (= (second (second st)) ['ext-set 'SELF]))
+           (or (= (second (second st)) ['ext-set 'SELF])
+               (= (second (second st)) ['ext-set 'SELF2])))
     (let [op (nth st 2)]
       (and (not (coll? op))
            (clojure.string/starts-with? (name op) "op_")))
@@ -230,25 +231,27 @@
      st)))
 
 (defn precondition-operation-consequent-statement [task] ;(doseq [op ['pred-impl '</>]])
-  (let [precondition-op-forms ['[pred-impl [conj ?precondition [seq-conj ?operation ?interval]] ?goal]
-                               '[pred-impl [conj [seq-conj ?operation ?interval] ?precondition] ?goal]
-                               '[pred-impl [conj ?operation [seq-conj ?precondition ?interval]] ?goal]
-                               '[pred-impl [conj [seq-conj ?precondition ?interval] ?operation] ?goal]
-                               '[pred-impl [seq-conj ?precondition ?interval1 [seq-conj ?operation ?interval]] ?goal]
-                               '[pred-impl [seq-conj [seq-conj ?operation ?interval] ?interval1 ?precondition] ?goal]
-                               '[pred-impl [seq-conj ?operation ?interval1 [seq-conj ?precondition ?interval]] ?goal]
-                               '[pred-impl [seq-conj [seq-conj ?precondition ?interval] ?interval1 ?operation] ?goal]
-                               '[pred-impl [seq-conj ?precondition ?interval1 ?operation ?interval2] ?goal]
+  (let [precondition-op-forms ['[pred-impl [seq-conj [seq-conj ?precondition ?interval1 ?operation] ?interval2] ?goal]
 
-                               '[</> [conj ?precondition [seq-conj ?operation ?interval]] ?goal]
-                               '[</> [conj [seq-conj ?operation ?interval] ?precondition] ?goal]
-                               '[</> [conj ?operation [seq-conj ?precondition ?interval]] ?goal]
-                               '[</> [conj [seq-conj ?precondition ?interval] ?operation] ?goal]
-                               '[</> [seq-conj ?precondition ?interval1 [seq-conj ?operation ?interval]] ?goal]
-                               '[</> [seq-conj [seq-conj ?operation ?interval] ?interval1 ?precondition] ?goal]
-                               '[</> [seq-conj ?operation ?interval1 [seq-conj ?precondition ?interval]] ?goal]
-                               '[</> [seq-conj [seq-conj ?precondition ?interval] ?interval1 ?operation] ?goal]
-                               '[</> [seq-conj ?precondition ?interval1 ?operation ?interval2] ?goal]]
+                               #_'[pred-impl [conj ?precondition [seq-conj ?operation ?interval]] ?goal]
+                               #_'[pred-impl [conj [seq-conj ?operation ?interval] ?precondition] ?goal]
+                               #_'[pred-impl [conj ?operation [seq-conj ?precondition ?interval]] ?goal]
+                               #_'[pred-impl [conj [seq-conj ?precondition ?interval] ?operation] ?goal]
+                               #_'[pred-impl [seq-conj ?precondition ?interval1 [seq-conj ?operation ?interval]] ?goal]
+                               #_'[pred-impl [seq-conj [seq-conj ?operation ?interval] ?interval1 ?precondition] ?goal]
+                               #_'[pred-impl [seq-conj ?operation ?interval1 [seq-conj ?precondition ?interval]] ?goal]
+                               #_'[pred-impl [seq-conj [seq-conj ?precondition ?interval] ?interval1 ?operation] ?goal]
+                               #_'[pred-impl [seq-conj ?precondition ?interval1 ?operation ?interval2] ?goal]
+
+                               #_'[</> [conj ?precondition [seq-conj ?operation ?interval]] ?goal]
+                               #_'[</> [conj [seq-conj ?operation ?interval] ?precondition] ?goal]
+                               #_'[</> [conj ?operation [seq-conj ?precondition ?interval]] ?goal]
+                               #_'[</> [conj [seq-conj ?precondition ?interval] ?operation] ?goal]
+                               #_'[</> [seq-conj ?precondition ?interval1 [seq-conj ?operation ?interval]] ?goal]
+                               #_'[</> [seq-conj [seq-conj ?operation ?interval] ?interval1 ?precondition] ?goal]
+                               #_'[</> [seq-conj ?operation ?interval1 [seq-conj ?precondition ?interval]] ?goal]
+                               #_'[</> [seq-conj [seq-conj ?precondition ?interval] ?interval1 ?operation] ?goal]
+                               #_'[</> [seq-conj ?precondition ?interval1 ?operation ?interval2] ?goal]]
 
         additional-condition (fn [z] (and (not= (second z) nil)
                                           (operation? ((second z) '?operation))

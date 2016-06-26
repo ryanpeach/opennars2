@@ -432,15 +432,15 @@ So these rules are for bringing NAL-statements into a different, implied and mor
 
          ; Can be derived by NAL7 rules so this won't be necessary there (:order-for-all-same left out here)
          ; the first rule does not have :order-for-all-same because it would be invalid see: https://groups.google.com/forum/#!topic/open-nars/r5UJo64Qhrk #R[((&& :list/A) ==> C) M |- ((&& M :list/A) ==> C) :pre ((:not-implication-or-equivalence M)) :post (:t/induction)]
-         #R[((&& :list/A) =|> C) M |- ((&& M :list/A) =|> C) :pre ((:not-implication-or-equivalence M)) :post (:t/induction)]
+         ;#R[((&& :list/A) =|> C) M |- ((&& M :list/A) =|> C) :pre ((:not-implication-or-equivalence M)) :post (:t/induction)]
          ;degenerate case of this rule:
-         #R[(A =|> C) M |- ((&& M A) =|> C) :pre ((:not-implication-or-equivalence M)) :post (:t/induction)]
-         #R[((&& :list/A) =/> C) M |- ((&& M :list/A) =/> C) :pre ((:not-implication-or-equivalence M)) :post (:t/induction)]
+         ;#R[(A =|> C) M |- ((&& M A) =|> C) :pre ((:not-implication-or-equivalence M)) :post (:t/induction)]
+         ;#R[((&& :list/A) =/> C) M |- ((&& M :list/A) =/> C) :pre ((:not-implication-or-equivalence M)) :post (:t/induction)]
          ;degenerate case of this rule:
-         #R[(A =/> C) M |- ((&& M A) =/> C) :pre ((:not-implication-or-equivalence M)) :post (:t/induction)]
-         #R[((&& :list/A) =\> C) M |- ((&& M :list/A) =\> C) :pre ((:not-implication-or-equivalence M)) :post (:t/induction)]
+         ;#R[(A =/> C) M |- ((&& M A) =/> C) :pre ((:not-implication-or-equivalence M)) :post (:t/induction)]
+         ;#R[((&& :list/A) =\> C) M |- ((&& M :list/A) =\> C) :pre ((:not-implication-or-equivalence M)) :post (:t/induction)]
          ;degenerate case of this rule:
-         #R[(A =\> C) M |- ((&& M A) =\> C) :pre ((:not-implication-or-equivalence M)) :post (:t/induction)]
+          ;#R[(A =\> C) M |- ((&& M A) =\> C) :pre ((:not-implication-or-equivalence M)) :post (:t/induction)]
          #R[(A ==> M) ((&& M :list/A) ==> C) |- ((&& A :list/A) ==> C) :post (:t/deduction :order-for-all-same :seq-interval-from-premises)]
          #R[((&& M :list/A) ==> C) ((&& A :list/A) ==> C) |- (A ==> M) :post (:t/induction :order-for-all-same)]
          #R[(A ==> M) ((&& A :list/A) ==> C) |- ((&& M :list/A) ==> C) :post (:t/abduction :order-for-all-same :seq-interval-from-premises)]
