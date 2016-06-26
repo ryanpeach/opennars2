@@ -47,14 +47,13 @@
         temporal-distance (if (= el-time :eternal) 0.0 (Math/abs (- el-time @nars-time)))
         occurrence-decay (if (= el-time :eternal) 1.0 (/ 1.0 (+ 1.0 (* temporal-distance
                                                                        temporal-distance))))
-        k-quality-occurrence-decay 100000.0
+        k-quality-occurrence-decay 1000.0
         distance-for-quality (/ temporal-distance k-quality-occurrence-decay)
         occurrence-decay-for-quality (if (= el-time :eternal) 1.0 (/ 1.0 (+ 1.0 (* distance-for-quality
                                                                                    distance-for-quality))))
         new-quality (* occurrence-decay-for-quality (nth budget 2))
         fr (Math/exp (* -1.0 (* lambda (- @nars-time last-forgotten))))
         new-priority (max (round2 4 (* (:priority el) fr occurrence-decay))
-                          (/ (concept-quality) (+ 1.0 n)) ;dont fall below 1/N*concept_quality
                           new-quality) ;quality of task
         new-budget [new-priority (second budget) new-quality]]
     (let [updated-task (assoc task :budget new-budget)]
@@ -79,7 +78,7 @@
         quality-rescale 0.1
         el {:id       (:id state)
             :priority priority-sum
-            :quality  (round2 3 (max (concept-quality) (* quality-rescale priority-sum)))
+            :quality  0.0
             :observable (:observable state)
             :ref      self
             :strongest-belief-about-now (max-statement-confidence-projected-to-now state :belief)

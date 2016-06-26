@@ -11,7 +11,7 @@
 ;; ==> is the <a href="NAL-Specification.pdf#page=46">Implication-relation</a> and naturally encodes the intiutive meaning of implication.<br/>
 ;; && stands for <a href="NAL-Specification.pdf#page=46">Conjunction</a>, || for <a href="NAL-Specification.pdf#page=46">Disjunction</a>. More details can be seen in the relevant inference rule sections.
 
-(declare --S S --P P <-> |- --> ==> M || && =|> -- A Ai B <=>)
+(declare J --S S --P P <-> |- --> ==> M || && =|> -- A Ai B <=>)
 
 (defrules nal1-nal2-nal3-equivalence-and-implication
           "<h1><a href=\"NAL-Specification.pdf#page=87\" style=\"text-decoration:none\">NAL1 NAL2 NAL3 Equivalence and Implication Rules</a></h1><br/>  <!-- target=\"bible\" -->
@@ -438,6 +438,7 @@ So these rules are for bringing NAL-statements into a different, implied and mor
          ;#R[((&& :list/A) =/> C) M |- ((&& M :list/A) =/> C) :pre ((:not-implication-or-equivalence M)) :post (:t/induction)]
          ;degenerate case of this rule:
          ;#R[(A =/> C) M |- ((&& M A) =/> C) :pre ((:not-implication-or-equivalence M)) :post (:t/induction)]
+          #R[((&/ A J) =/> C) M |- ((&/ M I A J) =/> C) :pre ((:measure-time I) (:not-implication-or-equivalence M)) :post (:t/induction :measure-time)]
          ;#R[((&& :list/A) =\> C) M |- ((&& M :list/A) =\> C) :pre ((:not-implication-or-equivalence M)) :post (:t/induction)]
          ;degenerate case of this rule:
           ;#R[(A =\> C) M |- ((&& M A) =\> C) :pre ((:not-implication-or-equivalence M)) :post (:t/induction)]

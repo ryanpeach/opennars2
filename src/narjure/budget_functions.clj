@@ -55,21 +55,21 @@
 
   )
 
-(defn budget-consider-sequence-event [task budget]
-  (if (and (not= (:occurrence task) :eternal)
-        (coll? (:statement task))
-           (= (first (:statement task)) 'seq-conj))
-    [0.91 #_(min 1.0 (t-or 0.9 (first budget))) (t-or 0.7 (second budget)) 0.91 #_(min 1.0 (t-or 0.9 (first budget)))]
-    budget))
-
-(defn budget-consider-temporality [task budget]
-  (let [event-penalty 0.95] ;to give eternal version the better survival chance for entering a else full bag, everything below 1.0 works fine
-    (if true #_(= (:occurrence task) ;(so the event version can not kick out the eternal version of the same task this way)
-          :eternal)
-     budget                                                 ;quality unchanged for eternal
-     [(* (first budget) event-penalty) (second budget) (* (nth budget 2) event-penalty)]))) ;less quality for events
 
 (defn derived-budget
+  [task derived-task bLink derivation-depth]
+  (let [depth-penalty 1.0 #_(/ 1.0 (Math/sqrt derivation-depth))
+        priority (first (:budget task))
+        durability 0.5
+        truth-quality (if (:truth derived-task) (truth-to-quality (:truth derived-task))
+                                          (w2c 1.0))
+        quality (* truth-quality
+                   (/ 1.0 (Math/sqrt (syntactic-complexity (:statement derived-task)))))]
+    (structural-reward-budget [(* depth-penalty priority)
+      (* depth-penalty durability)
+      (* depth-penalty quality)] derived-task)))
+
+#_(defn derived-budget
   "
   "
   ;TRADITIONAL BUDGET INFERENCE (DERIVED TASK PART)
@@ -89,6 +89,6 @@
                               (w2c 1.0)))
                    ]
            ]
-    (let [result1 (structural-reward-budget budget derived-task)]
+    #_(let [result1 (structural-reward-budget budget derived-task)]
       (when result1
         (budget-consider-sequence-event task (budget-consider-temporality derived-task result1))))))

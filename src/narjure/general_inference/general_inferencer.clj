@@ -28,7 +28,7 @@
             derived-load-reducer (whereis :derived-load-reducer)]
         (when-not (empty? evidence)
           (doseq [derived filtered-derivations]
-            (let [budget (derived-budget task derived bLink)
+            (let [budget (derived-budget task derived bLink (inc derivation-depth))
                   derived-task (assoc derived :budget budget
                                               :parent-statement (:statement task) :depth (inc derivation-depth)
                                               :evidence evidence)]

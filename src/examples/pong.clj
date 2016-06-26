@@ -55,13 +55,13 @@
   (when (= @direction 1)
     (reset! py (+ @py 3)))
   (when (= (mod (:iteration state) 25) 0)
-    (println (str "above truth " (vec (:truth (lense-max-statement-confidence-projected-to-now '[--> ballpos2 [int-set above]] :belief)))
-                  " below truth " (vec (:truth (lense-max-statement-confidence-projected-to-now '[--> ballpos1 [int-set below]] :belief)))))
+    (println (str "above truth " (vec (:truth (lense-max-statement-confidence-projected-to-now '[--> ballpos [int-set above]] :belief)))
+                  " below truth " (vec (:truth (lense-max-statement-confidence-projected-to-now '[--> ballpos [int-set below]] :belief)))))
     (nars-input-narsese "<ballpos --> [equal]>! :|:"))
   (when (= (mod (:iteration state) 250) 1)
     (println "rand action")
     (nars-input-narsese (str (rand-nth ["<(*,{SELF}) --> op_up>! :|:"
-                                        "<(*,{SELF2}) --> op_down>! :|:"
+                                        "<(*,{SELF}) --> op_down>! :|:"
                                         #_"<(*,{SELF}) --> op_stop>! :|:"]))))
 
 
@@ -106,13 +106,13 @@
 
       (if (> (:ball-py state) @py)
         (when (not= @updown-state "below")
-          (nars-input-narsese (str "<ballpos1 --> [below]>. :|:"))
+          (nars-input-narsese (str "<ballpos --> [below]>. :|:"))
           (reset! updown-state "below")
           #_(when allow-continuous-feedback
               ;(println "bad NARS")
               (nars-input-narsese "<{SELF} --> [good]>. :|: %0.0;0.9%")))
         (when (not= @updown-state "above")
-          (nars-input-narsese (str "<ballpos2 --> [above]>. :|:"))
+          (nars-input-narsese (str "<ballpos --> [above]>. :|:"))
           (reset! updown-state "above")
           #_(when allow-continuous-feedback
               ;(println "bad NARS")
