@@ -9,7 +9,8 @@
     [narjure.defaults :refer :all]
     [nal.term_utils :refer :all]
     [narjure.debug-util :refer :all]
-    [nal.deriver.projection-eternalization :refer [eternalize]])
+    [nal.deriver.projection-eternalization :refer [eternalize]]
+    [narjure.bag :as b])
   (:refer-clojure :exclude [promise await]))
 
 (def aname :task-creator)                                   ; actor name
@@ -100,6 +101,16 @@
                      (= (:task-type new-task) :belief)
                      (not (operation? (:statement new-task))))
             (cast! (whereis :inference-request-router) [:do-inference-msg [(:statement new-task) (:statement @lastevent) nil new-task @lastevent true]]))
+          ;temporal link strategy to play role of common subterm temporally justified
+          (when (and (not= nil (deref lastevent))
+                     (= (:task-type new-task) :belief)
+                     (not (operation? (:statement new-task))))
+            (let [[element1 bag1] (b/get-by-id @c-bag (:statement new-task))
+                  [element2 bag2] (b/get-by-id @c-bag (:statement @lastevent))]
+              (when (and element1 element2)
+                (cast! (:ref element1) [:termlink-strenghten-msg [(:statement @lastevent)]])
+                (cast! (:ref element2) [:termlink-strenghten-msg [(:statement new-task)]]))))
+
           (when (= (:task-type new-task) :belief)
             (reset! lastevent new-task))
           (cast! task-dispatcher [:task-msg [nil nil (create-eternal-task new-task)]]))))))

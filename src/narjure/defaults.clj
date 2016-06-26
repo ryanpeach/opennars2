@@ -55,11 +55,11 @@
 (def inverse-decay-rate 150)                                        ; forgetting adjustment rate for concepts e^-lt where l = (1.0 - durabiity) / decay-rate
 ; durability of 0.5 and decay rate of 100 fully decays priority in 1000 cycles
 ; decay-rate of 10 would fully decay it in 100 cycles
-(def system-tick-interval 100)                               ;make big enough
-(def inference-tick-interval 100)
+(def system-tick-interval 150)                               ;make big enough
+(def inference-tick-interval 150)
 (def anticipation-scale-dependent-tolerance 2.0)
 (def anticipation-disappointment-priority-gain 1.5)         ;should be >=1.0 !
-(def termlink-default-budget [0.1 0.9])
-(def concept-selection-introduced-termlink-default-budget [0.1 0.1])
+(def termlink-default-budget [0.1 0.99])
+(def concept-selection-introduced-termlink-default-budget [0.1 0.8])
 (def termlink-context-adaptations-speed 0.05)
 (def revision-relevant-event-distance 0.0)                  ;TODO check its relation to temporal window and the parameter in projection

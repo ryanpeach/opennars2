@@ -36,18 +36,21 @@
         ;(println (str "1.2" (match '?goal)))
         ;(println (str "1.3" (highest-desire-in-respect-to-now (match '?goal))))
         (let [goal (match '?goal)
+              precondition (match '?precondition)
               goal-desire (highest-desire-in-respect-to-now goal)]
           ;(println (str "2: " goal))
-         (if goal-desire
-           (let [quality (max (nth budget 2)
-                              (t-or (expectation (:truth derived-task)) (t-or (second goal-desire) 0.6)))] ;TODO see goal-processor (unify)
-             (do
-               (println "3")
-               (println (narsese-print (:statement derived-task)) " " (:truth derived-task) " " (:occurrence derived-task))
-               [(max (first budget) quality)
-                (second budget)
-                quality]))
-           not-matched-or-not-desired-budget)))
+          (if (= precondition goal) ;not a valid statement at all, I wonder why I didn't see this earlier.
+            nil                     ;TODO add invalid NAL statement filter for derivations anyway
+            (if goal-desire
+             (let [quality (max (nth budget 2)
+                                (t-or (expectation (:truth derived-task)) (t-or (second goal-desire) 0.6)))] ;TODO see goal-processor (unify)
+               (do
+                 (println "3")
+                 (println (narsese-print (:statement derived-task)) " " (:truth derived-task) " " (:occurrence derived-task))
+                 [(max (first budget) quality)
+                  (second budget)
+                  quality]))
+             not-matched-or-not-desired-budget))))
       not-matched-or-not-desired-budget)) ;tODO too radical
 
   )
@@ -57,7 +60,7 @@
   (if (= (:occurrence task)
          :eternal)
     budget                                                  ;quality unchanged for eternal
-    [(first budget) (second budget) (* (nth budget 2) 0.0)])) ;less quality for events
+    [(first budget) (second budget) (* (nth budget 2) 0.8)])) ;less quality for events
 
 (defn derived-budget
   "
@@ -79,4 +82,6 @@
                               (w2c 1.0)))
                    ]
            ]
-    (structural-reward-budget budget derived-task)))
+    (let [result1 (structural-reward-budget budget derived-task)]
+      (when result1
+        (budget-consider-temporality derived-task result1)))))

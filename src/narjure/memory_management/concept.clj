@@ -121,8 +121,8 @@
            ;now search through termlinks, get the endpoint concepts, and form a bag of them
            (let [initbag (b/default-bag concept-max-termlinks)
                  resbag (reduce (fn [a b] (b/add-element a b)) initbag (for [[k v] (:termlinks @state)]
-                                                                         {:priority (:priority (first (b/get-by-id @c-bag k)))
-                                                                                         #_(t-or (first v)
+                                                                         {:priority #_(:priority (first (b/get-by-id @c-bag k)))
+                                                                                         (t-or (first v)
                                                                                           (:priority (first (b/get-by-id @c-bag k))))
                                                                           :id       k}))
                  ;now select an element from this bag
@@ -132,7 +132,7 @@
                (when-let [c-ref (get-ref-from-term (:id beliefconcept))]
                 (cast! c-ref [:belief-request-msg [(:id @state) ((:termlinks @state) (:id beliefconcept)) (:task el)]])))
              ;and create a belief request message
-             (set-state! (assoc @state :termlinks
+             #_(set-state! (assoc @state :termlinks
                                        (assoc (:termlinks @state)
                                          (:id beliefconcept)
                                          (let [[p d] ((:termlinks @state) (:id beliefconcept))] ;apply forgetting for termlinks only on selection
@@ -144,13 +144,16 @@
                ))))
        (catch Exception e (debuglogger search display (str "inference request error " (.toString e))))))))
 
-(defn termlink-create-handler
+(defn termlink-strenghten-handler
   ""
   [from [_ [term]]]
-  ;todo get a belief which has highest confidence when projected to task time
-
-  (when-not ((:termlinks @state) term)
-    (set-state! (assoc @state :termlinks (assoc (:termlinks @state) term concept-selection-introduced-termlink-default-budget)))))
+  ;strenghtens the termlink between two concepts
+  (let [termlinks (if (:termlinks @state) (:termlinks @state) {})
+        s (termlinks term)]
+     (set-state! (assoc @state :termlinks (assoc termlinks term (if s
+                                                                  [(t-or (first s) (first concept-selection-introduced-termlink-default-budget))
+                                                                   (max (second s) (second concept-selection-introduced-termlink-default-budget))]
+                                                                  concept-selection-introduced-termlink-default-budget))))))
 
 (defn concept-state-handler
   "Sends a copy of the actor state to requesting actor"
@@ -198,7 +201,7 @@
 
   (when (b/exists? @c-bag (:id @state))                     ;check concept has not been removed first
       (case type
-       :termlink-create-msg (termlink-create-handler from message)
+       :termlink-strenghten-msg (termlink-strenghten-handler from message)
        :task-msg (task-handler from message)
        :link-feedback-msg (link-feedback-handler from message)
        :belief-request-msg (belief-request-handler from message)

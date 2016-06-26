@@ -15,13 +15,13 @@
 (def display (atom '()))
 (def search (atom ""))
 
-(defn create-temporal-link
+(defn strenghten-temporal-link
   " creates a term-link between last-selected concept and the currently selected concept"
   [state selected]
   (when-let [last-selected (:last-selected state)]
     (when-not (= (:ref last-selected) (:ref selected))
-      (cast! (:ref selected) [:termlink-create-msg [(:id last-selected)]])
-      (cast! (:ref last-selected) [:termlink-create-msg [(:id selected)]])))
+      (cast! (:ref selected) [:termlink-strenghten-msg [(:id last-selected)]])
+      (cast! (:ref last-selected) [:termlink-strenghten-msg [(:id selected)]])))
   (set-state! (assoc state :last-selected selected)))
 
 (defn inference-tick-handler
@@ -37,7 +37,7 @@
   ;one concept for inference is enough for now ^^
 
   (doseq [selected (select-concepts max-concept-selections @c-bag)]
-    #_(create-temporal-link @state selected)
+    ;(strenghten-temporal-link @state selected)
     (when (sufficient-priority? selected)
       (cast! (:ref selected) [:inference-request-msg (:id selected)])
       (debuglogger search display (str "Concept selected: " [:task selected :priority (:priority selected)])))))

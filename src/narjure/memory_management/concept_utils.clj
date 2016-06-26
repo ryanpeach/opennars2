@@ -25,10 +25,16 @@
   (:refer-clojure :exclude [promise await]))
 
 (defn concept-quality []
-  (:quality ((:elements-map @c-bag) (:id @state))))
+  (let [value (:quality ((:elements-map @c-bag) (:id @state)))]
+    (if value
+      value
+      0.0)))
 
 (defn concept-priority [term]
-  (:priority ((:elements-map @c-bag) term)))
+  (let [value (:priority ((:elements-map @c-bag) term))]
+    (if value
+      value
+      0.0)))
 
 (defn get-ref-from-term [term]
   (:ref ((:elements-map @c-bag) term)))
