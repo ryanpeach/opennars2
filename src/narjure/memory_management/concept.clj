@@ -19,7 +19,6 @@
     [narjure.memory-management
      [concept-utils :refer :all]
      [termlink-utils :refer :all]]
-    [narjure.perception-action.task-creator :refer [feedback-task]]
     [narjure.memory-management.local-inference
      [local-inference-utils :refer [get-task-id get-tasks]]
      [belief-processor :refer [process-belief]]
@@ -68,9 +67,6 @@
              #_(cast! (:general-inferencer @state) [:do-inference-msg [task not-projected-belief]])
              (doseq [belief beliefs]
                (debuglogger search display ["selected belief:" belief "§"])
-               (when @feedback-task
-                 (let [maybe-existing-link-strength ((:termlinks @state) (:statement @feedback-task))]
-                   (cast! (:inference-request-router @state) [:do-inference-msg [(:statement @feedback-task) (:id @state) maybe-existing-link-strength @feedback-task belief]])))
                (cast! (:inference-request-router @state) [:do-inference-msg [task-concept-id (:id @state) termlink-strength task belief]])
              (try
                ;1. check whether belief matches by unifying the question vars in task
@@ -132,7 +128,7 @@
                (when-let [c-ref (get-ref-from-term (:id beliefconcept))]
                 (cast! c-ref [:belief-request-msg [(:id @state) ((:termlinks @state) (:id beliefconcept)) (:task el)]])))
              ;and create a belief request message
-             #_(set-state! (assoc @state :termlinks
+             (set-state! (assoc @state :termlinks
                                        (assoc (:termlinks @state)
                                          (:id beliefconcept)
                                          (let [[p d] ((:termlinks @state) (:id beliefconcept))] ;apply forgetting for termlinks only on selection

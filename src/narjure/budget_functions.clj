@@ -57,10 +57,11 @@
 
 
 (defn budget-consider-temporality [task budget]
-  (if (= (:occurrence task)
-         :eternal)
-    budget                                                  ;quality unchanged for eternal
-    [(first budget) (second budget) (* (nth budget 2) 0.8)])) ;less quality for events
+  (let [event-penalty 0.95] ;to give eternal version the better survival chance for entering a else full bag, everything below 1.0 works fine
+    (if (= (:occurrence task) ;(so the event version can not kick out the eternal version of the same task this way)
+          :eternal)
+     budget                                                 ;quality unchanged for eternal
+     [(* (first budget) event-penalty) (second budget) (* (nth budget 2) event-penalty)]))) ;less quality for events
 
 (defn derived-budget
   "

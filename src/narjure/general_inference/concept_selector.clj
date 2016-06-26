@@ -6,6 +6,7 @@
     [narjure.bag :as b]
     [narjure.defaults :refer [max-concept-selections]]
     [clojure.math.numeric-tower :as math]
+    [narjure.memory-management.concept-utils :refer [concept-observable]]
     [taoensso.timbre :refer [debug info]]
     [narjure.debug-util :refer :all]
     [narjure.control-utils :refer :all])
@@ -18,11 +19,13 @@
 (defn strenghten-temporal-link
   " creates a term-link between last-selected concept and the currently selected concept"
   [state selected]
-  (when-let [last-selected (:last-selected state)]
-    (when-not (= (:ref last-selected) (:ref selected))
+  (when-let [last-selected (:last-selected state)] ;the last selected observable concept
+    (when-not (and (concept-observable selected)
+                (= (:ref last-selected) (:ref selected)))
       (cast! (:ref selected) [:termlink-strenghten-msg [(:id last-selected)]])
       (cast! (:ref last-selected) [:termlink-strenghten-msg [(:id selected)]])))
-  (set-state! (assoc state :last-selected selected)))
+  (when (concept-observable (:id selected))
+    (set-state! (assoc state :last-selected selected))))
 
 (defn inference-tick-handler
   "Select n concepts for inference and post
@@ -37,7 +40,7 @@
   ;one concept for inference is enough for now ^^
 
   (doseq [selected (select-concepts max-concept-selections @c-bag)]
-    ;(strenghten-temporal-link @state selected)
+    (strenghten-temporal-link @state selected)
     (when (sufficient-priority? selected)
       (cast! (:ref selected) [:inference-request-msg (:id selected)])
       (debuglogger search display (str "Concept selected: " [:task selected :priority (:priority selected)])))))

@@ -66,7 +66,7 @@
 
 
   ;also give info from time to time
-  #_(when (= (mod (:iteration state) 80) 0)                    ;1
+  (when (= (mod (:iteration state) 80) 0)                    ;1
     #_(nars-input-narsese (str "<{" (int (* 100 (quot (:ball-py state) 100))) "} --> ballpos>. :|:" ))
     #_(nars-input-narsese (str "<{" (int (* 100 (quot @py 100))) "} --> barpos>. :|:" ))
     (if (and (>= (:ball-py state) @py)

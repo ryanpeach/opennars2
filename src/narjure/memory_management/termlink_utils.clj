@@ -41,7 +41,7 @@
     (let [worst (apply min-key (comp first second) (:termlinks @state))]
       (set-state! (assoc @state :termlinks (dissoc (:termlinks @state) (first worst))))))
   ;apply weak forget also:
-  (set-state!
+  #_(set-state!
       (assoc @state :termlinks
                     (apply merge (for [[tl [p d]] (:termlinks @state)]
                                    {tl [(* p d) d]}))))

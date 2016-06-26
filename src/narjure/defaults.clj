@@ -59,7 +59,7 @@
 (def inference-tick-interval 150)
 (def anticipation-scale-dependent-tolerance 2.0)
 (def anticipation-disappointment-priority-gain 1.5)         ;should be >=1.0 !
-(def termlink-default-budget [0.1 0.99])
-(def concept-selection-introduced-termlink-default-budget [0.1 0.8])
+(def termlink-default-budget [0.1 0.9])
+(def concept-selection-introduced-termlink-default-budget [0.1 0.3])
 (def termlink-context-adaptations-speed 0.05)
 (def revision-relevant-event-distance 0.0)                  ;TODO check its relation to temporal window and the parameter in projection

@@ -29,7 +29,7 @@
                (output-task :execution operationgoal)
                (if success          ;when there is an operator function, give positive/negative feedback based on success
                  (do
-                   (cast! (whereis :task-creator) [:sentence-msg feedback :feedback])
+                   (cast! (whereis :task-creator) [:sentence-msg feedback])
                    #_(when (coll? success)                  ;TODO collides with operation task idea
                      (doseq [custom-feedback success] ;also allowing custom feedback tasks
                        (cast! (whereis :task-creator) [:sentence-msg custom-feedback]))))

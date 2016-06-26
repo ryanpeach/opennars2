@@ -36,6 +36,9 @@
       value
       0.0)))
 
+(defn concept-observable [term]
+  (:observable ((:elements-map @c-bag) term)))
+
 (defn get-ref-from-term [term]
   (:ref ((:elements-map @c-bag) term)))
 
@@ -79,6 +82,7 @@
         el {:id       (:id state)
             :priority priority-sum
             :quality  (round2 3 (max (concept-quality) (* quality-rescale priority-sum)))
+            :observable (:observable state)
             :ref      self
             :strongest-belief-about-now (max-statement-confidence-projected-to-now state :belief)
             :strongest-desire-about-now (max-statement-confidence-projected-to-now state :goal)
