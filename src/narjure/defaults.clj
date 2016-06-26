@@ -9,7 +9,7 @@
 (def belief-priority 0.85)
 (def belief-durability 0.7)
 ;todo clarify this
-(def belief-quality 1.0)
+(def belief-quality 0.75)
 
 (def belief-budget
   [belief-priority belief-durability belief-quality])
@@ -17,14 +17,14 @@
 (def question-priority 0.9)
 (def question-durability 0.7)
 ;todo clarify this
-(def question-quality 1.0)
+(def question-quality 0.75)
 
 (def question-budget
   [question-priority question-durability question-quality])
 
 (def goal-confidence 0.9)
 (def goal-priority 0.99)                                    ;set higher than potential quality rewards in the system (best-operation-selection, structural reinforcement)
-(def goal-quality 0.99)
+(def goal-quality 0.75)
 (def goal-durability 0.7)
 
 (def goal-budget
@@ -55,7 +55,7 @@
 (def inverse-decay-rate 150)                                        ; forgetting adjustment rate for concepts e^-lt where l = (1.0 - durabiity) / decay-rate
 ; durability of 0.5 and decay rate of 100 fully decays priority in 1000 cycles
 ; decay-rate of 10 would fully decay it in 100 cycles
-(def system-tick-interval 150)                               ;make big enough
+(def system-tick-interval 50)                               ;make big enough
 (def inference-tick-interval 150)
 (def anticipation-scale-dependent-tolerance 2.0)
 (def anticipation-disappointment-priority-gain 1.5)         ;should be >=1.0 !

@@ -23,7 +23,7 @@
   (doseq [narsese-str (get-lines file)]
     (println (str narsese-str))
     (cast! (whereis :sentence-parser) [:narsese-string-msg narsese-str])
-    (Thread/sleep 4000))
+    (Thread/sleep 8000))
   (println "file loaded.")
   )
 

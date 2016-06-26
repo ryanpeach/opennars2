@@ -39,9 +39,6 @@
 (defn concept-observable [term]
   (:observable ((:elements-map @c-bag) term)))
 
-(defn get-ref-from-term [term]
-  (:ref ((:elements-map @c-bag) term)))
-
 (defn forget-task [el last-forgotten n]
   (let [task (:task el)
         el-time (:occurrence task)
@@ -89,12 +86,6 @@
             ;:strongest-desire-about-now
             }]
     (swap! c-bag b/add-element el)))
-
-(defn belief? [task]
-  (= (:task-type task) :belief))
-
-(defn goal? [task]
-  (= (:task-type task)) :goal)
 
 #_(defn update-concept-stats-rec
   "collects stats for concept:

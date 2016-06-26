@@ -2,6 +2,7 @@
   (:require
     [narjure.bag :as b]
     [narjure.defaults :refer :all]
+    [narjure.global-atoms :refer :all]
     [clojure.math.numeric-tower :as math]))
 
 (defn round2
@@ -71,3 +72,12 @@
 
 (defn sufficient-priority? [selected]
   (> (:priority selected) priority-threshold))
+
+(defn get-ref-from-term [term]
+  (:ref ((:elements-map @c-bag) term)))
+
+(defn belief? [task]
+  (= (:task-type task) :belief))
+
+(defn goal? [task]
+  (= (:task-type task)) :goal)
