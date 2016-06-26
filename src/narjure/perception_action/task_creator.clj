@@ -5,12 +5,14 @@
      [actors :refer :all]]
     [taoensso.timbre :refer [debug info]]
     [clojure.set :as set]
-    [narjure.global-atoms :refer :all]
-    [narjure.defaults :refer :all]
+    [narjure.memory-management.concept-utils :refer [get-ref-from-term belief?]]
+    [narjure
+     [global-atoms :refer :all]
+     [defaults :refer :all]
+     [debug-util :refer :all]
+     [bag :as b]]
     [nal.term_utils :refer :all]
-    [narjure.debug-util :refer :all]
-    [nal.deriver.projection-eternalization :refer [eternalize]]
-    [narjure.bag :as b])
+    [nal.deriver.projection-eternalization :refer [eternalize]])
   (:refer-clojure :exclude [promise await]))
 
 (def aname :task-creator)                                   ; actor name
@@ -80,6 +82,7 @@
   (not= :eternal (:occurrence sentence)))
 
 (def lastevent (atom nil))
+
 (defn sentence-handler
   "Processes a :sentence-msg and generates a task, and an eternal task
    if the sentence is an event, and posts to task-dispatcher."
@@ -99,16 +102,18 @@
                      (not (operation? (:statement new-task))))
             (cast! (whereis :inference-request-router) [:do-inference-msg [(:statement new-task) (:statement @lastevent) nil new-task @lastevent true]]))
           ;temporal link strategy to play role of common subterm temporally justified
-          (when (and (not= nil (deref lastevent))
-                     (= (:task-type new-task) :belief)
+          (when (and @lastevent
+                     (belief? new-task)
                      (not (operation? (:statement new-task))))
-            (let [[element1 bag1] (b/get-by-id @c-bag (:statement new-task))
-                  [element2 bag2] (b/get-by-id @c-bag (:statement @lastevent))]
-              (when (and element1 element2)
-                (cast! (:ref element1) [:termlink-strenghten-msg [(:statement @lastevent)]])
-                (cast! (:ref element2) [:termlink-strenghten-msg [(:statement new-task)]]))))
+            (let [new-term (:statement new-task)
+                  old-term (:statement @lastevent)
+                  new-ref (get-ref-from-term new-term)
+                  old-ref (get-ref-from-term old-term)]
+              (when (and new-ref old-ref)
+                (cast! new-ref [:termlink-strengthen-msg [old-term]])
+                (cast!  old-ref [:termlink-strengthen-msg [new-term]]))))
 
-          (when (= (:task-type new-task) :belief)
+          (when (belief? new-task)
             (reset! lastevent new-task))
           (cast! task-dispatcher [:task-msg [nil nil (create-eternal-task new-task)]]))))))
 

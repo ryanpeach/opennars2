@@ -16,13 +16,13 @@
 (def display (atom '()))
 (def search (atom ""))
 
-(defn strenghten-temporal-link
+(defn strengthen-temporal-link
   " creates a term-link between last-selected concept and the currently selected concept"
   [state selected]
   (when-let [last-selected (:last-selected state)] ;the last selected observable concept
     (when-not (concept-observable selected)   ; todo need to be able to link to itself here (&/, a, a) is valid sequence
-      (cast! (:ref selected) [:termlink-strenghten-msg [(:id last-selected)]])
-      (cast! (:ref last-selected) [:termlink-strenghten-msg [(:id selected)]])))
+      (cast! (:ref selected) [:termlink-strengthen-msg [(:id last-selected)]])
+      (cast! (:ref last-selected) [:termlink-strengthen-msg [(:id selected)]])))
   (when (concept-observable (:id selected))
     (set-state! (assoc state :last-selected selected))))
 
@@ -39,7 +39,7 @@
   ;one concept for inference is enough for now ^^
 
   (doseq [selected (select-concepts max-concept-selections @c-bag)]
-    (strenghten-temporal-link @state selected)
+    (strengthen-temporal-link @state selected)
     (when (sufficient-priority? selected)
       (cast! (:ref selected) [:inference-request-msg (:id selected)])
       (debuglogger search display (str "Concept selected: " [:task selected :priority (:priority selected)])))))

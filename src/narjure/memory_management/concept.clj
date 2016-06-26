@@ -195,7 +195,7 @@
 
   (when (b/exists? @c-bag (:id @state))                     ;check concept has not been removed first
       (case type
-       :termlink-strenghten-msg (termlink-strengthen-handler from message)
+       :termlink-strengthen-msg (termlink-strengthen-handler from message)
        :task-msg (task-handler from message)
        :link-feedback-msg (link-feedback-handler from message)
        :belief-request-msg (belief-request-handler from message)

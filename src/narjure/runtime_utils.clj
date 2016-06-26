@@ -19,10 +19,12 @@
   (clojure.string/split-lines (slurp file)))
 
 (defn load-NAL-file [file]
+  (println "loading file (with delay between inputs) ...")
   (doseq [narsese-str (get-lines file)]
     (println (str narsese-str))
-    (Thread/sleep 200)
-    (cast! (whereis :sentence-parser) [:narsese-string-msg narsese-str]))
+    (cast! (whereis :sentence-parser) [:narsese-string-msg narsese-str])
+    (Thread/sleep 4000))
+  (println "file loaded.")
   )
 
 (defn test-parser [n]

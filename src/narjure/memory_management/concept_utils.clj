@@ -90,10 +90,10 @@
             }]
     (swap! c-bag b/add-element el)))
 
-#_(defn belief? [task]
+(defn belief? [task]
   (= (:task-type task) :belief))
 
-#_(defn goal? [task]
+(defn goal? [task]
   (= (:task-type task)) :goal)
 
 #_(defn update-concept-stats-rec
