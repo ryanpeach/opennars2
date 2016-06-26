@@ -144,7 +144,7 @@
   "Strenghtens the termlink between two concepts or creates it if not existing.
    A link is {key value] where key is term and value is budget [priority durability]"
   [from [_ [term]]]
-  (let [termlinks (if (:termlinks @state) (:termlinks @state) {})
+  (let [termlinks (:termlinks @state)
         old-link-strength (termlinks term)
         new-link-strength (get-strengthened-termlink old-link-strength)]
     (set-state! (assoc-in @state [:termlinks term] new-link-strength))))
