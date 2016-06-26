@@ -193,7 +193,7 @@
   "Identifies message type and selects the correct message handler.
    if there is no match it generates a log message for the unhandled message"
   [from [type :as message]]
-  (debuglogger search display message)
+  (when-not (= type :concept-forget-msg) (debuglogger search display message))
 
   (when (b/exists? @c-bag (:id @state))                     ;check concept has not been removed first
       (case type
