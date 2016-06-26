@@ -140,16 +140,22 @@
                ))))
        (catch Exception e (debuglogger search display (str "inference request error " (.toString e))))))))
 
-(defn termlink-strenghten-handler
-  ""
+(defn strengthen-termlink [link-strength]
+  [(t-or (first link-strength) (first concept-selection-introduced-termlink-default-budget))
+   (max (second link-strength) (second concept-selection-introduced-termlink-default-budget))])
+
+(defn termlink-strengthen-handler
+  "Updates link-strength or creates it from defaults.
+   Strenghtens the termlink between two concepts.
+   A link is {key value] where key is term and value is
+   budget [priority durability]"
   [from [_ [term]]]
-  ;strenghtens the termlink between two concepts
   (let [termlinks (if (:termlinks @state) (:termlinks @state) {})
-        s (termlinks term)]
-     (set-state! (assoc @state :termlinks (assoc termlinks term (if s
-                                                                  [(t-or (first s) (first concept-selection-introduced-termlink-default-budget))
-                                                                   (max (second s) (second concept-selection-introduced-termlink-default-budget))]
-                                                                  concept-selection-introduced-termlink-default-budget))))))
+        link-strength (termlinks term)
+        new-link-strength (if link-strength
+                           (strengthen-termlink link-strength)
+                           concept-selection-introduced-termlink-default-budget)]
+    (set-state! (assoc-in @state [:termlinks term] new-link-strength))))
 
 (defn concept-state-handler
   "Sends a copy of the actor state to requesting actor"
@@ -197,7 +203,7 @@
 
   (when (b/exists? @c-bag (:id @state))                     ;check concept has not been removed first
       (case type
-       :termlink-strenghten-msg (termlink-strenghten-handler from message)
+       :termlink-strenghten-msg (termlink-strengthen-handler from message)
        :task-msg (task-handler from message)
        :link-feedback-msg (link-feedback-handler from message)
        :belief-request-msg (belief-request-handler from message)
