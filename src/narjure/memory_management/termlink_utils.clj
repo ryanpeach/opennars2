@@ -91,3 +91,8 @@
 (defn strengthen-termlink [link-strength]
   [(t-or (first link-strength) (first concept-selection-introduced-termlink-default-budget))
    (max (second link-strength) (second concept-selection-introduced-termlink-default-budget))])
+
+(defn get-strengthened-termlink [link-strength]
+  (if link-strength
+    (strengthen-termlink link-strength)
+    concept-selection-introduced-termlink-default-budget))
