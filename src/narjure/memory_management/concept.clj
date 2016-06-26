@@ -140,15 +140,9 @@
                ))))
        (catch Exception e (debuglogger search display (str "inference request error " (.toString e))))))))
 
-(defn strengthen-termlink [link-strength]
-  [(t-or (first link-strength) (first concept-selection-introduced-termlink-default-budget))
-   (max (second link-strength) (second concept-selection-introduced-termlink-default-budget))])
-
 (defn termlink-strengthen-handler
-  "Updates link-strength or creates it from defaults.
-   Strenghtens the termlink between two concepts.
-   A link is {key value] where key is term and value is
-   budget [priority durability]"
+  "Strenghtens the termlink between two concepts or creates it if not existing.
+   A link is {key value] where key is term and value is budget [priority durability]"
   [from [_ [term]]]
   (let [termlinks (if (:termlinks @state) (:termlinks @state) {})
         link-strength (termlinks term)

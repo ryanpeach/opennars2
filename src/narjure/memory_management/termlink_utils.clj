@@ -87,3 +87,7 @@
                                          (t-or d quality)]))
       )
     (catch Exception e () #_(println "fail"))))
+
+(defn strengthen-termlink [link-strength]
+  [(t-or (first link-strength) (first concept-selection-introduced-termlink-default-budget))
+   (max (second link-strength) (second concept-selection-introduced-termlink-default-budget))])
