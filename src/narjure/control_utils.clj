@@ -55,19 +55,19 @@
 
 (defn select-concepts-rec
   "select n concepts from c-bag ensuring the same concept is not selected twice"
-  [n bag selected]
-  (let [count (b/count-elements bag)]
-    (if (and (pos? n) (pos? count))
-      (let [[element bag'] (b/get-by-index bag (selection-fn count))
-            selected' (conj selected element)]
-        (select-concepts-rec (dec n) bag' selected'))
-      selected)))
+  [count n bag selected]
+  (if (and (pos? n) (pos? count))
+    (let [[element bag'] (b/get-by-index bag (selection-fn count))
+          selected' (conj selected element)]
+      (select-concepts-rec (dec count) (dec n) bag' selected'))
+    selected))
 
 (defn select-concepts
   "wrapper for: select-concepts-rec
    select n concepts from c-bag ensuring the same concept is not selected twice"
   [n bag]
-  (select-concepts-rec n bag []))
+  (let [count (b/count-elements bag)]
+    (select-concepts-rec count n bag [])))
 
 (defn sufficient-priority? [selected]
   (> (:priority selected) priority-threshold))
