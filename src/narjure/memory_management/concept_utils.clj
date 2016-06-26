@@ -47,15 +47,16 @@
         temporal-distance (if (= el-time :eternal) 0.0 (Math/abs (- el-time @nars-time)))
         occurrence-decay (if (= el-time :eternal) 1.0 (/ 1.0 (+ 1.0 (* temporal-distance
                                                                        temporal-distance))))
-        k-quality-occurrence-decay 100.0
+        k-quality-occurrence-decay 100000.0
         distance-for-quality (/ temporal-distance k-quality-occurrence-decay)
         occurrence-decay-for-quality (if (= el-time :eternal) 1.0 (/ 1.0 (+ 1.0 (* distance-for-quality
                                                                                    distance-for-quality))))
+        new-quality (* occurrence-decay-for-quality (nth budget 2))
         fr (Math/exp (* -1.0 (* lambda (- @nars-time last-forgotten))))
         new-priority (max (round2 4 (* (:priority el) fr occurrence-decay))
                           (/ (concept-quality) (+ 1.0 n)) ;dont fall below 1/N*concept_quality
-                          (* occurrence-decay-for-quality (nth budget 2))) ;quality of task
-        new-budget [new-priority (second budget) (nth budget 2)]]
+                          new-quality) ;quality of task
+        new-budget [new-priority (second budget) new-quality]]
     (let [updated-task (assoc task :budget new-budget)]
       (assoc el :priority new-priority
                 :task updated-task))))

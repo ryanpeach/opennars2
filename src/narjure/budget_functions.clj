@@ -59,7 +59,7 @@
   (if (and (not= (:occurrence task) :eternal)
         (coll? (:statement task))
            (= (first (:statement task)) 'seq-conj))
-    [0.99 #_(min 1.0 (t-or 0.9 (first budget))) (t-or 0.7 (second budget)) 0.99 #_(min 1.0 (t-or 0.9 (first budget)))]
+    [0.91 #_(min 1.0 (t-or 0.9 (first budget))) (t-or 0.7 (second budget)) 0.91 #_(min 1.0 (t-or 0.9 (first budget)))]
     budget))
 
 (defn budget-consider-temporality [task budget]
