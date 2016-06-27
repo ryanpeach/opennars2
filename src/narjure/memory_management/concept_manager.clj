@@ -31,7 +31,7 @@
   (doseq [term (:terms task)]
     (when-not (b/exists? @c-bag term)
       (make-general-concept term)))
-  (cast! from [:task-msg [task-concept-id belief-concept-id task]]))
+  (cast! from [:task-from-cmanager-msg [task-concept-id belief-concept-id task]]))
 
 (defn persist-state-handler
   ""

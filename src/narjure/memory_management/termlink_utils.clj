@@ -97,17 +97,19 @@
 
 (defn get-termlink-endpoints []
   (let [initbag (b/default-bag concept-max-termlinks)]
-    (reduce (fn [a b] (b/add-element a b)) initbag (for [[k v] (:termlinks @state)]
-                                                     {:priority (t-or (first v)
-                                                                      (:priority (first (b/get-by-id @c-bag k))))
-                                                      :id k}))))
+    (try
+      (reduce (fn [a b] (b/add-element a b)) initbag (for [[k v] (:termlinks @state)]
+                                                      {:priority (t-or (first v)
+                                                                       (:priority (first (b/get-by-id @c-bag k))))
+                                                       :id       k}))
+      (catch Exception e (println (str "error in get-termlink-endpoints: " e))))))
 
 (defn select-termlink-ref []
   ;now search through termlinks, get the endpoint concepts, and form a bag of them
   (let [initbag (b/default-bag concept-max-termlinks)
         resbag (get-termlink-endpoints)]
     ;now select an element from this bag
-    (if (pos? (b/count-elements resbag))
+    (if (and resbag (pos? (b/count-elements resbag)))
       (let [[beliefconcept _] (b/get-by-index resbag (selection-fn (b/count-elements resbag)))]
         (forget-termlink (:id beliefconcept))               ;apply forgetting for termlinks only on selection
         (get-ref-from-term (:id beliefconcept)))

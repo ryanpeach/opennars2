@@ -169,7 +169,7 @@
       :iteration (inc (:iteration state7)))))
 
 
-(defn draw-pong [state]<
+(defn draw-pong [state]
   (q/background (invert-comp 255))
   (q/stroke (invert-comp 0))
   (q/reset-matrix)
