@@ -102,7 +102,9 @@
                                                       {:priority (t-or (first v)
                                                                        (:priority (first (b/get-by-id @c-bag k))))
                                                        :id       k}))
-      (catch Exception e (println (str "error in get-termlink-endpoints: " e))))))
+      (catch Exception e (print "")
+                         ;(println (str "error in get-termlink-endpoints: " e)
+                         ))))
 
 (defn select-termlink-ref []
   ;now search through termlinks, get the endpoint concepts, and form a bag of them

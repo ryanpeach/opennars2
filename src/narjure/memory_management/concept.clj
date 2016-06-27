@@ -33,6 +33,8 @@
   [from [_ [task]]]
   (debuglogger search display ["task processed:" task])
 
+  #_(when (= (:statement task) '[--> ballpos [int-set equal]])
+    (println "concept ballpos equ exists"))
   (refresh-termlinks task)
 
   ; check observable and set if necessary

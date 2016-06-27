@@ -93,8 +93,11 @@
   ;1.: find all beliefs that predict the goal ''=/> =|>  <|> </>''
   (when (and (= (:occurrence goal) :eternal)                ;this should not change as long as intervals are not handled
           (= (:id @state) (:statement goal)))               ;properly it wont be necessary anyway though in this case
-    (let [;2. filter those with (precondition,op) => goal   ;so this one is for future improvement
+    (let [debugme (= (:statement goal) '[--> ballpos [int-set equal]])
+          println2 (fn [a] (when debugme (println a)))
+          ;2. filter those with (precondition,op) => goal   ;so this one is for future improvement
           #_print1 #_(println "step 1,2")
+          blub1 (println2 "test")
           precondition-op-forms ['[pred-impl [seq-conj [seq-conj ?precondition ?interval1 ?operation] ?interval2] ?goal]
 
                                  #_'[pred-impl [conj ?precondition [seq-conj ?operation ?interval]] ?goal]
@@ -138,7 +141,7 @@
                                          #_(println (str "rewarded belief" (narsese-print (:statement belief)) " " (:truth belief) " budg: " (:budget belief)))
                                          (let [budget (:budget belief)
                                                new-quality (max (nth budget 2)
-                                                                (t-or (expectation (:truth belief)) (t-or (second (:truth goal)) 0.65)))] ;TODO see budget-functions (unify)
+                                                                (t-or (expectation (:truth belief)) (t-or (second (:truth goal)) 0.8)))] ;TODO see budget-functions (unify)
                                            #_(println (str "rewarding " (narsese-print (:statement belief)) " " (:truth belief)))
                                            (update-task-in-tasks state (assoc belief :budget [(max new-quality
                                                                                                    (first (:budget belief)))
@@ -192,6 +195,8 @@
 
 (defn process-goal [state task cnt]
   ;group-by :task-type tasks
+  #_(when (= (:statement task) '[--> ballpos [int-set equal]])
+    (println "concept ballpos equ exists"))
   (let [tasks (get-tasks state)
         goals (filter #(= (:task-type %) :goal) tasks)
         beliefs (filter #(= (:task-type %) :belief) tasks)
