@@ -5,6 +5,7 @@
     [nal.deriver
      [truth :refer [expectation t-or t-and w2c]]]
     [narjure
+     [defaults :refer :all]
      [global-atoms :refer :all]
      [control-utils :refer [round2]]
      [debug-util :refer :all]]
@@ -57,13 +58,38 @@
 
 (defn derived-budget
   [task derived-task]
-  (let [priority (* 0.8 (first (:budget task)))
-        durability 0.5
-        truth-quality (if (:truth derived-task) (truth-to-quality (:truth derived-task))
-                                                (w2c 1.0))
-        complexity (:sc derived-task)
-        quality (* truth-quality
-                   (/ 1.0 (Math/sqrt complexity)))]
-    (structural-reward-budget [priority durability quality] derived-task)
-    ;[priority durability quality]
-    ))
+  (when (< (:sc derived-task) max-term-complexity)
+    (let [priority (* 0.8 (first (:budget task)))
+         durability 0.5
+         truth-quality (if (:truth derived-task) (truth-to-quality (:truth derived-task))
+                                                 (w2c 1.0))
+         complexity (:sc derived-task)
+         quality (* truth-quality
+                    (/ 1.0 (Math/sqrt complexity)))]
+     (structural-reward-budget [priority durability quality] derived-task)
+     ;[priority durability quality]
+     )))
+
+#_(defn derived-budget
+    "
+    "
+    ;TRADITIONAL BUDGET INFERENCE (DERIVED TASK PART)
+    [task derived-task bLink]
+
+    (let [priority (first (:budget task))
+          durability (* (second (:budget task))
+                        (/ 1.0 (+ 1.0 (syntactic-complexity (:statement derived-task)))))
+          priority' (if bLink (t-and priority (first bLink)) priority) ;t-or traditionally
+          durability' (if bLink (t-and durability (second bLink)) durability)
+          complexity (syntactic-complexity (:statement derived-task))
+          budget [(round2 4 (* priority' (occurrence-penalty-tr (:occurrence derived-task))))
+                  (round2 4 durability')
+                  (round2 4 (if (:truth derived-task)
+                              (/ (expectation (:truth derived-task))
+                                 complexity)
+                              (w2c 1.0)))
+                  ]
+          ]
+      #_(let [result1 (structural-reward-budget budget derived-task)]
+          (when result1
+            (budget-consider-sequence-event task (budget-consider-temporality derived-task result1))))))
