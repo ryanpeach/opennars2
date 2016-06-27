@@ -28,14 +28,13 @@
       (let [pre-filtered-derivations (inference task belief)
             filtered-derivations (filter #(not= (:statement %) (:parent-statement task)) pre-filtered-derivations)
             evidence (make-evidence (:evidence task) (:evidence belief))
-            derivation-depth (if (not (:depth task)) 1 (:depth task))
             derived-load-reducer (whereis :derived-load-reducer)]
         (when-not (empty? evidence)
           (doseq [derived filtered-derivations]
             (let [derived (assoc derived :sc (syntactic-complexity derived))
                   budget (derived-budget task derived)
                   derived-task (assoc derived :budget budget
-                                              :parent-statement (:statement task) :depth (inc derivation-depth)
+                                              :parent-statement (:statement task)
                                               :evidence evidence)]
               (when (and budget
                          (> (first budget) priority-threshold)

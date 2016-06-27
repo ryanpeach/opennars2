@@ -183,7 +183,6 @@
                        :evidence   (make-evidence (make-evidence (best-option :evidence-A) (best-option :evidence-B)) (:evidence goal))
                        :occurrence @nars-time               ;needs to be occurrence time of now since task creator leaves derived task occurrences un-touched
                        :budget     (:budget goal)
-                       :depth      (inc (:depth goal))
                        :task-type  :goal
                        :sc (syntactic-complexity statement)}]
          (println (str "based on " (best-option :debug-belief)))
