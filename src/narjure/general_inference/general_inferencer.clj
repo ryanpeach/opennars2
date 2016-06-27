@@ -31,8 +31,8 @@
             derived-load-reducer (whereis :derived-load-reducer)]
         (when-not (empty? evidence)
           (doseq [derived filtered-derivations]
-            (let [sc (syntactic-complexity derived)
-                  derived (assoc derived :sc sc)
+            (let [sc (syntactic-complexity (:statement derived))
+                  derived (assoc derived :sc sc)            ; required for derived-budget
                   budget (derived-budget task derived)
                   derived-task (assoc derived :budget budget
                                               :parent-statement (:statement task)
