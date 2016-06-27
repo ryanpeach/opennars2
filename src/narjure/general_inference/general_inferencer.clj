@@ -11,7 +11,7 @@
     [narjure
      [debug-util :refer :all]
      [budget-functions :refer [derived-budget]]
-     [defaults :refer [priority-threshold]]
+     [defaults :refer :all]
      [control-utils :refer [make-evidence non-overlapping-evidence? round2]]])
   (:refer-clojure :exclude [promise await]))
 
@@ -31,12 +31,14 @@
             derived-load-reducer (whereis :derived-load-reducer)]
         (when-not (empty? evidence)
           (doseq [derived filtered-derivations]
-            (let [derived (assoc derived :sc (syntactic-complexity derived))
+            (let [sc (syntactic-complexity derived)
+                  derived (assoc derived :sc sc)
                   budget (derived-budget task derived)
                   derived-task (assoc derived :budget budget
                                               :parent-statement (:statement task)
                                               :evidence evidence)]
               (when (and budget
+                         (< sc max-term-complexity)
                          (> (first budget) priority-threshold)
                          (or (not (:truth derived-task))
                              (> (rand) 0.98)

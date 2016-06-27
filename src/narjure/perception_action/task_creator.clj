@@ -59,15 +59,14 @@
 (defn create-derived-task
   "Create a derived task with the provided sentence, budget and occurence time
    and default values for the remaining parameters"
-  [sentence syntactic-complexity]
+  [sentence]
   (let [content (:statement sentence)]
     {:truth      (:truth sentence)
-     ;:desire     (:desire sentence)
      :budget     (:budget sentence)
      :occurrence (:occurrence sentence)
      :source     :derived
      :evidence   (:evidence sentence)
-     :sc         syntactic-complexity
+     :sc         (:sc sentence)
      :terms      (termlink-subterms content)
      :solution   nil
      :task-type  (:task-type sentence)
@@ -119,18 +118,13 @@
 (defn derived-sentence-handler
   "processes a :derived-sentence-msg and posts to task-dispatcher"
   [from [msg [task-concept-id belief-concept-id sentence]]]
-  (let [syntactic-complexity (:sc sentence)]
-       (when (< syntactic-complexity max-term-complexity)
-         (let [derived-task (create-derived-task
-                              sentence
-                              syntactic-complexity)
-               task-dispatcher (whereis :task-dispatcher)]
-
-           (cast! task-dispatcher [:task-msg [task-concept-id belief-concept-id derived-task]])
-           ; display task in output window
-           (output-task :derived derived-task)
-           (when (event? sentence)
-             (cast! task-dispatcher [:task-msg [task-concept-id belief-concept-id (create-eternal-task derived-task)]]))))))
+  (let [derived-task (create-derived-task sentence)
+        task-dispatcher (whereis :task-dispatcher)]
+    (cast! task-dispatcher [:task-msg [task-concept-id belief-concept-id derived-task]])
+    ; display task in output window
+    (output-task :derived derived-task)
+    (when (event? sentence)
+      (cast! task-dispatcher [:task-msg [task-concept-id belief-concept-id (create-eternal-task derived-task)]]))))
 
 (defn msg-handler
   "Identifies message type and selects the correct message handler.

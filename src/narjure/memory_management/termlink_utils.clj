@@ -39,13 +39,7 @@
 (defn forget-termlinks []
   (while (> (count (:termlinks @state)) concept-max-termlinks)
     (let [worst (apply min-key (comp first second) (:termlinks @state))]
-      (set-state! (assoc @state :termlinks (dissoc (:termlinks @state) (first worst))))))
-  ;apply weak forget also:
-  #_(set-state!
-      (assoc @state :termlinks
-                    (apply merge (for [[tl [p d]] (:termlinks @state)]
-                                   {tl [(* p d) d]}))))
-  )
+      (set-state! (assoc @state :termlinks (dissoc (:termlinks @state) (first worst)))))))
 
 (defn add-termlink [tl strength]
   (set-state! (assoc @state :termlinks (assoc (:termlinks @state)
@@ -94,3 +88,27 @@
   (if link-strength
     (strengthen-termlink link-strength)
     concept-selection-introduced-termlink-default-budget))
+
+
+(defn forget-termlink [term]
+  (let [[p d] ((:termlinks @state) term)
+        new-budget [(* p d) d]]
+    (set-state! (assoc-in @state [:termlinks term] new-budget))))
+
+(defn get-termlink-endpoints []
+  (let [initbag (b/default-bag concept-max-termlinks)]
+    (reduce (fn [a b] (b/add-element a b)) initbag (for [[k v] (:termlinks @state)]
+                                                     {:priority (t-or (first v)
+                                                                      (:priority (first (b/get-by-id @c-bag k))))
+                                                      :id k}))))
+
+(defn select-termlink-ref []
+  ;now search through termlinks, get the endpoint concepts, and form a bag of them
+  (let [initbag (b/default-bag concept-max-termlinks)
+        resbag (get-termlink-endpoints)]
+    ;now select an element from this bag
+    (if (pos? (b/count-elements resbag))
+      (let [[beliefconcept _] (b/get-by-index resbag (selection-fn (b/count-elements resbag)))]
+        (forget-termlink (:id beliefconcept))               ;apply forgetting for termlinks only on selection
+        (get-ref-from-term (:id beliefconcept)))
+      nil)))
