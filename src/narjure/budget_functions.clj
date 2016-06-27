@@ -43,7 +43,7 @@
             nil                     ;TODO add invalid NAL statement filter for derivations anyway
             (if goal-desire
              (let [quality (max (nth budget 2)
-                                (t-or (expectation (:truth derived-task)) (t-or (second goal-desire) 0.6)))] ;TODO see goal-processor (unify)
+                                (t-or (expectation (:truth derived-task)) (t-or (second goal-desire) 0.65)))] ;TODO see goal-processor (unify)
                (do
                  (println "3")
                  (println (narsese-print (:statement derived-task)) " " (:truth derived-task) " " (:occurrence derived-task))
@@ -59,11 +59,11 @@
 (defn derived-budget
   [task derived-task bLink derivation-depth]
   (let [depth-penalty 1.0 #_(/ 1.0 (Math/sqrt derivation-depth))
-        priority (first (:budget task))
+        priority (* 0.8 (first (:budget task)))
         durability 0.5
         truth-quality (if (:truth derived-task) (truth-to-quality (:truth derived-task))
                                           (w2c 1.0))
-        complexity 1.0 #_(syntactic-complexity (:statement derived-task))
+        complexity (syntactic-complexity (:statement derived-task))
         quality (* truth-quality
                    (/ 1.0 (Math/sqrt complexity)))]
     (structural-reward-budget [(* depth-penalty priority)

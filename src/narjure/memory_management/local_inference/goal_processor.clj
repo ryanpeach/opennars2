@@ -107,15 +107,15 @@
                                  '[pred-impl [seq-conj [seq-conj ?precondition ?interval] ?interval1 ?operation] ?goal]
                                  '[pred-impl [seq-conj ?precondition ?interval1 ?operation ?interval2] ?goal]
 
-                                 '[</> [conj ?precondition [seq-conj ?operation ?interval]] ?goal]
-                                 '[</> [conj [seq-conj ?operation ?interval] ?precondition] ?goal]
-                                 '[</> [conj ?operation [seq-conj ?precondition ?interval]] ?goal]
-                                 '[</> [conj [seq-conj ?precondition ?interval] ?operation] ?goal]
-                                 '[</> [seq-conj ?precondition ?interval1 [seq-conj ?operation ?interval]] ?goal]
-                                 '[</> [seq-conj [seq-conj ?operation ?interval] ?interval1 ?precondition] ?goal]
-                                 '[</> [seq-conj ?operation ?interval1 [seq-conj ?precondition ?interval]] ?goal]
-                                 '[</> [seq-conj [seq-conj ?precondition ?interval] ?interval1 ?operation] ?goal]
-                                 '[</> [seq-conj ?precondition ?interval1 ?operation ?interval2] ?goal]] ;TODO add others
+                                 #_'[</> [conj ?precondition [seq-conj ?operation ?interval]] ?goal]
+                                 #_'[</> [conj [seq-conj ?operation ?interval] ?precondition] ?goal]
+                                 #_'[</> [conj ?operation [seq-conj ?precondition ?interval]] ?goal]
+                                 #_'[</> [conj [seq-conj ?precondition ?interval] ?operation] ?goal]
+                                 #_'[</> [seq-conj ?precondition ?interval1 [seq-conj ?operation ?interval]] ?goal]
+                                 #_'[</> [seq-conj [seq-conj ?operation ?interval] ?interval1 ?precondition] ?goal]
+                                 #_'[</> [seq-conj ?operation ?interval1 [seq-conj ?precondition ?interval]] ?goal]
+                                 #_'[</> [seq-conj [seq-conj ?precondition ?interval] ?interval1 ?operation] ?goal]
+                                 #_'[</> [seq-conj ?precondition ?interval1 ?operation ?interval2] ?goal]] ;TODO add others
           precondition-op-beliefs-and-assigment-tuple (filter
                                                         (fn [z] (and (not= (second z) nil)
                                                                      (= ((second z) '?goal) (:statement goal))
@@ -138,7 +138,7 @@
                                          #_(println (str "rewarded belief" (narsese-print (:statement belief)) " " (:truth belief) " budg: " (:budget belief)))
                                          (let [budget (:budget belief)
                                                new-quality (max (nth budget 2)
-                                                                (t-or (expectation (:truth belief)) (t-or (second (:truth goal)) 0.6)))] ;TODO see budget-functions (unify)
+                                                                (t-or (expectation (:truth belief)) (t-or (second (:truth goal)) 0.65)))] ;TODO see budget-functions (unify)
                                            #_(println (str "rewarding " (narsese-print (:statement belief)) " " (:truth belief)))
                                            (update-task-in-tasks state (assoc belief :budget [(max new-quality
                                                                                                    (first (:budget belief)))
