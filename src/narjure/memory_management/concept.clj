@@ -100,35 +100,39 @@
          )
        (catch Exception e (debuglogger search display (str "belief request error " (.toString e))))))
 
+(defn forget-termlink [term]
+  (let [[p d] ((:termlinks @state) term)
+        new-budget [(* p d) d]]
+    (set-state! (assoc-in @state [:termlinks term] new-budget))))
+
+(defn get-termlink-endpoints []
+  (let [initbag (b/default-bag concept-max-termlinks)]
+    (reduce (fn [a b] (b/add-element a b)) initbag (for [[k v] (:termlinks @state)]
+                                                     {:priority (t-or (first v)
+                                                                      (:priority (first (b/get-by-id @c-bag k))))
+                                                      :id k}))))
+
+(defn select-termlink-ref []
+  ;now search through termlinks, get the endpoint concepts, and form a bag of them
+  (let [initbag (b/default-bag concept-max-termlinks)
+        resbag (get-termlink-endpoints)]
+    ;now select an element from this bag
+    (if (pos? (b/count-elements resbag))
+      (let [[beliefconcept _] (b/get-by-index resbag (selection-fn (b/count-elements resbag)))]
+        (forget-termlink (:id beliefconcept))               ;apply forgetting for termlinks only on selection
+        (get-ref-from-term (:id beliefconcept)))
+      nil)))
+
 (defn inference-request-handler
   ""
   [from message]
-  (let [concept-state @state
-        task-bag (:tasks concept-state)
-        concept-priority (first (:budget @state))]
-    ; and sending budget update message to concept mgr
+  (let [task-bag (:tasks @state)]
     (when true
-      (try
-        (when (pos? (b/count-elements task-bag))
-          (let [[el] (b/lookup-by-index task-bag (selection-fn (b/count-elements task-bag)))]
-            (debuglogger search display ["selected inference task:" el])
-
-            ;now search through termlinks, get the endpoint concepts, and form a bag of them
-            (let [initbag (b/default-bag concept-max-termlinks)
-                  resbag (reduce (fn [a b] (b/add-element a b)) initbag (for [[k v] (:termlinks @state)]
-                                                                          {:priority (t-or (first v)
-                                                                                           (:priority (first (b/get-by-id @c-bag k))))
-                                                                           :id k}))
-                  ;now select an element from this bag
-                  [beliefconcept bag1] (b/get-by-index resbag (selection-fn (b/count-elements resbag)))]
-              (set-state! (assoc @state :termlinks
-                                        (assoc (:termlinks @state)
-                                          (:id beliefconcept)
-                                          (let [[p d] ((:termlinks @state) (:id beliefconcept))] ;apply forgetting for termlinks only on selection
-                                            [(* p d) d]))))
-              (when-let [c-ref (get-ref-from-term (:id beliefconcept))]
-                (cast! c-ref [:belief-request-msg [(:id @state) (:task el)]])))))
-        (catch Exception e (debuglogger search display (str "inference request error " (.toString e))))))))
+      (when (pos? (b/count-elements task-bag))
+        (let [[el] (b/lookup-by-index task-bag (selection-fn (b/count-elements task-bag)))]
+          (debuglogger search display ["selected inference task:" el])
+          (when-let [c-ref (select-termlink-ref)]
+            (cast! c-ref [:belief-request-msg [(:id @state) (:task el)]])))))))
 
 (defn termlink-strengthen-handler
   "Strenghtens the termlink between two concepts or creates it if not existing.

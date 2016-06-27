@@ -39,13 +39,7 @@
 (defn forget-termlinks []
   (while (> (count (:termlinks @state)) concept-max-termlinks)
     (let [worst (apply min-key (comp first second) (:termlinks @state))]
-      (set-state! (assoc @state :termlinks (dissoc (:termlinks @state) (first worst))))))
-  ;apply weak forget also:
-  #_(set-state!
-      (assoc @state :termlinks
-                    (apply merge (for [[tl [p d]] (:termlinks @state)]
-                                   {tl [(* p d) d]}))))
-  )
+      (set-state! (assoc @state :termlinks (dissoc (:termlinks @state) (first worst)))))))
 
 (defn add-termlink [tl strength]
   (set-state! (assoc @state :termlinks (assoc (:termlinks @state)
