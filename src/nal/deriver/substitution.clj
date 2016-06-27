@@ -18,7 +18,8 @@
                          #(= % 'dep-var))]
     ((u/make-occurs-unify-fn #(and (coll? %) (check-var-type (first %)))) p2 p3)))
 
-(def munification-map (memoize unification-map))
+#_(def munification-map (memoize unification-map))
+(def munification-map unification-map)
 
 (defn placeholder->symbol [pl]
   (->> pl str (drop 1) s/join symbol))

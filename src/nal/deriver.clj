@@ -18,8 +18,10 @@
       1 (first matchers)
       (fn [t1 t2] (mapcat #(% t1 t2) matchers)))))
 
-(def mget-matcher (memoize get-matcher))
-(def mpath (memoize path-with-max-level))
+#_(def mget-matcher (memoize get-matcher))
+(def mget-matcher get-matcher)
+#_(def mpath (memoize path-with-max-level))
+(def mpath path-with-max-level)
 
 (defn generate-conclusions-no-commutativity
   "generate conclusions not taking commutative subterms of premises into account"

@@ -45,7 +45,8 @@
       (concat (cart (concat [[op]] args-inv)) [:any]))
     [path]))
 
-(def mpath-invariants (memoize path-invariants))
+#_(def mpath-invariants (memoize path-invariants))
+(def mpath-invariants path-invariants)
 
 ;(all-paths 'Y '(==> (seq-conj X A1 A2 A3) B))
 (defn all-paths
@@ -55,4 +56,5 @@
         paths2 (mpath-invariants p2)]
     (cart [paths1 [:and] paths2])))
 
-(def mall-paths (memoize all-paths))
+#_(def mall-paths (memoize all-paths))
+(def mall-paths all-paths)
