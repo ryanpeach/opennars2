@@ -52,23 +52,19 @@
                   quality]))
              not-matched-or-not-desired-budget))))
       not-matched-or-not-desired-budget)) ;tODO too radical
-
   )
 
 
 (defn derived-budget
   [task derived-task bLink derivation-depth]
-  (let [depth-penalty 1.0 #_(/ 1.0 (Math/sqrt derivation-depth))
-        priority (* 0.8 (first (:budget task)))
+  (let [priority (* 0.8 (first (:budget task)))
         durability 0.5
         truth-quality (if (:truth derived-task) (truth-to-quality (:truth derived-task))
                                           (w2c 1.0))
         complexity (syntactic-complexity (:statement derived-task))
         quality (* truth-quality
                    (/ 1.0 (Math/sqrt complexity)))]
-    (structural-reward-budget [(* depth-penalty priority)
-      (* depth-penalty durability)
-      (* depth-penalty quality)] derived-task)))
+    (structural-reward-budget [priority durability quality] derived-task)))
 
 #_(defn derived-budget
   "
