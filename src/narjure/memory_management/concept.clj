@@ -5,7 +5,6 @@
      [actors :refer :all]]
     [taoensso.timbre :refer [debug info]]
     [clojure.core.unify :refer [unifier]]
-    [nal.term_utils :refer [syntactic-complexity]]
     [nal.deriver
      [truth :refer [w2c t-or t-and confidence frequency expectation revision]]
      [projection-eternalization :refer [project-eternalize-to]]]
@@ -76,7 +75,7 @@
                  ;2. if it unifies, check whether it is a better solution than the solution we have
                  (let [answer-fqual (fn [answer] (if (= nil answer)
                                                    0
-                                                   (/ (expectation (:truth answer)) (syntactic-complexity (:statement answer)))))
+                                                   (/ (expectation (:truth answer)) (:sc answer))))
                        newqual (answer-fqual (project-eternalize-to (:occurrence task) belief @nars-time))
                        oldqual (answer-fqual (project-eternalize-to (:occurrence task) (:solution task) @nars-time))] ;PROJECT!!
                    (when (> newqual oldqual)

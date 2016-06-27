@@ -3,12 +3,16 @@
     [co.paralleluniverse.pulsar
      [core :refer :all]
      [actors :refer :all]]
+    [nal
+     [deriver :refer [inference]]
+     [term_utils :refer [syntactic-complexity]]]
     [nal.deriver :refer [inference]]
     [taoensso.timbre :refer [debug info]]
-    [narjure.debug-util :refer :all]
-    [narjure.budget-functions :refer [derived-budget]]
-    [narjure.defaults :refer [priority-threshold]]
-    [narjure.control-utils :refer [make-evidence non-overlapping-evidence? round2]])
+    [narjure
+     [debug-util :refer :all]
+     [budget-functions :refer [derived-budget]]
+     [defaults :refer [priority-threshold]]
+     [control-utils :refer [make-evidence non-overlapping-evidence? round2]]])
   (:refer-clojure :exclude [promise await]))
 
 (def display (atom '()))
@@ -28,7 +32,8 @@
             derived-load-reducer (whereis :derived-load-reducer)]
         (when-not (empty? evidence)
           (doseq [derived filtered-derivations]
-            (let [budget (derived-budget task derived bLink (inc derivation-depth))
+            (let [derived (assoc derived :sc (syntactic-complexity derived))
+                  budget (derived-budget task derived bLink (inc derivation-depth))
                   derived-task (assoc derived :budget budget
                                               :parent-statement (:statement task) :depth (inc derivation-depth)
                                               :evidence evidence)]

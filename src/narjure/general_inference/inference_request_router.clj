@@ -9,7 +9,6 @@
     [narjure.debug-util :refer :all]
     [narjure.defaults :refer [priority-threshold]]
     [narjure.control-utils :refer [make-evidence round2]]
-    [nal.term_utils :refer [syntactic-complexity]]
     [nal.deriver.truth :refer [expectation]])
   (:refer-clojure :exclude [promise await]))
 

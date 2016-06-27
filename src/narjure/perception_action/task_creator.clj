@@ -5,7 +5,6 @@
      [actors :refer :all]]
     [taoensso.timbre :refer [debug info]]
     [clojure.set :as set]
-    ;[narjure.memory-management.concept-utils :refer :all]
     [narjure
      [global-atoms :refer :all]
      [defaults :refer :all]
@@ -122,7 +121,7 @@
 (defn derived-sentence-handler
   "processes a :derived-sentence-msg and posts to task-dispatcher"
   [from [msg [task-concept-id belief-concept-id sentence]]]
-  (let [syntactic-complexity (syntactic-complexity (:statement sentence))]
+  (let [syntactic-complexity (:sc sentence)]
        (when (< syntactic-complexity max-term-complexity)
          (let [derived-task (create-derived-task
                               sentence

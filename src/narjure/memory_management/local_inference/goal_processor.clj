@@ -10,7 +10,7 @@
     [narjure.control-utils :refer :all]
     [narjure.global-atoms :refer :all]
     [clojure.core.unify :refer [unify]]
-    [nal.term_utils :refer [operation? negation-of-operation?]]
+    [nal.term_utils :refer [operation? negation-of-operation? syntactic-complexity]]
     [narjure.memory-management.local-inference.local-inference-utils :refer :all]
     [nal.deriver.truth :refer [t-or frequency confidence expectation desire-strong]]
     [nal.deriver.projection-eternalization :refer [project-eternalize-to]])
@@ -177,13 +177,15 @@
                 (best-option :D)
                 (> (second (best-option :D)) truth-tolerance))
        #_(println (str "had best operator option " (best-option :D)))
-       (let [new-task {:statement  ((:unification-map best-option) '?operation)
+       (let [statement ((:unification-map best-option) '?operation)
+             new-task {:statement  statement
                        :truth      (best-option :D)
                        :evidence   (make-evidence (make-evidence (best-option :evidence-A) (best-option :evidence-B)) (:evidence goal))
                        :occurrence @nars-time               ;needs to be occurrence time of now since task creator leaves derived task occurrences un-touched
                        :budget     (:budget goal)
                        :depth      (inc (:depth goal))
-                       :task-type  :goal}]
+                       :task-type  :goal
+                       :sc (syntactic-complexity statement)}]
          (println (str "based on " (best-option :debug-belief)))
          (println (str "operator selector sending to task-creator " (:statement new-task) (:truth new-task) (expectation (:truth new-task))))
          (cast! (whereis :task-creator) [:derived-sentence-msg [nil nil new-task]])

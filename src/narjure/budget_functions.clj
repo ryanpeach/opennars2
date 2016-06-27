@@ -1,7 +1,7 @@
 (ns narjure.budget-functions
   (:require
     [nal
-     [term_utils :refer [syntactic-complexity precondition-operation-consequent-statement]]]
+     [term_utils :refer [precondition-operation-consequent-statement]]]
     [nal.deriver
      [truth :refer [expectation t-or t-and w2c]]]
     [narjure
@@ -61,10 +61,12 @@
         durability 0.5
         truth-quality (if (:truth derived-task) (truth-to-quality (:truth derived-task))
                                           (w2c 1.0))
-        complexity (syntactic-complexity (:statement derived-task))
+        complexity (:sc derived-task)
         quality (* truth-quality
                    (/ 1.0 (Math/sqrt complexity)))]
-    (structural-reward-budget [priority durability quality] derived-task)))
+    (structural-reward-budget [priority durability quality] derived-task)
+    ;[priority durability quality]
+    ))
 
 #_(defn derived-budget
   "

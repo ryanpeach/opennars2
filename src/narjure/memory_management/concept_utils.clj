@@ -18,7 +18,6 @@
      [quest-processor :refer [process-quest]]
      [question-processor :refer [process-question]]]
     [clojure.core.unify :refer [unifier]]
-    [nal.term_utils :refer [syntactic-complexity]]
     [nal.deriver
      [truth :refer [w2c t-or t-and confidence frequency expectation revision]]
      [projection-eternalization :refer [project-eternalize-to]]])
