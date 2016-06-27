@@ -47,7 +47,7 @@
         temporal-distance (if (= el-time :eternal) 0.0 (Math/abs (- el-time @nars-time)))
         occurrence-decay (if (= el-time :eternal) 1.0 (/ 1.0 (+ 1.0 (* temporal-distance
                                                                        temporal-distance))))
-        k-quality-occurrence-decay 1000.0
+        k-quality-occurrence-decay 10000.0
         distance-for-quality (/ temporal-distance k-quality-occurrence-decay)
         occurrence-decay-for-quality (if (= el-time :eternal) 1.0 (/ 1.0 (+ 1.0 (* distance-for-quality
                                                                                    distance-for-quality))))

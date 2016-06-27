@@ -63,8 +63,9 @@
         durability 0.5
         truth-quality (if (:truth derived-task) (truth-to-quality (:truth derived-task))
                                           (w2c 1.0))
+        complexity 1.0 #_(syntactic-complexity (:statement derived-task))
         quality (* truth-quality
-                   (/ 1.0 (Math/sqrt (syntactic-complexity (:statement derived-task)))))]
+                   (/ 1.0 (Math/sqrt complexity)))]
     (structural-reward-budget [(* depth-penalty priority)
       (* depth-penalty durability)
       (* depth-penalty quality)] derived-task)))

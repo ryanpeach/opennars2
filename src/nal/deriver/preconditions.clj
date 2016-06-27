@@ -91,6 +91,13 @@
    `(< :b-occurrence :t-occurrence)
    #_`(<= ~temporal-window-duration (abs (- :t-occurrence :b-occurrence)))])
 
+(defmethod compound-precondition :measure-time-backward
+  [_]
+  [`(not= :eternal :t-occurrence)
+   `(not= :eternal :b-occurrence)
+   `(> :b-occurrence :t-occurrence)
+   #_`(<= ~temporal-window-duration (abs (- :t-occurrence :b-occurrence)))])
+
 (defmethod compound-precondition :concurrent
   [_]
   [`(not= :eternal :t-occurrence)
@@ -136,6 +143,14 @@
              ~(walk conclusion
                 (= :el arg) [:interval arg]))
       (= :el arg) mt)))
+
+(defmethod precondition-transformation :measure-time-backward
+  [[_ arg] conclusion]
+  (let [mt (gensym)]
+    (walk `(let [~arg (abs (- :t-occurrence :b-occurrence))]
+             ~(walk conclusion
+                    (= :el arg) [:interval arg]))
+          (= :el arg) mt)))
 
 (defn check-precondition
   [conclusion precondition]

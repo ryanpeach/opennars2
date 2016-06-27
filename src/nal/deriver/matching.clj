@@ -63,7 +63,8 @@
                                                              (if (or (= nil belief)
                                                                      time-measure
                                                                      (not (:truth belief))) ;as task and belief are not aviable on rule generation
-                                                               t
+                                                               (:truth (project-eternalize-to (:occurrence task) ;just to play the role of less confidence for further apart
+                                                                                              belief @nars-time)) #_t
                                                                (:truth (project-eternalize-to (:occurrence task)
                                                                                                 belief @nars-time))))]
                                           (if swapped
