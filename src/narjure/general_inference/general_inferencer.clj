@@ -22,7 +22,7 @@
   "Processes :do-inference-msg:
     generates derived results, budget and occurrence time for derived tasks.
     Posts derived sentences to task creator"
-  [from [msg [task-concept-id belief-concept-id bLink task belief]]]
+  [from [msg [task-concept-id belief-concept-id task belief]]]
   (try
     (when (non-overlapping-evidence? (:evidence task) (:evidence belief))
       (let [pre-filtered-derivations (inference task belief)
@@ -33,7 +33,7 @@
         (when-not (empty? evidence)
           (doseq [derived filtered-derivations]
             (let [derived (assoc derived :sc (syntactic-complexity derived))
-                  budget (derived-budget task derived bLink (inc derivation-depth))
+                  budget (derived-budget task derived)
                   derived-task (assoc derived :budget budget
                                               :parent-statement (:statement task) :depth (inc derivation-depth)
                                               :evidence evidence)]

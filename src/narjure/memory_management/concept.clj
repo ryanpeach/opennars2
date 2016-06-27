@@ -50,10 +50,10 @@
 
 (defn belief-request-handler
   ""
-  [from [_ [task-concept-id termlink-strength task]]]
+  [from [_ [task-concept-id task]]]
   ;todo get a belief which has highest confidence when projected to task time
   (try                                                      ;update termlinks at first
-    #_(update-termlink (:statement task))          ;task concept here
+    #_(update-termlink (:statement task))                   ;task concept here
     (catch Exception e (debuglogger search display (str "belief side termlink strength error " (.toString e)))))
   (try (let [tasks (get-tasks state)
              beliefs (filter #(and (= (:statement %) (:id @state))
@@ -66,37 +66,37 @@
              #_(cast! (:general-inferencer @state) [:do-inference-msg [task not-projected-belief]])
              (doseq [belief beliefs]
                (debuglogger search display ["selected belief:" belief "§"])
-               (cast! (:inference-request-router @state) [:do-inference-msg [task-concept-id (:id @state) termlink-strength task belief]])
-             (try
-               ;1. check whether belief matches by unifying the question vars in task
-               (when (and (= (:task-type task) :question)
-                          (some #{'qu-var} (flatten (:statement task)))
-                          (question-unifies (:statement task) (:statement belief)))
-                 ;2. if it unifies, check whether it is a better solution than the solution we have
-                 (let [answer-fqual (fn [answer] (if (= nil answer)
-                                                   0
-                                                   (/ (expectation (:truth answer)) (:sc answer))))
-                       newqual (answer-fqual (project-eternalize-to (:occurrence task) belief @nars-time))
-                       oldqual (answer-fqual (project-eternalize-to (:occurrence task) (:solution task) @nars-time))] ;PROJECT!!
-                   (when (> newqual oldqual)
-                     ;3. if it is a better solution, set belief as solution of task
-                     (let [budget (:budget task)
-                           new-prio (* (- 1.0 (expectation (:truth belief))) (first budget))
-                           new-budget [new-prio (second budget) (nth budget 2)]
-                           newtask (assoc task :solution belief :priority new-prio :budget new-budget)]
-                       ;4. print our result
-                       (output-task [:answer-to (str (narsese-print (:statement task)) "?")] (:solution newtask))
-                       ;5. send answer-update-msg OLD NEW to the task concept so that it can remove the old task bag entry
-                       ;and replace it with the one having the better solution. (reducing priority here though according to solution before send)
-                       (when-let [{c-ref :ref} ((:elements-map @c-bag) (:statement task))]
-                         (cast! c-ref [:solution-update-msg task newtask]))))))
-               (catch Exception e (debuglogger search display (str "what-question error " (.toString e))))))
+               (cast! (:inference-request-router @state) [:do-inference-msg [task-concept-id (:id @state) task belief]])
+               (try
+                 ;1. check whether belief matches by unifying the question vars in task
+                 (when (and (= (:task-type task) :question)
+                            (some #{'qu-var} (flatten (:statement task)))
+                            (question-unifies (:statement task) (:statement belief)))
+                   ;2. if it unifies, check whether it is a better solution than the solution we have
+                   (let [answer-fqual (fn [answer] (if (= nil answer)
+                                                     0
+                                                     (/ (expectation (:truth answer)) (:sc answer))))
+                         newqual (answer-fqual (project-eternalize-to (:occurrence task) belief @nars-time))
+                         oldqual (answer-fqual (project-eternalize-to (:occurrence task) (:solution task) @nars-time))] ;PROJECT!!
+                     (when (> newqual oldqual)
+                       ;3. if it is a better solution, set belief as solution of task
+                       (let [budget (:budget task)
+                             new-prio (* (- 1.0 (expectation (:truth belief))) (first budget))
+                             new-budget [new-prio (second budget) (nth budget 2)]
+                             newtask (assoc task :solution belief :priority new-prio :budget new-budget)]
+                         ;4. print our result
+                         (output-task [:answer-to (str (narsese-print (:statement task)) "?")] (:solution newtask))
+                         ;5. send answer-update-msg OLD NEW to the task concept so that it can remove the old task bag entry
+                         ;and replace it with the one having the better solution. (reducing priority here though according to solution before send)
+                         (when-let [{c-ref :ref} ((:elements-map @c-bag) (:statement task))]
+                           (cast! c-ref [:solution-update-msg task newtask]))))))
+                 (catch Exception e (debuglogger search display (str "what-question error " (.toString e))))))
 
              ))
          ;dummy? belief as "empty" termlink belief selection for structural inference
          (let [belief {:statement (:id @state) :task-type :question :occurrence @nars-time :evidence '()}]
            (debuglogger search display ["selected belief:" belief "§"])
-           (cast! (:inference-request-router @state) [:do-inference-msg [task-concept-id (:id @state) termlink-strength task belief]]))
+           (cast! (:inference-request-router @state) [:do-inference-msg [task-concept-id (:id @state) task belief]]))
          )
        (catch Exception e (debuglogger search display (str "belief request error " (.toString e))))))
 
@@ -109,35 +109,26 @@
     ; and sending budget update message to concept mgr
     (when true
       (try
-       (when (pos? (b/count-elements task-bag))
-         (let [[el] (b/lookup-by-index task-bag (selection-fn (b/count-elements task-bag)))]
-           (debuglogger search display ["selected inference task:" el])
+        (when (pos? (b/count-elements task-bag))
+          (let [[el] (b/lookup-by-index task-bag (selection-fn (b/count-elements task-bag)))]
+            (debuglogger search display ["selected inference task:" el])
 
-           ;now search through termlinks, get the endpoint concepts, and form a bag of them
-           (let [initbag (b/default-bag concept-max-termlinks)
-                 resbag (reduce (fn [a b] (b/add-element a b)) initbag (for [[k v] (:termlinks @state)]
-                                                                         {:priority #_(:priority (first (b/get-by-id @c-bag k)))
-                                                                                         (t-or (first v)
-                                                                                          (:priority (first (b/get-by-id @c-bag k))))
-                                                                          :id       k}))
-                 ;now select an element from this bag
-                 [beliefconcept bag1] (b/get-by-index resbag (selection-fn (b/count-elements resbag)))]
-
-             #_(doseq [[id beliefconcept] (:elements-map resbag)]
-               (when-let [c-ref (get-ref-from-term (:id beliefconcept))]
-                (cast! c-ref [:belief-request-msg [(:id @state) ((:termlinks @state) (:id beliefconcept)) (:task el)]])))
-             ;and create a belief request message
-             (set-state! (assoc @state :termlinks
-                                       (assoc (:termlinks @state)
-                                         (:id beliefconcept)
-                                         (let [[p d] ((:termlinks @state) (:id beliefconcept))] ;apply forgetting for termlinks only on selection
-                                           [(* p d) d]))))
-
-
-             (when-let [c-ref (get-ref-from-term (:id beliefconcept))]
-               (cast! c-ref [:belief-request-msg [(:id @state) ((:termlinks @state) (:id beliefconcept)) (:task el)]])
-               ))))
-       (catch Exception e (debuglogger search display (str "inference request error " (.toString e))))))))
+            ;now search through termlinks, get the endpoint concepts, and form a bag of them
+            (let [initbag (b/default-bag concept-max-termlinks)
+                  resbag (reduce (fn [a b] (b/add-element a b)) initbag (for [[k v] (:termlinks @state)]
+                                                                          {:priority (t-or (first v)
+                                                                                           (:priority (first (b/get-by-id @c-bag k))))
+                                                                           :id k}))
+                  ;now select an element from this bag
+                  [beliefconcept bag1] (b/get-by-index resbag (selection-fn (b/count-elements resbag)))]
+              (set-state! (assoc @state :termlinks
+                                        (assoc (:termlinks @state)
+                                          (:id beliefconcept)
+                                          (let [[p d] ((:termlinks @state) (:id beliefconcept))] ;apply forgetting for termlinks only on selection
+                                            [(* p d) d]))))
+              (when-let [c-ref (get-ref-from-term (:id beliefconcept))]
+                (cast! c-ref [:belief-request-msg [(:id @state) (:task el)]])))))
+        (catch Exception e (debuglogger search display (str "inference request error " (.toString e))))))))
 
 (defn termlink-strengthen-handler
   "Strenghtens the termlink between two concepts or creates it if not existing.
@@ -176,15 +167,15 @@
 (defn initialise
   "Initialises actor: registers actor and sets actor state"
   [name]
-  (set-state! {:id                 name
-               :quality            0.0
-               :tasks              (b/default-bag max-tasks)
-               :termlinks          {}
-               :anticipation       nil
-               :concept-manager    (whereis :concept-manager)
+  (set-state! {:id                       name
+               :quality                  0.0
+               :tasks                    (b/default-bag max-tasks)
+               :termlinks                {}
+               :anticipation             nil
+               :concept-manager          (whereis :concept-manager)
                :inference-request-router (whereis :inference-request-router)
-               :last-forgotten     @nars-time
-               :observable false}))
+               :last-forgotten           @nars-time
+               :observable               false}))
 
 (defn msg-handler
   "Identifies message type and selects the correct message handler.
@@ -193,27 +184,27 @@
   (when-not (= type :concept-forget-msg) (debuglogger search display message))
 
   (when (b/exists? @c-bag (:id @state))                     ;check concept has not been removed first
-      (case type
-       :termlink-strengthen-msg (termlink-strengthen-handler from message)
-       :task-msg (task-handler from message)
-       :link-feedback-msg (link-feedback-handler from message)
-       :belief-request-msg (belief-request-handler from message)
-       :inference-request-msg (inference-request-handler from message)
-       :concept-state-request-msg (concept-state-handler from message)
-       :set-concept-state-msg (set-concept-state-handler from message)
-       :solution-update-msg (solution-update-handler from message)
-       :concept-forget-msg (concept-forget-handler from message)
-       :shutdown (shutdown-handler from message)
-       (debug (str "unhandled msg: " type))))
+    (case type
+      :termlink-strengthen-msg (termlink-strengthen-handler from message)
+      :task-msg (task-handler from message)
+      :link-feedback-msg (link-feedback-handler from message)
+      :belief-request-msg (belief-request-handler from message)
+      :inference-request-msg (inference-request-handler from message)
+      :concept-state-request-msg (concept-state-handler from message)
+      :set-concept-state-msg (set-concept-state-handler from message)
+      :solution-update-msg (solution-update-handler from message)
+      :concept-forget-msg (concept-forget-handler from message)
+      :shutdown (shutdown-handler from message)
+      (debug (str "unhandled msg: " type))))
 
-    (when (pos? debug-messages)
-      ;(reset! lense-anticipations (:anticipation @state))
-      (swap! lense-taskbags
-             (fn [dic]
-               (assoc dic (:id @state) (:tasks @state))))
-      (swap! lense-termlinks
-             (fn [dic]
-               (assoc dic (:id @state) (:termlinks @state))))))
+  (when (pos? debug-messages)
+    ;(reset! lense-anticipations (:anticipation @state))
+    (swap! lense-taskbags
+           (fn [dic]
+             (assoc dic (:id @state) (:tasks @state))))
+    (swap! lense-termlinks
+           (fn [dic]
+             (assoc dic (:id @state) (:termlinks @state))))))
 
 (defn concept [name]
   (gen-server
