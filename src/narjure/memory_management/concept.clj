@@ -33,8 +33,6 @@
   [from [_ [task]]]
   (debuglogger search display ["task processed:" task])
 
-  #_(when (= (:statement task) '[--> ballpos [int-set equal]])
-    (println "concept ballpos equ exists"))
   (refresh-termlinks task)
 
   ; check observable and set if necessary
@@ -43,6 +41,10 @@
     (let [{:keys [occurrence source]} task]
       (when (and (not= occurrence :eternal) (= source :input) (= (:statement task) (:id @state)))
         (set-state! (assoc @state :observable true)))))
+
+  #_(when (and (= (:task-type task) :goal)
+          (= (:statement task) '[--> ballpos [int-set equal]]))
+    (println "concept ballpos equ exists"))
 
   (case (:task-type task)
     :belief (process-belief state task 0)

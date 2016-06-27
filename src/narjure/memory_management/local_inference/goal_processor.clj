@@ -90,14 +90,20 @@
   <(&/,<{ball} --> [down]>,move_up({SELF})) =/>
   <{ball} --> [equal]>>. %0.4;09%"
 
+
   ;1.: find all beliefs that predict the goal ''=/> =|>  <|> </>''
   (when (and (= (:occurrence goal) :eternal)                ;this should not change as long as intervals are not handled
           (= (:id @state) (:statement goal)))               ;properly it wont be necessary anyway though in this case
+
+    (when (and (= (:task-type goal) :goal)
+               (= (:statement goal) '[--> ballpos [int-set equal]]))
+      (println "concept ballpos equ goal processed"))
+
     (let [debugme (= (:statement goal) '[--> ballpos [int-set equal]])
           println2 (fn [a] (when debugme (println a)))
           ;2. filter those with (precondition,op) => goal   ;so this one is for future improvement
           #_print1 #_(println "step 1,2")
-          blub1 (println2 "test")
+          blub1 (println2 "process goal debug marker")
           precondition-op-forms ['[pred-impl [seq-conj [seq-conj ?precondition ?interval1 ?operation] ?interval2] ?goal]
 
                                  #_'[pred-impl [conj ?precondition [seq-conj ?operation ?interval]] ?goal]
@@ -195,8 +201,7 @@
 
 (defn process-goal [state task cnt]
   ;group-by :task-type tasks
-  #_(when (= (:statement task) '[--> ballpos [int-set equal]])
-    (println "concept ballpos equ exists"))
+
   (let [tasks (get-tasks state)
         goals (filter #(= (:task-type %) :goal) tasks)
         beliefs (filter #(= (:task-type %) :belief) tasks)
@@ -212,12 +217,18 @@
                                                 (revise a (project-eternalize-to (:occurrence a) b @nars-time) :goal)
                                                 a))
                                     task (shuffle related-goals))]
+
          ;add revised task to bag
          (add-to-tasks state total-revision)
          ; check to see if revised or task is answer to quest and increase budget accordingly
          ;check whether it is fullfilled by belief and decrease budget accordingly
          (satisfaction-based-budget-change state total-revision beliefs)
          (answer-based-budget-change state (:task (first (b/get-by-id (:tasks @state) (get-task-id total-revision)))) quests)
+
+         #_(when (and (= (:task-type task) :goal)
+                    (= (:statement task) '[--> ballpos [int-set equal]]))
+           (println "concept ballpos equ goal processed"))
+
          (try
            (best-operation-selection (filter #(= (:task-type %) :belief) (get-tasks state))
                                      (:task (first (b/get-by-id (:tasks @state) (get-task-id total-revision)))))
