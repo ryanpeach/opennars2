@@ -44,7 +44,7 @@
             nil                                             ;TODO add invalid NAL statement filter for derivations anyway
             (if goal-desire
               (let [quality (max (nth budget 2)
-                                 (t-or (expectation (:truth derived-task)) (t-or (second goal-desire) 0.65)))] ;TODO see goal-processor (unify)
+                                 (t-or (expectation (:truth derived-task)) (t-or (second goal-desire) 0.8)))] ;TODO see goal-processor (unify)
                 (do
                   (println "3")
                   (println (narsese-print (:statement derived-task)) " " (:truth derived-task) " " (:occurrence derived-task))
