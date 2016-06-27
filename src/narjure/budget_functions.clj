@@ -5,6 +5,7 @@
     [nal.deriver
      [truth :refer [expectation t-or t-and w2c]]]
     [narjure
+     [defaults :refer :all]
      [global-atoms :refer :all]
      [control-utils :refer [round2]]
      [debug-util :refer :all]]
@@ -57,16 +58,17 @@
 
 (defn derived-budget
   [task derived-task]
-  (let [priority (* 0.8 (first (:budget task)))
-        durability 0.5
-        truth-quality (if (:truth derived-task) (truth-to-quality (:truth derived-task))
-                                                (w2c 1.0))
-        complexity (:sc derived-task)
-        quality (* truth-quality
-                   (/ 1.0 (Math/sqrt complexity)))]
-    (structural-reward-budget [priority durability quality] derived-task)
-    ;[priority durability quality]
-    ))
+  (when (< (:sc derived-task) max-term-complexity)
+    (let [priority (* 0.8 (first (:budget task)))
+         durability 0.5
+         truth-quality (if (:truth derived-task) (truth-to-quality (:truth derived-task))
+                                                 (w2c 1.0))
+         complexity (:sc derived-task)
+         quality (* truth-quality
+                    (/ 1.0 (Math/sqrt complexity)))]
+     (structural-reward-budget [priority durability quality] derived-task)
+     ;[priority durability quality]
+     )))
 
 #_(defn derived-budget
     "
