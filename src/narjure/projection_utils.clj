@@ -6,8 +6,10 @@
      [global-atoms :refer :all]]))
 
 
-(defn max-statement-confidence-projected-to-now [state task-type]
+(defn max-statement-confidence-projected-to-now [state task-type event]
   (let [fil (filter (fn [z] (and (= (:task-type (:task (second z))) task-type)
+                                 (or (not event)
+                                     (not= (:occurrence (:task (second z))) :eternal))
                                  (= (:statement (:task (second z))) (:id state))))
                     (:elements-map (:tasks state)))]
     (if (not= fil [])

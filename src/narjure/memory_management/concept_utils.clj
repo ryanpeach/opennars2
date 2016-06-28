@@ -80,9 +80,9 @@
             :quality  0.0
             :observable (:observable state)
             :ref      self
-            :strongest-belief-about-now (max-statement-confidence-projected-to-now state :belief)
-            :strongest-desire-about-now (max-statement-confidence-projected-to-now state :goal)
-            ;:strongest-desire-about-now
+            :strongest-belief-about-now (max-statement-confidence-projected-to-now state :belief nil)
+            :strongest-desire-about-now (max-statement-confidence-projected-to-now state :goal nil)
+            :strongest-belief-event-about-now (max-statement-confidence-projected-to-now state :belief :event)
             }]
     (swap! c-bag b/add-element el)))
 

@@ -198,8 +198,8 @@
                            {:name          (str "\n" (narsese-print id)
                                                 (if (= id @selected-concept)
                                                   (str "\npriority: " priority " " "quality: " quality " "
-                                                       "truth: " (:truth (lense-max-statement-confidence-projected-to-now id :belief)) " "
-                                                       "desire: " (:truth (lense-max-statement-confidence-projected-to-now id :goal)) "\n"
+                                                       "truth: " (:truth (lense-max-statement-confidence-projected-to-now id :belief nil)) " "
+                                                       "desire: " (:truth (lense-max-statement-confidence-projected-to-now id :goal nil)) "\n"
                                                        (bag-format
                                                          (limit-string (str (apply vector
                                                                                    (:priority-index (@lense-taskbags id)))) 20000)))
