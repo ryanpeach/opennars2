@@ -26,13 +26,16 @@
             [narjure.debug-util :refer :all]
             [narjure.bag :as b]
             [narjure.defaults :refer [priority-threshold]]
-            [clojure.set :as set]))
+            [clojure.set :as set]
+            [clojure.string :as str]))
 
 (defn bag-format [st]
   (clojure.string/replace st "}" "}\n"))
 
 (defn bagfilter [fil bag]
-  (apply vector (filter (fn [x] (.contains (str x) (deref fil))) bag)))
+  (apply vector (filter (fn [x]
+                          (every? (fn [y] (.contains (str x) y))
+                                  (str/split (deref fil) #"\n"))) bag)))
 
 (defn bagshow [bag filteratom]
   (bag-format (limit-string
@@ -189,7 +192,9 @@
                              priority (:priority elem)
                              quality (:quality ((:elements-map (deref c-bag)) id))]
                          (when (try
-                                 (and (.contains (str id) (deref concept-filter))
+                                 (and
+                                   (every? (fn [x] (.contains (str id) x))
+                                           (str/split (deref concept-filter) #"\n"))
                                       (> priority priority-threshold)
                                       (> priority @prio-threshold)
                                       (or (isin id)
