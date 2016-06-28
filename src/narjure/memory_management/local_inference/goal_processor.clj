@@ -208,7 +208,7 @@
         quests (filter #(= (:task-type %) :quest ) tasks)]
 
     ;also allow revision in subterm concepts! this is why statement is compared to task statement, not to ID!!
-    (when (not (operation? (:statement task)))  ;TODO weaker eternalization, then its also fine for operations again i guess
+    (when true
       (let [related-goals (filter (fn [z] (and (same-occurrence-type z task)
                                               (= (:statement z) (:statement task)))) goals)]
 

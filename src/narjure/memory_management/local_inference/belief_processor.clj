@@ -98,7 +98,7 @@
         questions (filter #(= (:task-type %) :question ) tasks)]
 
     ;also allow revision in subterm concepts! this is why statement is compared to task statement, not to ID!!
-    (when (= (:occurrence task) :eternal) ;TODO weaken eternalization and allow for events also again
+    (when true ;TODO weaken eternalization
 
       (let [same-content-beliefs (filter (fn [z] (and (same-occurrence-type z task)
                                                      (= (:statement z) (:statement task)))) beliefs)]
