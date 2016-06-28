@@ -154,3 +154,29 @@
 
             bag3 (b/add-element bag2 {:id (get-task-id newtask) :priority (first (:budget newtask)) :task newtask})]
         (set-state! (assoc concept-state :tasks bag3))))))
+
+(defn match-belief-to-question [task belief]
+  ;1. check whether belief matches by unifying the question vars in task
+
+  (when (and (= (:task-type task) :question)
+             (some #{'qu-var} (flatten (:statement task)))
+             (question-unifies (:statement task) (:statement belief)))
+      ;2. if it unifies, check whether it is a better solution than the solution we have
+
+      (let [answer-fqual (fn [answer] (if (= nil answer)
+                                        0
+                                        (/ (expectation (:truth answer)) (:sc answer))))
+            newqual (answer-fqual (project-eternalize-to (:occurrence task) belief @nars-time))
+            oldqual (answer-fqual (project-eternalize-to (:occurrence task) (:solution task) @nars-time))] ;PROJECT!!
+        (when (> newqual oldqual)
+          ;3. if it is a better solution, set belief as solution of task
+          (let [budget (:budget task)
+                new-prio (* (- 1.0 (expectation (:truth belief))) (first budget))
+                new-budget [new-prio (second budget) (nth budget 2)]
+                newtask (assoc task :solution belief :priority new-prio :budget new-budget)]
+            ;4. print our result
+            (output-task [:answer-to (str (narsese-print (:statement task)) "?")] (:solution newtask))
+            ;5. send answer-update-msg OLD NEW to the task concept so that it can remove the old task bag entry
+            ;and replace it with the one having the better solution. (reducing priority here though according to solution before send)
+            (when-let [{c-ref :ref} ((:elements-map @c-bag) (:statement task))]
+              (cast! c-ref [:solution-update-msg task newtask])))))))

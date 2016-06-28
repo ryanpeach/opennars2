@@ -40,7 +40,7 @@
             {:name :-prioTh. :px 325 :py 0 :onclick (fn [state]
                                                             (reset! prio-threshold (- @prio-threshold 0.1)))
              :backcolor backcolor}
-            {:name :edgeInf. :px 375 :py 0 :onclick (fn [state]
+            {:name :details :px 375 :py 0 :onclick (fn [state]
                                                             (reset! link-labels (not @link-labels)))
              :backcolor backcolor}
 

@@ -9,10 +9,10 @@
     [narjure.control-utils :refer :all]
     [narjure.global-atoms :refer :all]
     [narjure.defaults :refer :all]
-    [narjure.perception-action.task-creator :refer [event?]]
+    [narjure.perception-action.task-creator :refer [event? get-id]]
     [narjure.memory-management.local-inference.local-inference-utils :refer :all]
     [nal.deriver.truth :refer [t-or confidence frequency w2c t2-evidence-weights]]
-    [nal.deriver.projection-eternalization :refer [project-eternalize-to]])
+    [nal.deriver.projection-eternalization :refer [project-eternalize-to eternalize]])
   (:refer-clojure :exclude [promise await]))
 
 (defn expired? [anticipation]
@@ -30,6 +30,7 @@
                                          observed-positive-evidence))
         confidence-of-lack (w2c positive-evidence-lack)]
     (dissoc (assoc anticipation :task-type :belief
+                                :evidence (list (get-id))
                                :truth [0.0 confidence-of-lack]
                                :budget [(min 1.0
                                              (* (first (:budget anticipation))
@@ -132,7 +133,8 @@
         ;add neg-confirmation to tasks bag and remove anticiptaion
         (set-state! (assoc @state :anticipation nil))
         (println (str "neg conf: " neg-confirmation))
-        (add-to-tasks state neg-confirmation)))
+        (process-belief state neg-confirmation 0)
+        (process-belief state (eternalize neg-confirmation) 0))) ;probably still a budget increase based on disappointment rate
 
     ;when task is confirmable and observabnle
     ;add an anticipation tasks to tasks
@@ -156,7 +158,8 @@
               with-anticipated-truth (fn [t] (assoc t :source :derived :anticipated-truth (:truth t) :truth [0.5 0.0]))]
           #_(println (str "3..."))
           (if (not= nil anticipation)
-            (set-state! (assoc @state :anticipation (with-anticipated-truth (better-task anticipation anticipated-task))))
+            (when (> (first (:budget anticipated-task)) (first (:budget anticipation)))
+              (set-state! (assoc @state :anticipation (with-anticipated-truth anticipated-task))))
             (set-state! (assoc @state :anticipation (with-anticipated-truth anticipated-task))))
           (println (str "created anticipation: " (:anticipation @state))))))
     ))

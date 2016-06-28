@@ -56,54 +56,32 @@
   ""
   [from [_ [task-concept-id task]]]
   ;todo get a belief which has highest confidence when projected to task time
-  (try                                                      ;update termlinks at first
-    #_(update-termlink (:statement task))                   ;task concept here
-    (catch Exception e (debuglogger search display (str "belief side termlink strength error " (.toString e)))))
-  (try (let [tasks (get-tasks state)
-             beliefs (filter #(and (= (:statement %) (:id @state))
-                                   (= (:task-type %) :belief)) tasks)
-             projected-belief-tuples (map (fn [z] [z (project-eternalize-to (:occurrence task) z @nars-time)]) beliefs)]
-         (if (not-empty projected-belief-tuples)
-           ;(println projected-beliefs)
-           ;(println "not empty pb: " projected-beliefs)
-           (let [#_[not-projected-belief belief] #_(apply max-key (comp confidence second) projected-belief-tuples)]
-             #_(cast! (:general-inferencer @state) [:do-inference-msg [task not-projected-belief]])
-             (doseq [belief beliefs]
-               (debuglogger search display ["selected belief:" belief "§"])
-               (cast! (:inference-request-router @state) [:do-inference-msg [task-concept-id (:id @state) task belief]])
-               (try
-                 ;1. check whether belief matches by unifying the question vars in task
-                 (when (and (= (:task-type task) :question)
-                            (some #{'qu-var} (flatten (:statement task)))
-                            (question-unifies (:statement task) (:statement belief)))
-                   ;2. if it unifies, check whether it is a better solution than the solution we have
-                   (let [answer-fqual (fn [answer] (if (= nil answer)
-                                                     0
-                                                     (/ (expectation (:truth answer)) (:sc answer))))
-                         newqual (answer-fqual (project-eternalize-to (:occurrence task) belief @nars-time))
-                         oldqual (answer-fqual (project-eternalize-to (:occurrence task) (:solution task) @nars-time))] ;PROJECT!!
-                     (when (> newqual oldqual)
-                       ;3. if it is a better solution, set belief as solution of task
-                       (let [budget (:budget task)
-                             new-prio (* (- 1.0 (expectation (:truth belief))) (first budget))
-                             new-budget [new-prio (second budget) (nth budget 2)]
-                             newtask (assoc task :solution belief :priority new-prio :budget new-budget)]
-                         ;4. print our result
-                         (output-task [:answer-to (str (narsese-print (:statement task)) "?")] (:solution newtask))
-                         ;5. send answer-update-msg OLD NEW to the task concept so that it can remove the old task bag entry
-                         ;and replace it with the one having the better solution. (reducing priority here though according to solution before send)
-                         (when-let [{c-ref :ref} ((:elements-map @c-bag) (:statement task))]
-                           (cast! c-ref [:solution-update-msg task newtask]))))))
-                 (catch Exception e (debuglogger search display (str "what-question error " (.toString e))))))
+  (try
+    (let [tasks (get-tasks state)
+          beliefs (filter #(and (= (:statement %) (:id @state))
+                                (= (:task-type %) :belief)) tasks)
+          projected-belief-tuples (map (fn [z] [z (project-eternalize-to (:occurrence task) z @nars-time)]) beliefs)
+          ;projected-beliefs (map (fn [z] [(project-eternalize-to (:occurrence task) z @nars-time)]) beliefs)
+          ;sorted-beliefs (sort-by (fn [a] (-(first (:budget a)))) projected-beliefs)
+          ]
 
-             ))
-         ;dummy? belief as "empty" termlink belief selection for structural inference
-         (let [belief {:statement (:id @state) :task-type :question :occurrence @nars-time :evidence '()}]
-           (debuglogger search display ["selected belief:" belief "§"])
-           (cast! (:inference-request-router @state) [:do-inference-msg [task-concept-id (:id @state) task belief]]))
-         )
-       (catch Exception e (debuglogger search display (str "belief request error " (.toString e))))))
+      #_(if (pos? (count sorted-beliefs))
+        (let [belief ((nth sorted-beliefs (selection-fn (count sorted-beliefs))))]
+         (debuglogger search display ["selected belief:" belief "§"])
+         (cast! (:inference-request-router @state) [:do-inference-msg [task-concept-id (:id @state) task belief]])
+         (match-belief-to-question task belief)))
 
+      (when (not-empty projected-belief-tuples)
+        (doseq [belief beliefs]
+          (debuglogger search display ["selected belief:" belief "§"])
+          (cast! (:inference-request-router @state) [:do-inference-msg [task-concept-id (:id @state) task belief]])
+          (match-belief-to-question task belief)))
+
+      ;dummy? belief as "empty" termlink belief selection for structural inference
+      (let [belief {:statement (:id @state) :task-type :question :occurrence @nars-time :evidence '()}]
+        (debuglogger search display ["selected belief:" belief "§"])
+        (cast! (:inference-request-router @state) [:do-inference-msg [task-concept-id (:id @state) task belief]])))
+    (catch Exception e (debuglogger search display (str "belief request error " (.toString e))))))
 
 (defn inference-request-handler
   ""
