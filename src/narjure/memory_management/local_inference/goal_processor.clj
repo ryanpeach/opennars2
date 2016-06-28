@@ -92,8 +92,8 @@
 
 
   ;1.: find all beliefs that predict the goal ''=/> =|>  <|> </>''
-  (when (and (= (:occurrence goal) :eternal)                ;this should not change as long as intervals are not handled
-          (= (:id @state) (:statement goal)))               ;properly it wont be necessary anyway though in this case
+  (when (and (= (:occurrence goal) :eternal)
+             (= (:id @state) (:statement goal)))
 
     (when (and (= (:task-type goal) :goal)
                (= (:statement goal) '[--> ballpos [int-set equal]]))
@@ -208,8 +208,7 @@
         quests (filter #(= (:task-type %) :quest ) tasks)]
 
     ;also allow revision in subterm concepts! this is why statement is compared to task statement, not to ID!!
-    (when-not (and (= (:occurrence task) :eternal)
-                   (operation? (:statement task)))         ;do not eternalize operations
+    (when (not (operation? (:statement task)))  ;TODO weaker eternalization, then its also fine for operations again i guess
       (let [related-goals (filter (fn [z] (and (same-occurrence-type z task)
                                               (= (:statement z) (:statement task)))) goals)]
 
