@@ -168,7 +168,7 @@
           (not= :eternal (:occurrence task))
           (< @nars-time (:occurrence task)))
         (println (str "blbub")))
-      ;;(println "1")
+      ;(println "1")
       (when (and (confirmable-observable? task)
                  (> (:occurrence task) @nars-time))
         (println "2")

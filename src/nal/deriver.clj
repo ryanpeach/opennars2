@@ -81,6 +81,23 @@
               ['--> '<-> '==> 'pred-impl 'retro-impl
                '=|> '<=> '</> '<|>]))
 
+(defn occurrence-type [occ]
+  (case occ
+    :eternal :eternal
+    :event))
+
+(defn reorder-inference [parsed-p1 parsed-p2]
+  (let [type1 (occurrence-type (:occurrence parsed-p1))
+        type2 (occurrence-type (:occurrence parsed-p2))
+        p1-occurrence (if (and (= type1 :eternal) (= type2 :event))
+                     (:occurrence parsed-p2)                ;in this case use the occurrence of the second premise as it also holds at this time since its eternal
+                     (:occurrence parsed-p1))]              ;nothing changed
+      (generate-conclusions
+        (r/rules (:task-type parsed-p1))
+        (assoc parsed-p1 :occurrence p1-occurrence)
+        parsed-p2)
+      ))
+
 ;this is the inference function we should use
 (defn inference
   "Inference between two premises"
@@ -95,7 +112,4 @@
                                   (valid-statement (:statement st))))
                     (map no-truth-for-questions-and-quests
                          (map interval-reduction
-                              (generate-conclusions
-                                (r/rules (:task-type parsed-p1))
-                                parsed-p1
-                                parsed-p2)))))))
+                              (reorder-inference parsed-p1 parsed-p2)))))))

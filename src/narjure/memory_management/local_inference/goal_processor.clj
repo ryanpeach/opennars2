@@ -37,7 +37,7 @@
 
 
 
-(def decision-threshold 0.56)
+(def decision-threshold 0.63)
 
 (defn execute? [task]
   (> (expectation (:truth task)) decision-threshold))
@@ -90,7 +90,7 @@
   <(&/,<{ball} --> [down]>,move_up({SELF})) =/>
   <{ball} --> [equal]>>. %0.4;09%"
 
-  (when (and (= (:id @state) (:statement goal))
+  #_(when (and (= (:id @state) (:statement goal))
              (= (:occurrence goal) :eternal)
              (= (:task-type goal) :goal)
              (= (:statement goal) '[--> ballpos [int-set equal]])
@@ -100,7 +100,7 @@
   (when (and (= (:occurrence goal) :eternal)
              (= (:id @state) (:statement goal)))
 
-    (when (and (= (:task-type goal) :goal)
+    #_(when (and (= (:task-type goal) :goal)
                (= (:statement goal) '[--> ballpos [int-set equal]]))
       (println "concept ballpos equ goal processed"))
 
@@ -108,7 +108,7 @@
           println2 (fn [a] (when debugme (println a)))
           ;2. filter those with (precondition,op) => goal   ;so this one is for future improvement
           #_print1 #_(println "step 1,2")
-          blub1 (println2 "process goal debug marker")
+          #_blub1 #_(println2 "process goal debug marker")
           precondition-op-forms ['[pred-impl [seq-conj [seq-conj ?precondition ?interval1 ?operation] ?interval2] ?goal]
 
                                  #_'[pred-impl [conj ?precondition [seq-conj ?operation ?interval]] ?goal]

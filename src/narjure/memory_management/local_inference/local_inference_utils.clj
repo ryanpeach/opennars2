@@ -9,6 +9,7 @@
     [narjure.control-utils :refer [make-evidence round2]]
     [narjure.perception-action.task-creator :refer :all]
     [nal.term_utils :refer :all]
+    [nal.deriver :refer [occurrence-type]]
     [nal.deriver.truth :refer [t-and t-or frequency confidence expectation]]
     [nal.deriver.projection-eternalization :refer [project-eternalize-to]]
     [narjure.debug-util :refer :all])
@@ -19,11 +20,6 @@
     nil
     [(round2 2 f)
     (round2 2 c)]))
-
-(defn occurrence-type [occ]
-  (case occ
-    :eternal :eternal
-    :event))
 
 (defn get-task-id [task]
   [(:statement task) (:task-type task) (occurrence-type (:occurrence task))])
