@@ -93,24 +93,6 @@
         (cast! task-dispatcher [:task-msg [nil nil new-task]])
         (output-task :input new-task)
         (when (event? sentence)
-          ;uncomment for STM induction:
-          #_(when (and (not= nil (deref lastevent))
-                     (= (:task-type new-task) :belief)
-                     (not (operation? (:statement new-task))))
-            (cast! (whereis :inference-request-router) [:do-inference-msg [(:statement new-task) (:statement @lastevent) nil new-task @lastevent true]]))
-          ;temporal link strategy to play role of common subterm temporally justified
-          ;(println @lastevent)
-          #_(when (and @lastevent
-                     (belief? new-task)
-                     #_(not (operation? (:statement new-task))))
-            (let [new-term (:statement new-task)
-                  old-term (:statement @lastevent)
-                  new-ref (get-ref-from-term new-term)
-                  old-ref (get-ref-from-term old-term)]
-              (when (and new-ref old-ref)
-                (cast! new-ref [:termlink-strengthen-msg [old-term]])
-                (cast!  old-ref [:termlink-strengthen-msg [new-term]]))))
-
           (when (belief? new-task)
             (reset! lastevent new-task))
           (cast! task-dispatcher [:task-msg [nil nil (create-eternal-task new-task)]]))))))

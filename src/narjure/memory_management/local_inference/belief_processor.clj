@@ -31,8 +31,10 @@
         confidence-of-lack (w2c positive-evidence-lack)]
     (dissoc (assoc anticipation :task-type :belief
                                 :evidence (list (get-id))
-                               :truth [0.0 confidence-of-lack]
-                               :budget [(min 1.0
+                                :truth [0.0 confidence-of-lack]
+                                :budget [1.0 (second (:budget anticipation)) 1.0]
+                                :parent-statement nil
+                               #_:budget #_[(min 1.0
                                              (* (first (:budget anticipation))
                                                 confidence-of-lack
                                                 anticipation-disappointment-priority-gain))
@@ -94,9 +96,13 @@
   ;group-by :task-type tasks
   (let [tasks (get-tasks state)
         anticipation (:anticipation @state)
-        goals (filter #(= (:task-type %) :goal) tasks)
-        beliefs (filter #(= (:task-type %) :belief) tasks)
-        questions (filter #(= (:task-type %) :question ) tasks)]
+        groups (group-by :task-type tasks)
+        goals (:goal groups)
+        beliefs (:belief groups)
+        questions (:question groups)]
+
+    (when (and (= (:id @state) 'b) (= 0.0 (first (:truth task))))
+      (println "neg." " time: " @nars-time " " task))
 
     ;also allow revision in subterm concepts! this is why statement is compared to task statement, not to ID!!
     (when true ;TODO weaken eternalization
@@ -106,9 +112,10 @@
 
        (let [total-revision (reduce (fn [a b] (if (and (revision-relevant-events task b)
                                                     (non-overlapping-evidence? (:evidence a) (:evidence b)))
-                                                (revise a (project-eternalize-to (:occurrence a) b @nars-time) :belief)
+                                                (revise a (project-eternalize-to (:occurrence a) b @nars-time))
                                                 a))
                                     task (shuffle same-content-beliefs))]
+
          ;add revised task to bag:
          (add-to-tasks state total-revision)
          ;check if it satisfies a goal or question and change budget accordingly
@@ -117,24 +124,23 @@
          )))
 
     ; processing revised anticipations
-    (when (and (event? task) (= (:source task) :input) (= (:task-type task) :belief))
+    (when (and (event? task) (= (:source task) :input) (belief? :belief))
       (when anticipation
         (when (= (:statement anticipation) (:statement task))
           (let [projected-anticipation (project-eternalize-to (:occurrence task) anticipation @nars-time)]
             ;revise anticipation and add to tasks
             (when (non-overlapping-evidence? (:evidence task) (:evidence projected-anticipation))
                (println (str "projected anticipation: " projected-anticipation "\ntask: " task))
-               (set-state! (assoc @state :anticipation (revise projected-anticipation task :anticipation))))))))
+               (set-state! (assoc @state :anticipation (revise projected-anticipation task))))))))
 
     ;generate neg confirmation for expired anticipations
     ;and add to tasks
     (when (and anticipation (expired? anticipation))
-      (let [neg-confirmation (create-negative-confirmation-task anticipation)]
+      (let [neg-confirmation (create-negative-confirmation-task anticipation)] ;todo review budget in create-negative - currently priority of 1.0 with parents for d and q
         ;add neg-confirmation to tasks bag and remove anticiptaion
         (set-state! (assoc @state :anticipation nil))
         (println (str "neg conf: " neg-confirmation))
-        (process-belief state neg-confirmation 0)
-        (process-belief state (eternalize neg-confirmation) 0))) ;probably still a budget increase based on disappointment rate
+        (cast! (whereis :task-dispatcher) [:task-msg [nil nil neg-confirmation]])))
 
     ;when task is confirmable and observabnle
     ;add an anticipation tasks to tasks
@@ -161,5 +167,4 @@
             (when (> (first (:budget anticipated-task)) (first (:budget anticipation)))
               (set-state! (assoc @state :anticipation (with-anticipated-truth anticipated-task))))
             (set-state! (assoc @state :anticipation (with-anticipated-truth anticipated-task))))
-          (println (str "created anticipation: " (:anticipation @state))))))
-    ))
+          (println (str "created anticipation: " (:anticipation @state))))))))

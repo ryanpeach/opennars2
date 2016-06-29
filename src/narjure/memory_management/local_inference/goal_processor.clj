@@ -202,9 +202,10 @@
   ;group-by :task-type tasks
 
   (let [tasks (get-tasks state)
-        goals (filter #(= (:task-type %) :goal) tasks)
-        beliefs (filter #(= (:task-type %) :belief) tasks)
-        quests (filter #(= (:task-type %) :quest ) tasks)]
+        groups (group-by :task-type tasks)
+        goals (:goal groups)
+        beliefs (:belief groups)
+        quests (:quest groups)]
 
     ;also allow revision in subterm concepts! this is why statement is compared to task statement, not to ID!!
     (when true
@@ -212,7 +213,7 @@
                                               (= (:statement z) (:statement task)))) goals)]
 
        (let [total-revision (reduce (fn [a b] (if (non-overlapping-evidence? (:evidence a) (:evidence b))
-                                                (revise a (project-eternalize-to (:occurrence a) b @nars-time) :goal)
+                                                (revise a (project-eternalize-to (:occurrence a) b @nars-time))
                                                 a))
                                     task (shuffle related-goals))]
 

@@ -85,11 +85,9 @@
 (defn no-duplicate [M]
   (= (count (set M)) (count M)))
 
-(defn revise [t1 t2 kw]
+(defn revise [t1 t2]
   (let [revised-truth (nal.deriver.truth/revision (:truth t1) (:truth t2))
         evidence (make-evidence (:evidence t1) (:evidence t2))]
-    #_(when-not (no-duplicate evidence)
-      (println (str "nope " kw)))
     (assoc t1 :truth revised-truth :source :derived :evidence evidence :budget (max-budget (:budget t1) (:budget t2)))))
 
 (defn better-solution [solution task]

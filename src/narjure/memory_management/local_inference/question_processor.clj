@@ -14,11 +14,11 @@
   (:refer-clojure :exclude [promise await]))
 
 (defn process-question [state question]
-  (let [beliefs (filter #(= (:task-type %) :belief) (get-tasks state))]
+  (let [beliefs (filter #(and (= (:task-type %) :belief) (= (:statement %) (:statement question))) (get-tasks state))]
     ;filter beliefs matching concept content
     ;project to task time
     ;select best ranked
-    (let [projected-belief-tuples (map (fn [a] [a (project-eternalize-to (:occurrence question) a @nars-time)]) (filter #(= (:statement %) (:statement question)) beliefs))]
+    (let [projected-belief-tuples (map (fn [a] [a (project-eternalize-to (:occurrence question) a @nars-time)]) beliefs)]
       (if (not-empty projected-belief-tuples)
         ;select best solution
         (let [[belief projected-belief] (apply max-key (fn [a] (confidence (second a))) projected-belief-tuples)
