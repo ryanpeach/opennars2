@@ -38,8 +38,8 @@
 
 (defn forget-termlinks []
   ;TODO test
-  #_(doseq [[tl strength] (:termlinks @state)]
-    (when (not (b/exists? c-bag tl))
+  (doseq [[tl _] (:termlinks @state)]
+    (when (not (b/exists? @c-bag tl))
       (set-state! (assoc @state :termlinks (dissoc (:termlinks @state) tl)))))
   (while (> (count (:termlinks @state)) concept-max-termlinks)
     (let [worst (apply min-key (comp first second) (:termlinks @state))]

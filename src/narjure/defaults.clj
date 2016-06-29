@@ -57,9 +57,9 @@
 ; decay-rate of 10 would fully decay it in 100 cycles
 (def system-tick-interval 50)                               ;make big enough
 (def inference-tick-interval 150)
-(def anticipation-scale-dependent-tolerance 2.0)
+(def anticipation-scale-dependent-tolerance 4.0)            ;has to be 4 since interval rounding has to agree with time measurement in 2-power
 (def anticipation-disappointment-priority-gain 1.5)         ;should be >=1.0 !
 (def termlink-default-budget [0.1 0.9])
 (def concept-selection-introduced-termlink-default-budget [0.1 0.3])
 (def termlink-context-adaptations-speed 0.05)
-(def revision-relevant-event-distance 0.0)                  ;TODO check its relation to temporal window and the parameter in projection
+(def revision-relevant-event-distance 30.0)                  ;TODO check its relation to temporal window and the parameter in projection

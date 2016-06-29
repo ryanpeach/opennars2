@@ -90,6 +90,11 @@
   <(&/,<{ball} --> [down]>,move_up({SELF})) =/>
   <{ball} --> [equal]>>. %0.4;09%"
 
+  (when (and (= (:id @state) (:statement goal))
+             (= (:occurrence goal) :eternal)
+             (= (:task-type goal) :goal)
+             (= (:statement goal) '[--> ballpos [int-set equal]])
+             (println "concept ballpos equ goal processed")))
 
   ;1.: find all beliefs that predict the goal ''=/> =|>  <|> </>''
   (when (and (= (:occurrence goal) :eternal)
@@ -210,43 +215,45 @@
     ;also allow revision in subterm concepts! this is why statement is compared to task statement, not to ID!!
     (when true
       (let [related-goals (filter (fn [z] (and (same-occurrence-type z task)
-                                              (= (:statement z) (:statement task)))) goals)]
+                                               (= (:statement z) (:statement task)))) goals)]
 
-       (let [total-revision (reduce (fn [a b] (if (non-overlapping-evidence? (:evidence a) (:evidence b))
-                                                (revise a (project-eternalize-to (:occurrence a) b @nars-time))
-                                                a))
-                                    task (shuffle related-goals))]
+        (let [total-revision (reduce (fn [a b] (if (non-overlapping-evidence? (:evidence a) (:evidence b))
+                                                 (revise a (project-eternalize-to (:occurrence a) b @nars-time))
+                                                 a))
+                                     task (shuffle related-goals))]
 
-         ;add revised task to bag
-         (add-to-tasks state total-revision)
-         ; check to see if revised or task is answer to quest and increase budget accordingly
-         ;check whether it is fullfilled by belief and decrease budget accordingly
-         (satisfaction-based-budget-change state total-revision beliefs)
-         (answer-based-budget-change state (:task (first (b/get-by-id (:tasks @state) (get-task-id total-revision)))) quests)
+          ;add revised task to bag
+          (add-to-tasks state total-revision)
+          ; check to see if revised or task is answer to quest and increase budget accordingly
+          ;check whether it is fullfilled by belief and decrease budget accordingly
+          (satisfaction-based-budget-change state (:task (first (b/get-by-id (:tasks @state) (get-task-id total-revision)))) (filter #(= (:task-type %) :belief) (get-tasks state)))
+          (answer-based-budget-change state (:task (first (b/get-by-id (:tasks @state) (get-task-id total-revision)))) quests)
 
-         #_(when (and (= (:task-type task) :goal)
-                    (= (:statement task) '[--> ballpos [int-set equal]]))
-           (println "concept ballpos equ goal processed"))
+          #_(when (and (= (:id @state) (:statement total-revision))
+                  (= (:occurrence total-revision) :eternal)
+                       (= (:task-type total-revision) :goal)
+                       (= (:statement total-revision) '[--> ballpos [int-set equal]]))
+              (println "concept ballpos equ goal processed"))
 
-         (try
-           (best-operation-selection (filter #(= (:task-type %) :belief) (get-tasks state))
-                                     (:task (first (b/get-by-id (:tasks @state) (get-task-id total-revision)))))
-           (catch Exception e () #_(println "operator selector error")))
-         )))
+          (try
+            (best-operation-selection (filter #(= (:task-type %) :belief) (get-tasks state))
+                                      (:task (first (b/get-by-id (:tasks @state) (get-task-id total-revision)))))
+            (catch Exception e () #_(println "operator selector error")))
+          ))
 
-    ;best operation project goal to current time
-    ; if above decision threshold then execute
-    (let [projected-goals (map #(project-eternalize-to @nars-time % @nars-time)
-                               (filter #(= (:statement %) (:statement task))
-                                       (filter #(= (:task-type %) :goal) ;re-getting the goals because we also want our just added goal
-                                               (conj tasks task))))] ;needs new task as well
-     (if (not-empty projected-goals)
-       (let [possible-operations (filter #(and (operation? (:statement %)) (execute? %) (= (:statement %) (:id @state))) projected-goals)
-             operation (if (not-empty possible-operations)
-                    (apply max-key confidence possible-operations)
-                    nil)]
-         (when (not= (:occurrence task) :eternal)
-           (when-not (= nil operation)                      ;todo change to - when operation
-             (println (str (:truth operation) (expectation (:truth operation))))
-            ;(println (str  "goal: " operation))
-            (cast! (whereis :operator-executor) [:operator-execution-msg operation]))))))))
+      ;best operation project goal to current time
+      ; if above decision threshold then execute
+      (let [projected-goals (map #(project-eternalize-to @nars-time % @nars-time)
+                                 (filter #(= (:statement %) (:statement task))
+                                         (filter #(= (:task-type %) :goal) ;re-getting the goals because we also want our just added goal
+                                                 (conj tasks task))))] ;needs new task as well
+        (if (not-empty projected-goals)
+          (let [possible-operations (filter #(and (operation? (:statement %)) (execute? %) (= (:statement %) (:id @state))) projected-goals)
+                operation (if (not-empty possible-operations)
+                            (apply max-key confidence possible-operations)
+                            nil)]
+            (when (not= (:occurrence task) :eternal)
+              (when-not (= nil operation)                   ;todo change to - when operation
+                (println (str (:truth operation) (expectation (:truth operation))))
+                ;(println (str  "goal: " operation))
+                (cast! (whereis :operator-executor) [:operator-execution-msg operation])))))))))

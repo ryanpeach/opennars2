@@ -94,8 +94,8 @@
   (let [projected-solution (project-eternalize-to (:occurrence task) solution @nars-time)
         cur-solution (project-eternalize-to (:occurrence task) (:solution task) @nars-time)]
     (or (= nil cur-solution)
-        (> (confidence projected-solution)
-           (confidence cur-solution)))))
+        (>= (confidence projected-solution)
+            (confidence cur-solution)))))
 
 
 (defn reduced-goal-budget-by-belief [goal belief]                     ;by belief satisfied goal

@@ -11,6 +11,7 @@
     [narjure.defaults :refer :all]
     [narjure.perception-action.task-creator :refer [event? get-id]]
     [narjure.memory-management.local-inference.local-inference-utils :refer :all]
+    [nal.term_utils :refer :all]
     [nal.deriver.truth :refer [t-or confidence frequency w2c t2-evidence-weights]]
     [nal.deriver.projection-eternalization :refer [project-eternalize-to eternalize]])
   (:refer-clojure :exclude [promise await]))
@@ -35,6 +36,8 @@
                                 :truth [0.0 confidence-of-lack]
                                 :budget [(t-or 0.7 (nth budget 0)) (nth budget 1) (nth budget 2)]
                                 :parent-statement nil
+                                :occurrence (:expiry anticipation) ;could be minus/plus anticipation tolerance later
+                                :terms (termlink-subterms (:statement anticipation))
                                #_:budget #_[(min 1.0
                                              (* (first (:budget anticipation))
                                                 confidence-of-lack
@@ -102,15 +105,13 @@
   (let [tasks (get-tasks state)
         anticipation (:anticipation @state)
         groups (group-by :task-type tasks)
-        goals (:goal groups)
-        beliefs (:belief groups)
-        questions (:question groups)]
+        beliefs (:belief groups)]
 
     #_(when (and (= (:id @state) 'b) (= 0.0 (first (:truth task))))
       (println "neg." " time: " @nars-time " anticipation: " anticipation " " task))
 
     ;also allow revision in subterm concepts! this is why statement is compared to task statement, not to ID!!
-    (when true ;TODO weaken eternalization
+    (when true
 
       (let [same-content-beliefs (filter (fn [z] (and (same-occurrence-type z task)
                                                      (= (:statement z) (:statement task)))) beliefs)]
@@ -124,20 +125,20 @@
          ;add revised task to bag:
          (add-to-tasks state total-revision)
          ;check if it satisfies a goal or question and change budget accordingly
-         (satisfaction-based-budget-change state total-revision goals)
-         (answer-based-budget-change state (:task (first (b/get-by-id (:tasks @state) (get-task-id total-revision)))) questions)
+         (satisfaction-based-budget-change state (:task (first (b/get-by-id (:tasks @state) (get-task-id total-revision)))) (filter #(= (:task-type %) :goal) (get-tasks state)))
+         (answer-based-budget-change state (:task (first (b/get-by-id (:tasks @state) (get-task-id total-revision)))) (filter #(= (:task-type %) :question) (get-tasks state)))
          )))
 
     ; processing revised anticipations
-    (when (and (event? task) (= (:source task) :input) (belief? :belief))
+    (when (and (event? task) (= (:source task) :input) (belief? task))
       (when anticipation
         (when (= (:statement anticipation) (:statement task))
           (println "here")
-          (let [projected-anticipation (project-eternalize-to (:occurrence task) anticipation @nars-time)]
+          (let [projected-task (project-eternalize-to (:occurrence anticipation) task @nars-time)]
             ;revise anticipation and add to tasks
-            (when (non-overlapping-evidence? (:evidence task) (:evidence projected-anticipation))
-               (println (str "projected anticipation: " projected-anticipation "\ntask: " task))
-               (set-state! (assoc @state :anticipation (revise projected-anticipation task))))))))
+            (when (non-overlapping-evidence? (:evidence projected-task) (:evidence anticipation))
+               (println (str "anticipation: " anticipation "\nprojected task: " projected-task))
+               (set-state! (assoc @state :anticipation (revise anticipation projected-task))))))))
 
     (let [anticipation (:anticipation @state)]                                                 ;be sure to use updated anticipation
       ;generate neg confirmation for expired anticipations
@@ -167,12 +168,14 @@
           (not= :eternal (:occurrence task))
           (< @nars-time (:occurrence task)))
         (println (str "blbub")))
+      ;;(println "1")
       (when (and (confirmable-observable? task)
                  (> (:occurrence task) @nars-time))
+        (println "2")
         #_(println (str "2. nars-time:" @nars-time "2. :task " task))
         (let [anticipated-task (create-anticipation-task task)
               with-anticipated-truth (fn [t] (assoc t :source :derived :anticipated-truth (:truth t) :truth [0.5 0.0]))]
-          #_(println (str "3..."))
+          (println (str "3..."))
           (if (not= nil anticipation)
             (when (> (first (:budget anticipated-task)) (first (:budget anticipation)))
               (set-state! (assoc @state :anticipation (with-anticipated-truth anticipated-task))))
