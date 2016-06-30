@@ -219,7 +219,8 @@
         quests (:quest groups)]
 
     ;also allow revision in subterm concepts! this is why statement is compared to task statement, not to ID!!
-    (when true
+    (when-not (and (= (:occurrence task) :eternal)
+                   (operation? (:statement task)))
       (let [related-goals (filter (fn [z] (and (same-occurrence-type z task)
                                                (= (:statement z) (:statement task)))) goals)]
 

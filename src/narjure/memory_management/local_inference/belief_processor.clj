@@ -111,7 +111,10 @@
       (println "neg." " time: " @nars-time " anticipation: " anticipation " " task))
 
     ;also allow revision in subterm concepts! this is why statement is compared to task statement, not to ID!!
-    (when true
+    (when (not (and (= (:statement task) (:id @state))
+                    (:observable @state)
+                    (= (:task-type task) :belief)
+                    (= (:occurrence task) :eternal)))
 
       (let [same-content-beliefs (filter (fn [z] (and (same-occurrence-type z task)
                                                      (= (:statement z) (:statement task)))) beliefs)]
