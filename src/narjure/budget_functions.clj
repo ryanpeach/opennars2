@@ -46,11 +46,11 @@
               (let [quality (max (nth budget 2)
                                  (t-or (expectation (:truth derived-task)) (t-or (second goal-desire) 0.8)))] ;TODO see goal-processor (unify)
                 (do
-                  (println "3")
+                  (println "INCREASED DERIVED BUDGET")
                   (println (narsese-print (:statement derived-task)) " " (:truth derived-task) " " (:occurrence derived-task))
                   [(max (first budget) quality)
-                   (second budget)
-                   quality]))
+                   (max (second budget) 0.9)
+                   (nth budget 2)]))
               not-matched-or-not-desired-budget))))
       not-matched-or-not-desired-budget))                   ;tODO too radical
   )

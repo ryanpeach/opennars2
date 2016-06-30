@@ -136,7 +136,7 @@
     (when (and (event? task) (= (:source task) :input) (belief? task))
       (when anticipation
         (when (= (:statement anticipation) (:statement task))
-          (println "here")
+          #_(println "here")
           (let [projected-task (project-eternalize-to (:occurrence anticipation) task @nars-time)]
             ;revise anticipation and add to tasks
             (when (non-overlapping-evidence? (:evidence projected-task) (:evidence anticipation))
@@ -149,12 +149,19 @@
       (when (and anticipation (expired? anticipation))
        (let [neg-confirmation (create-negative-confirmation-task anticipation) ;      ;todo review budget in create-negative - currently priority of 1.0 with parents for d and q
              negated-neg-confirmation (create-negated-negative-confirmation-task neg-confirmation)]
-         (println "negated neg: " negated-neg-confirmation)
-         ;add neg-confirmation to tasks bag and remove anticiptaion
          (set-state! (assoc @state :anticipation nil))
-         (println (str "neg conf: " neg-confirmation))
-         (cast! (whereis :task-dispatcher) [:task-msg [nil nil neg-confirmation]])
-         (cast! (whereis :task-dispatcher) [:task-msg [nil nil negated-neg-confirmation]]))))
+         (when (not= (:truth neg-confirmation [0.0 0.0]))
+           (println "negated neg: " negated-neg-confirmation)
+           ;add neg-confirmation to tasks bag and remove anticiptaion
+           (println (str "neg conf: " neg-confirmation))
+           (cast! (whereis :task-dispatcher) [:task-msg [nil nil neg-confirmation]])
+           (cast! (whereis :task-dispatcher) [:task-msg [nil nil negated-neg-confirmation]])
+           ;hypothesis correction:
+           (when (:anticipation-precondition-task neg-confirmation)
+             (cast! (whereis :inference-request-router) [:do-inference-msg [nil nil neg-confirmation (:anticipation-precondition-task neg-confirmation)]])
+             (println "hypothesis corrected!!! with task: " (:anticipation-precondition-task neg-confirmation) "\n"
+                      "belief: " neg-confirmation)))
+         )))
 
     ;when task is confirmable and observabnle
     ;add an anticipation tasks to tasks
@@ -174,11 +181,11 @@
       ;(println "1")
       (when (and (confirmable-observable? task)
                  (> (:occurrence task) @nars-time))
-        (println "2")
+        #_(println "2")
         #_(println (str "2. nars-time:" @nars-time "2. :task " task))
         (let [anticipated-task (create-anticipation-task task)
               with-anticipated-truth (fn [t] (assoc t :source :derived :anticipated-truth (:truth t) :truth [0.5 0.0]))]
-          (println (str "3..."))
+          #_(println (str "3..."))
           (if (not= nil anticipation)
             (when (and #_(> (first (:budget anticipated-task)) (first (:budget anticipation)))
                        (< (:occurrence task) (:occurrence anticipation)))

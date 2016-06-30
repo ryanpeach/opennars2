@@ -14,7 +14,7 @@
 (def fieldmin 20)
 
 (defn with-print [x]
-  (println (str x))
+  #_(println (str x))
   x)
 
 (defn setup-pong []
@@ -23,13 +23,13 @@
   (nars-register-operation 'op_up (fn [args operationgoal]
                                     (do
                                       (when (= (:source operationgoal) :derived)
-                                        (println "system decided up"))
+                                        #_(println "system decided up"))
                                       (reset! direction -1)
                                       (with-print (not= @py fieldmin)))))
   (nars-register-operation 'op_down (fn [args operationgoal]
                                       (do
                                         (when (= (:source operationgoal) :derived)
-                                          (println "system decided down"))
+                                          #_(println "system decided down"))
                                         (reset! direction 1)
                                         (with-print (not= @py (- fieldmax barheight (- fieldmin)))))))
 
@@ -55,7 +55,7 @@
   (when (= @direction 1)
     (reset! py (+ @py 3)))
   (when (= (mod (:iteration state) 25) 0)
-    (println (str "above truth " (vec (:truth (lense-max-statement-confidence-projected-to-now '[--> ballpos [int-set above]] :belief :event)))
+    #_(println (str "above truth " (vec (:truth (lense-max-statement-confidence-projected-to-now '[--> ballpos [int-set above]] :belief :event)))
                   " below truth " (vec (:truth (lense-max-statement-confidence-projected-to-now '[--> ballpos [int-set below]] :belief :event)))))
     (nars-input-narsese "<ballpos --> [equal]>! :|:"))
   (when (= (mod (:iteration state) 250) 1)
