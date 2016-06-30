@@ -127,7 +127,7 @@
                :quality                  0.0
                :tasks                    (b/default-bag max-tasks)
                :termlinks                {}
-               :anticipation             nil
+               :anticipations            {}
                :concept-manager          (whereis :concept-manager)
                :inference-request-router (whereis :inference-request-router)
                :last-forgotten           @nars-time

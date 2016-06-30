@@ -24,6 +24,9 @@
 (defn get-task-id [task]
   [(:statement task) (:task-type task) (occurrence-type (:occurrence task))])
 
+(defn get-anticipation-id [task]
+  [(:statement task) (:task-type task) (:occurrence task)])
+
 (defn item [task]
   {:id (get-task-id task) :priority (first (:budget task))})
 

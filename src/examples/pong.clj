@@ -25,13 +25,13 @@
                                       (when (= (:source operationgoal) :derived)
                                         #_(println "system decided up"))
                                       (reset! direction -1)
-                                      (with-print (not= @py fieldmin)))))
+                                      true #_(with-print (not= @py fieldmin)))))
   (nars-register-operation 'op_down (fn [args operationgoal]
                                       (do
                                         (when (= (:source operationgoal) :derived)
                                           #_(println "system decided down"))
                                         (reset! direction 1)
-                                        (with-print (not= @py (- fieldmax barheight (- fieldmin)))))))
+                                        true #_(with-print (not= @py (- fieldmax barheight (- fieldmin)))))))
 
   (merge hnav/states {:ball-px 380
                       :ball-py 400
@@ -55,7 +55,7 @@
   (when (= @direction 1)
     (reset! py (+ @py 3)))
   (when (= (mod (:iteration state) 25) 0)
-    #_(println (str "above truth " (vec (:truth (lense-max-statement-confidence-projected-to-now '[--> ballpos [int-set above]] :belief :event)))
+    (println (str "above truth " (vec (:truth (lense-max-statement-confidence-projected-to-now '[--> ballpos [int-set above]] :belief :event)))
                   " below truth " (vec (:truth (lense-max-statement-confidence-projected-to-now '[--> ballpos [int-set below]] :belief :event)))))
     (nars-input-narsese "<ballpos --> [equal]>! :|:"))
   (when (= (mod (:iteration state) 250) 1)
@@ -66,7 +66,7 @@
 
 
   ;also give info from time to time
-  #_(when (= (mod (:iteration state) 80) 0)                    ;1
+  (when (= (mod (:iteration state) 80) 0)                    ;1
     #_(nars-input-narsese (str "<{" (int (* 100 (quot (:ball-py state) 100))) "} --> ballpos>. :|:" ))
     #_(nars-input-narsese (str "<{" (int (* 100 (quot @py 100))) "} --> barpos>. :|:" ))
     (if (and (>= (:ball-py state) @py)

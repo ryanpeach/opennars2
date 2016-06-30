@@ -25,12 +25,14 @@
    positive evidence lack: lack=max(0,wa+ - w+)
    evidence that was not observed: [f,c]_result = [0,  w2c(positive-lack)]
    ''justified by the amount of positive evidence that was NOT observed as anticipated to be observed''"
+  #_(println (:truth anticipation))
   (let [budget (:budget anticipation)
         anticipated-positive-evidence (:positive-evidence (t2-evidence-weights (:anticipated-truth anticipation)))
         observed-positive-evidence (:positive-evidence (t2-evidence-weights (:truth anticipation)))
         positive-evidence-lack (max 0 (- anticipated-positive-evidence
                                          observed-positive-evidence))
         confidence-of-lack (w2c positive-evidence-lack)]
+    (println (str "lack confidence: " confidence-of-lack))
     (dissoc (assoc anticipation :task-type :belief
                                 :evidence (list (get-id))
                                 :truth [0.0 confidence-of-lack]
@@ -44,7 +46,8 @@
                                                 anticipation-disappointment-priority-gain))
                                         (second (:budget anticipation))
                                         (nth (:budget anticipation) 2)])
-           :expiry)))
+           :expiry
+            :minconfirm)))
 
 (defn create-negated-negative-confirmation-task
   [neg-confirmation]
@@ -55,9 +58,11 @@
        (= (:source task) :derived)))
 
 (defn create-anticipation-task [task]
-  (assoc task :task-type :anticipation :expiry (let [k anticipation-scale-dependent-tolerance
-                                                     scale (/ (Math/abs (- (:occurrence task) @nars-time)) k)]
-                                                 (+ (:occurrence task scale))))) ;left side limit not needed since projection in revision
+  (let [k anticipation-scale-dependent-tolerance
+        scale (/ (Math/abs (- (:occurrence task) @nars-time)) k)]
+    (assoc task :task-type :anticipation
+                :minconfirm (- (:occurrence task) scale) ;left side limit
+               :expiry (+ (:occurrence task scale)))))      ;right side limit
 
 (defn satisfaction-based-budget-change [state belief-task goals]
   ;filter goals matching concept content
@@ -103,7 +108,7 @@
 (defn process-belief [state task cnt]
   ;group-by :task-type tasks
   (let [tasks (get-tasks state)
-        anticipation (:anticipation @state)
+        anticipations (:anticipations @state)
         groups (group-by :task-type tasks)
         beliefs (:belief groups)]
 
@@ -134,23 +139,27 @@
 
     ; processing revised anticipations
     (when (and (event? task) (= (:source task) :input) (belief? task))
-      (when anticipation
-        (when (= (:statement anticipation) (:statement task))
-          #_(println "here")
-          (let [projected-task (project-eternalize-to (:occurrence anticipation) task @nars-time)]
-            ;revise anticipation and add to tasks
-            (when (non-overlapping-evidence? (:evidence projected-task) (:evidence anticipation))
-               (println (str "anticipation: " anticipation "\nprojected task: " projected-task))
-               (set-state! (assoc @state :anticipation (revise anticipation projected-task))))))))
+      (when (pos? (count (:anticipations @state)))
+        (doseq [[id anticipation] (:anticipations @state)]  ;{task-id task task-id2 task2}
+          (when (and (= (:statement anticipation) (:statement task))
+                     (> (:occurrence task) (:minconfirm anticipation)))
+           #_(println "here")
+           (let [projected-task (project-eternalize-to (:occurrence anticipation) task @nars-time)]
+             ;revise anticipation and add to tasks
+             (when (non-overlapping-evidence? (:evidence projected-task) (:evidence anticipation))
+               #_(println (str "anticipation: " anticipation "\nprojected task: " projected-task))
+               (set-state! (assoc-in @state [:anticipations id]  (revise anticipation projected-task)))))))))
 
-    (let [anticipation (:anticipation @state)]                                                 ;be sure to use updated anticipation
+    (doseq [[id anticipation] (:anticipations @state)]                                                 ;be sure to use updated anticipation
       ;generate neg confirmation for expired anticipations
       ;and add to tasks
+      #_(println (str @nars-time " " (:expiry anticipation)))
       (when (and anticipation (expired? anticipation))
        (let [neg-confirmation (create-negative-confirmation-task anticipation) ;      ;todo review budget in create-negative - currently priority of 1.0 with parents for d and q
              negated-neg-confirmation (create-negated-negative-confirmation-task neg-confirmation)]
-         (set-state! (assoc @state :anticipation nil))
-         (when (not= (:truth neg-confirmation [0.0 0.0]))
+         (set-state! (assoc @state :anticipations (dissoc (:anticipations @state) id)))
+         ;(println (str "truth: " neg-confirmation))
+         (when (not= (:truth neg-confirmation) [0.0 0.0])
            (println "negated neg: " negated-neg-confirmation)
            ;add neg-confirmation to tasks bag and remove anticiptaion
            (println (str "neg conf: " neg-confirmation))
@@ -181,12 +190,27 @@
       ;(println "1")
       (when (and (confirmable-observable? task)
                  (> (:occurrence task) @nars-time))
-        #_(println "2")
+        ;(println "2")
         #_(println (str "2. nars-time:" @nars-time "2. :task " task))
-        (let [anticipated-task (create-anticipation-task task)
-              with-anticipated-truth (fn [t] (assoc t :source :derived :anticipated-truth (:truth t) :truth [0.5 0.0]))]
-          #_(println (str "3..."))
-          (if (not= nil anticipation)
+        (let [with-anticipated-truth (fn [t] (assoc t :source :derived :anticipated-truth (:truth t) :truth [0.5 0.0]))
+              anticipated-task (with-anticipated-truth (create-anticipation-task task))
+              anticipations (:anticipations @state)]
+          #_(println (str "3..." #_(assoc anticipations (get-anticipation-id anticipated-task) anticipated-task)))
+
+          (if (< (count anticipations) max-anticipations)
+            (do (set-state! (assoc @state :anticipations (assoc anticipations (get-anticipation-id anticipated-task) anticipated-task)))
+                (println (str "created anticipation: "  (:anticipations @state) " " anticipated-task)))
+            (let [[max-future-id max-future-anticipation] (apply max-key (fn [[id anticipation]] (:occurrence anticipation)) anticipations)]
+              (when (<= (:occurrence anticipated-task) (:occurrence max-future-anticipation))
+                (set-state! (assoc @state :anticipations (assoc (dissoc anticipations max-future-id)
+                                                (get-anticipation-id anticipated-task)
+                                                anticipated-task)))
+                (println (str "created anticipation(full): " anticipated-task)))))
+
+          #_(doseq [[id anticipation] (:anticipations @state)]
+            )
+
+          #_(if (not= nil anticipation)
             (when (and #_(> (first (:budget anticipated-task)) (first (:budget anticipation)))
                        (< (:occurrence task) (:occurrence anticipation)))
               (do

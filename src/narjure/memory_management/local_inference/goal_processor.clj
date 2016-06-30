@@ -104,7 +104,7 @@
   (when (and (= (:occurrence goal) :eternal)
              (= (:id @state) (:statement goal)))
 
-    (when (and (= (:task-type goal) :goal)
+    #_(when (and (= (:task-type goal) :goal)
                (= (:statement goal) '[--> ballpos [int-set equal]]))
       (println "concept ballpos equ goal processed"))
 
