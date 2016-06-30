@@ -177,7 +177,8 @@
               with-anticipated-truth (fn [t] (assoc t :source :derived :anticipated-truth (:truth t) :truth [0.5 0.0]))]
           (println (str "3..."))
           (if (not= nil anticipation)
-            (when (> (first (:budget anticipated-task)) (first (:budget anticipation)))
+            (when (and #_(> (first (:budget anticipated-task)) (first (:budget anticipation)))
+                       (< (:occurrence anticipated-task) (:occurrence anticipation)))
               (set-state! (assoc @state :anticipation (with-anticipated-truth anticipated-task))))
             (set-state! (assoc @state :anticipation (with-anticipated-truth anticipated-task))))
           (println (str "created anticipation: " (:anticipation @state))))))))

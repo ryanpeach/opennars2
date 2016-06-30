@@ -55,7 +55,7 @@
 (def inverse-decay-rate 150)                                        ; forgetting adjustment rate for concepts e^-lt where l = (1.0 - durabiity) / decay-rate
 ; durability of 0.5 and decay rate of 100 fully decays priority in 1000 cycles
 ; decay-rate of 10 would fully decay it in 100 cycles
-(def system-tick-interval 50)                               ;make big enough
+(def system-tick-interval 150)                               ;make big enough
 (def inference-tick-interval 150)
 (def anticipation-scale-dependent-tolerance 4.0)            ;has to be 4 since interval rounding has to agree with time measurement in 2-power
 (def anticipation-disappointment-priority-gain 1.5)         ;should be >=1.0 !

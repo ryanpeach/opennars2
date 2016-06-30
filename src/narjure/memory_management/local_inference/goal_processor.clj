@@ -6,6 +6,9 @@
     [taoensso.timbre :refer [debug info]]
     [narjure.debug-util :refer [narsese-print]]
     [narjure.bag :as b]
+    [narjure.defaults :refer [truth-value]]
+    [nal.term_utils :refer [syntactic-complexity termlink-subterms]]
+    [nal.deriver.truth :refer [intersection deduction]]
     [narjure.debug-util :refer :all]
     [narjure.control-utils :refer :all]
     [narjure.global-atoms :refer :all]
@@ -37,7 +40,7 @@
 
 
 
-(def decision-threshold 0.63)
+(def decision-threshold 0.53)
 
 (defn execute? [task]
   (> (expectation (:truth task)) decision-threshold))
@@ -109,27 +112,7 @@
           ;2. filter those with (precondition,op) => goal   ;so this one is for future improvement
           #_print1 #_(println "step 1,2")
           #_blub1 #_(println2 "process goal debug marker")
-          precondition-op-forms ['[pred-impl [seq-conj [seq-conj ?precondition ?interval1 ?operation] ?interval2] ?goal]
-
-                                 #_'[pred-impl [conj ?precondition [seq-conj ?operation ?interval]] ?goal]
-                                 #_'[pred-impl [conj [seq-conj ?operation ?interval] ?precondition] ?goal]
-                                 #_'[pred-impl [conj ?operation [seq-conj ?precondition ?interval]] ?goal]
-                                 #_'[pred-impl [conj [seq-conj ?precondition ?interval] ?operation] ?goal]
-                                 #_'[pred-impl [seq-conj ?precondition ?interval1 [seq-conj ?operation ?interval]] ?goal]
-                                 #_'[pred-impl [seq-conj [seq-conj ?operation ?interval] ?interval1 ?precondition] ?goal]
-                                 #_'[pred-impl [seq-conj ?operation ?interval1 [seq-conj ?precondition ?interval]] ?goal]
-                                 #_'[pred-impl [seq-conj [seq-conj ?precondition ?interval] ?interval1 ?operation] ?goal]
-                                 #_'[pred-impl [seq-conj ?precondition ?interval1 ?operation ?interval2] ?goal]
-
-                                 #_'[</> [conj ?precondition [seq-conj ?operation ?interval]] ?goal]
-                                 #_'[</> [conj [seq-conj ?operation ?interval] ?precondition] ?goal]
-                                 #_'[</> [conj ?operation [seq-conj ?precondition ?interval]] ?goal]
-                                 #_'[</> [conj [seq-conj ?precondition ?interval] ?operation] ?goal]
-                                 #_'[</> [seq-conj ?precondition ?interval1 [seq-conj ?operation ?interval]] ?goal]
-                                 #_'[</> [seq-conj [seq-conj ?operation ?interval] ?interval1 ?precondition] ?goal]
-                                 #_'[</> [seq-conj ?operation ?interval1 [seq-conj ?precondition ?interval]] ?goal]
-                                 #_'[</> [seq-conj [seq-conj ?precondition ?interval] ?interval1 ?operation] ?goal]
-                                 #_'[</> [seq-conj ?precondition ?interval1 ?operation ?interval2] ?goal]] ;TODO add others
+          precondition-op-forms ['[pred-impl [seq-conj [seq-conj ?precondition ?interval1 ?operation] ?interval2] ?goal]] ;TODO add others
           precondition-op-beliefs-and-assigment-tuple (filter
                                                         (fn [z] (and (not= (second z) nil)
                                                                      (= ((second z) '?goal) (:statement goal))
@@ -173,13 +156,15 @@
                                 :evidence-A      evidence-A
                                 :evidence-B      evidence-B
                                 :unification-map unification-map
-                                :debug-belief    debug-belief})
+                                :debug-belief    debug-belief
+                                :truth-A truth-A
+                                :truth-B truth-B})
 
           ;print5 (println (str "3 get best\n" (vec D-unification-maps)))
           ;by using the one whose expectation(D) is highest
           k-expectation-randomize 50.0
           best-option (apply max-key (comp (fn [a] (+ a (/ (rand) k-expectation-randomize))) expectation :D) ;not always the best one but tend to.
-                             (filter (fn [z] true #_(and (non-overlapping-evidence? (:evidence goal) (:evidence-A z))
+                             (filter (fn [z] true (and (non-overlapping-evidence? (:evidence goal) (:evidence-A z))
                                                          (non-overlapping-evidence? (:evidence-A z) (:evidence-B z)) ;overlap check is not transitive: A {1 2 3} B {5} C {1 2 3}
                                                          (non-overlapping-evidence? (:evidence goal) (:evidence-B z)))) D-unification-maps))
           ;print6 (println (str "finished 3 \n"best-option))
@@ -200,6 +185,27 @@
                        :sc (syntactic-complexity statement)}]
          (println (str "based on " (best-option :debug-belief)))
          (println (str "operator selector sending to task-creator " (:statement new-task) (:truth new-task) (expectation (:truth new-task))))
+         (when (> (expectation (:truth new-task)) decision-threshold)
+           ;create prediction for consequence:
+           (let [cont ((:unification-map best-option) '?goal)]
+             (println "test1")
+             (cast! (whereis :task-creator)
+                   [:derived-sentence-msg
+                    [nil ;TODO could provide link feedback
+                     nil
+                     {:truth      (deduction (intersection truth-value (:truth-A best-option))
+                                             (:truth-B best-option))
+                      :budget     (:budget goal)
+                      :occurrence (+ @nars-time (second ((:unification-map best-option) '?interval2)))
+                      :source     :derived
+                      :evidence   (:evidence best-option)
+                      :sc         (syntactic-complexity cont)
+                      :terms      (termlink-subterms cont)
+                      :solution   nil
+                      :task-type  :belief
+                      :statement  cont}]])
+             (println "sent"))
+           )
          (cast! (whereis :task-creator) [:derived-sentence-msg [nil nil new-task]])
          )))))
 
