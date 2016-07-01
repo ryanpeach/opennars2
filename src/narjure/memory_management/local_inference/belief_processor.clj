@@ -121,7 +121,20 @@
                     (= (:task-type task) :belief)
                     (= (:occurrence task) :eternal)))
 
-      (let [same-content-beliefs (filter (fn [z] (and (same-occurrence-type z task)
+      (let [[{existing-belief :task} _] (b/get-by-id (:tasks @state) (get-task-id task))]
+        (if existing-belief
+          (let [revised-task (if (and (revision-relevant-events task existing-belief)
+                                     (non-overlapping-evidence? (:evidence task) (:evidence existing-belief)))
+                              (revise task (project-eternalize-to (:occurrence task) existing-belief @nars-time))
+                              task)]
+           ;add revised task to bag:
+           (add-to-tasks state revised-task)
+           ;check if it satisfies a goal or question and change budget accordingly
+           (satisfaction-based-budget-change state (:task (first (b/get-by-id (:tasks @state) (get-task-id revised-task)))) (filter #(= (:task-type %) :goal) (get-tasks state)))
+           (answer-based-budget-change state (:task (first (b/get-by-id (:tasks @state) (get-task-id revised-task)))) (filter #(= (:task-type %) :question) (get-tasks state))))
+          (add-to-tasks state task)))
+
+      #_(let [same-content-beliefs (filter (fn [z] (and (same-occurrence-type z task)
                                                      (= (:statement z) (:statement task)))) beliefs)]
 
        (let [total-revision (reduce (fn [a b] (if (and (revision-relevant-events task b)
@@ -160,15 +173,15 @@
          (set-state! (assoc @state :anticipations (dissoc (:anticipations @state) id)))
          ;(println (str "truth: " neg-confirmation))
          (when (not= (:truth neg-confirmation) [0.0 0.0])
-           (println "negated neg: " negated-neg-confirmation)
+           #_(println "negated neg: " negated-neg-confirmation)
            ;add neg-confirmation to tasks bag and remove anticiptaion
-           (println (str "neg conf: " neg-confirmation))
+           #_(println (str "neg conf: " neg-confirmation))
            (cast! (whereis :task-dispatcher) [:task-msg [nil nil neg-confirmation]])
            (cast! (whereis :task-dispatcher) [:task-msg [nil nil negated-neg-confirmation]])
            ;hypothesis correction:
            (when (:anticipation-precondition-task neg-confirmation)
              (cast! (whereis :inference-request-router) [:do-inference-msg [nil nil neg-confirmation (:anticipation-precondition-task neg-confirmation)]])
-             (println "hypothesis corrected!!! with task: " (:anticipation-precondition-task neg-confirmation) "\n"
+             #_(println "hypothesis corrected!!! with task: " (:anticipation-precondition-task neg-confirmation) "\n"
                       "belief: " neg-confirmation)))
          )))
 
@@ -199,13 +212,13 @@
 
           (if (< (count anticipations) max-anticipations)
             (do (set-state! (assoc @state :anticipations (assoc anticipations (get-anticipation-id anticipated-task) anticipated-task)))
-                (println (str "created anticipation: "  (:anticipations @state) " " anticipated-task)))
+                #_(println (str "created anticipation: "  (:anticipations @state) " " anticipated-task)))
             (let [[max-future-id max-future-anticipation] (apply max-key (fn [[id anticipation]] (:occurrence anticipation)) anticipations)]
               (when (<= (:occurrence anticipated-task) (:occurrence max-future-anticipation))
                 (set-state! (assoc @state :anticipations (assoc (dissoc anticipations max-future-id)
                                                 (get-anticipation-id anticipated-task)
                                                 anticipated-task)))
-                (println (str "created anticipation(full): " anticipated-task)))))
+                #_(println (str "created anticipation(full): " anticipated-task)))))
 
           #_(doseq [[id anticipation] (:anticipations @state)]
             )

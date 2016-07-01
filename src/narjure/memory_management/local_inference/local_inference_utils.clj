@@ -113,10 +113,11 @@
 
 (defn increased-belief-budget-by-question [belief question]  ;useful belief, answered a question
   (let [budget (:budget belief)
-        d (second budget)
-        k 1.0
-        d-new (t-or d (* k (confidence belief)))]
-    (assoc belief :budget [(first budget) d-new (nth budget 2)])))                                                 ;1-confidence(solution)
+        q (nth budget 2)
+        k 0.001
+        ;d-new (t-or d (* k (confidence belief)))
+        q-new (t-or q (* k (nth (:budget belief) 2)))]
+    (assoc belief :budget [(first budget) (second budget) q-new])))                                                 ;1-confidence(solution)
 
 (defn reduced-quest-budget-by-goal [quest goal]                     ;by goal satisfied quest
   (reduced-question-budget-by-belief quest goal))

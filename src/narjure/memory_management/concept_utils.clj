@@ -73,11 +73,9 @@
 (defn update-concept-budget [state, self]
   "Update the concept budget"
   (let [tasks (:priority-index (:tasks state))      ; :priority-index ok here
-        priority-sum (round2 3 (reduce t-or 0.0 (for [x tasks] (:priority x))))
-        quality-rescale 0.1
+        p (round2 3 (reduce max 0.25 (for [x tasks] (:priority x))))
         el {:id       (:id state)
-            :priority priority-sum
-            :quality  0.0
+            :priority p
             :observable (:observable state)
             :ref      self
             :strongest-belief-about-now (max-statement-confidence-projected-to-now state :belief nil)

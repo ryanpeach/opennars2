@@ -251,7 +251,7 @@
           ; check to see if revised or task is answer to quest and increase budget accordingly
           ;check whether it is fullfilled by belief and decrease budget accordingly
           (satisfaction-based-budget-change state (:task (first (b/get-by-id (:tasks @state) (get-task-id total-revision)))) (filter #(= (:task-type %) :belief) (get-tasks state)))
-          (answer-based-budget-change state (:task (first (b/get-by-id (:tasks @state) (get-task-id total-revision)))) quests)
+          (answer-based-budget-change state (:task (first (b/get-by-id (:tasks @state) (get-task-id total-revision)))) (filter #(= (:task-type %) :quest) (get-tasks state)))
 
           #_(when (and (= (:id @state) (:statement total-revision))
                   (= (:occurrence total-revision) :eternal)

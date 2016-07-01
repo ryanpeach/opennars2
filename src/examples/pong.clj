@@ -19,7 +19,7 @@
 
 (defn setup-pong []
   (nars-input-narsese "<ballpos --> [equal]>! :|:")
-  (q/frame-rate 60)
+  (q/frame-rate 100)
   (nars-register-operation 'op_up (fn [args operationgoal]
                                     (do
                                       (when (= (:source operationgoal) :derived)
@@ -40,8 +40,8 @@
                       :iteration 0}))
 
 "
-<(&/,(&/,<ballpos --> [below]>,i32,<(*,{SELF}) --> op_down>),i32) =/> <ballpos --> [equal]>>.
-<(&/,(&/,<ballpos --> [above]>,i32,<(*,{SELF}) --> op_up>),i32) =/> <ballpos --> [equal]>>.
+<(&/,(&/,<ballpos --> [below]>,i1,<(*,{SELF}) --> op_down>),i16) =/> <ballpos --> [equal]>>.
+<(&/,(&/,<ballpos --> [above]>,i1,<(*,{SELF}) --> op_up>),i16) =/> <ballpos --> [equal]>>.
 "
 
 (def allow-continuous-feedback true)
@@ -99,6 +99,8 @@
              (<= (:ball-py state) (+ @py barheight)))
       (when (not= @updown-state "equal")
         (nars-input-narsese "<ballpos --> [equal]>. :|: %1.0;0.9%")
+        (nars-input-narsese "<ballpos --> [above]>. :|: %0%")
+        (nars-input-narsese "<ballpos --> [below]>. :|: %0%")
         (reset! updown-state "equal")
         #_(when allow-continuous-feedback
             ;(println "good NARS")
@@ -106,13 +108,17 @@
 
       (if (> (:ball-py state) @py)
         (when (not= @updown-state "below")
-          (nars-input-narsese (str "<ballpos --> [below]>. :|:"))
+          (nars-input-narsese "<ballpos --> [below]>. :|:")
+          (nars-input-narsese "<ballpos --> [above]>. :|: %0%")
+          (nars-input-narsese "<ballpos --> [equal]>. :|: %0%")
           (reset! updown-state "below")
           #_(when allow-continuous-feedback
               ;(println "bad NARS")
               (nars-input-narsese "<{SELF} --> [good]>. :|: %0.0;0.9%")))
         (when (not= @updown-state "above")
-          (nars-input-narsese (str "<ballpos --> [above]>. :|:"))
+          (nars-input-narsese "<ballpos --> [above]>. :|:")
+          (nars-input-narsese "<ballpos --> [below]>. :|: %0%")
+          (nars-input-narsese "<ballpos --> [equal]>. :|: %0%")
           (reset! updown-state "above")
           #_(when allow-continuous-feedback
               ;(println "bad NARS")
