@@ -27,11 +27,13 @@
    ''justified by the amount of positive evidence that was NOT observed as anticipated to be observed''"
   #_(println (:truth anticipation))
   (let [budget (:budget anticipation)
-        anticipated-positive-evidence (:positive-evidence (t2-evidence-weights (:anticipated-truth anticipation)))
-        observed-positive-evidence (:positive-evidence (t2-evidence-weights (:truth anticipation)))
-        positive-evidence-lack (max 0 (- anticipated-positive-evidence
-                                         observed-positive-evidence))
-        confidence-of-lack (w2c positive-evidence-lack)]
+        anticipated-good-evidence (max 0 (- (:positive-evidence (t2-evidence-weights (:anticipated-truth anticipation)))
+                                            (:negative-evidence (t2-evidence-weights (:anticipated-truth anticipation)))))
+        observed-good-evidence (max 0 (- (:positive-evidence (t2-evidence-weights (:truth anticipation)))
+                                         (:negative-evidence (t2-evidence-weights (:truth anticipation)))))
+        good-evidence-lack (max 0 (- anticipated-good-evidence
+                                     observed-good-evidence))
+        confidence-of-lack (w2c good-evidence-lack)]
     (println (str "lack confidence: " confidence-of-lack))
     (dissoc (assoc anticipation :task-type :belief
                                 :evidence (list (get-id))
