@@ -41,7 +41,7 @@
 
 
 
-(def decision-threshold 0.55)                                ;0.6
+(def decision-threshold 0.51)                                ;0.6
 
 (defn execute? [task]
   (> (expectation (:truth task)) decision-threshold))
