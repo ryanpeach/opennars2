@@ -72,10 +72,14 @@
 
 (defn update-concept-budget [state, self]
   "Update the concept budget"
-  (let [tasks (:priority-index (:tasks state))      ; :priority-index ok here
-        p (round2 3 (reduce max 0.25 (for [x tasks] (:priority x))))
+  (let [els (:elements-map (:tasks state))      ; :priority-index ok here
+        n (count els)
+        p (round2 3 (reduce max 0 (for [[id {task :task}] els] (first (:budget task)))))
+        q (round2 3 (reduce + 0 (for [[id {task :task}] els] (nth (:budget task) 2))))
+        new-q (if (pos? n) (/ q n) 0.0)
         el {:id       (:id state)
-            :priority p
+            :priority (max p new-q)
+            :quality new-q
             :observable (:observable state)
             :ref      self
             :strongest-belief-about-now (max-statement-confidence-projected-to-now state :belief nil)
