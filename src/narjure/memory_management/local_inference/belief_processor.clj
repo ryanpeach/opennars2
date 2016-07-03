@@ -102,7 +102,7 @@
           (let [new-belief (increased-belief-budget-by-question belief-task-projected-to-question question)]
             (update-task-in-tasks state (assoc belief-task :budget (:budget new-belief)) belief-task)))))))
 
-(defn revision-relevant-events [task old-event]
+(defn revision-relevant-tasks [task old-event]
   (or (= (:occurrence task) :eternal)
       (< (Math/abs (- (:occurrence task) (:occurrence old-event)))
       revision-relevant-event-distance)))
@@ -124,22 +124,21 @@
                     (= (:occurrence task) :eternal)))
 
       (let [[{existing-belief :task} _] (b/get-by-id (:tasks @state) (get-task-id task))]
-        (if existing-belief
-          (let [revised-task (if (and (revision-relevant-events task existing-belief)
-                                     (non-overlapping-evidence? (:evidence task) (:evidence existing-belief)))
-                              (revise task (project-eternalize-to (:occurrence task) existing-belief @nars-time))
-                              task)]
+        (let [processed-task (if (and existing-belief
+                                    (revision-relevant-tasks task existing-belief)
+                                    (non-overlapping-evidence? (:evidence task) (:evidence existing-belief)))
+                             (revise task (project-eternalize-to (:occurrence task) existing-belief @nars-time))
+                             task)]
            ;add revised task to bag:
-           (add-to-tasks state revised-task)
+           (add-to-tasks state processed-task)
            ;check if it satisfies a goal or question and change budget accordingly
-           (satisfaction-based-budget-change state (:task (first (b/get-by-id (:tasks @state) (get-task-id revised-task)))) (filter #(= (:task-type %) :goal) (get-tasks state)))
-           (answer-based-budget-change state (:task (first (b/get-by-id (:tasks @state) (get-task-id revised-task)))) (filter #(= (:task-type %) :question) (get-tasks state))))
-          (add-to-tasks state task)))
+           (satisfaction-based-budget-change state (:task (first (b/get-by-id (:tasks @state) (get-task-id processed-task)))) (filter #(= (:task-type %) :goal) (get-tasks state)))
+           (answer-based-budget-change state (:task (first (b/get-by-id (:tasks @state) (get-task-id processed-task)))) (filter #(= (:task-type %) :question) (get-tasks state))))))
 
       #_(let [same-content-beliefs (filter (fn [z] (and (same-occurrence-type z task)
                                                      (= (:statement z) (:statement task)))) beliefs)]
 
-       (let [total-revision (reduce (fn [a b] (if (and (revision-relevant-events task b)
+       (let [total-revision (reduce (fn [a b] (if (and (revision-relevant-tasks task b)
                                                     (non-overlapping-evidence? (:evidence a) (:evidence b)))
                                                 (revise a (project-eternalize-to (:occurrence a) b @nars-time))
                                                 a))
