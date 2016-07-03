@@ -60,8 +60,7 @@
     (let [tasks (get-tasks state)
           beliefs (filter #(and (= (:statement %) (:id @state))
                                 (= (:task-type %) :belief)) tasks)
-          projected-belief-tuples (map (fn [z] [z (project-eternalize-to (:occurrence task) z @nars-time)]) beliefs)
-          ]
+          projected-belief-tuples (map (fn [z] [z (project-eternalize-to (:occurrence task) z @nars-time)]) beliefs)]
 
       (when (not-empty projected-belief-tuples)
         (doseq [belief beliefs]
