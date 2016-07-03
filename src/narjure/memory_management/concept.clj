@@ -69,7 +69,7 @@
           (match-belief-to-question task belief)))
 
       ;dummy? belief as "empty" termlink belief selection for structural inference
-      (let [belief {:statement (:id @state) :task-type :question :occurrence @nars-time :evidence '()}]
+      (let [belief {:statement (:id @state) :task-type :question :occurrence :eternal :evidence '()}]
         (debuglogger search display ["selected belief:" belief "§"])
         (cast! (:inference-request-router @state) [:do-inference-msg [task-concept-id (:id @state) task belief]])))
     (catch Exception e (debuglogger search display (str "belief request error " (.toString e))))))
