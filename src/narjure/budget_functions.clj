@@ -64,6 +64,8 @@
          truth-quality (if (:truth derived-task) (truth-to-quality (:truth derived-task))
                                                  (w2c 1.0))
          complexity (:sc derived-task)
+         rescale-factor 0.25
          quality (* truth-quality
+                    rescale-factor
                     #_(/ 1.0 (Math/sqrt complexity)))]
      (structural-reward-budget [priority durability quality] derived-task))))

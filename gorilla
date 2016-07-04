@@ -1,0 +1,181 @@
+;; gorilla-repl.fileformat = 1
+
+;; **
+;;; # OpenNARS 2.0.0
+;;; 
+;;; Welcome to the OpenNARS 2.0.0 REPL Notebook!
+;; **
+
+;; @@
+(ns narjure.gorilla
+     (:require
+       [co.paralleluniverse.pulsar
+        [core :refer :all]
+        [actors :refer :all]]
+       [narjure.narsese :refer [parse2]]
+       [narjure.runtime-utils :refer :all]
+       [narjure.core :refer [start-timers shutdown run stop-timers]]
+       [narjure.global-atoms :refer :all]
+       [gorilla-plot.core :as plot])
+     (:refer-clojure :exclude [promise await]))
+;; @@
+;; ->
+;;; Beliefs rules: 3151
+;;; Questions rules: 474
+;;; Goal rules: 3126
+;;; Quests rules: 474
+;;; &quot;Elapsed time: 21121.358343 msecs&quot;
+;;; 16-07-03 23:53:00 XamTine-PC INFO [narjure.core:98] - Resetting concepts bagss:
+;;; 16-07-03 23:53:00 XamTine-PC INFO [narjure.core:100] - c-bag count:  0
+;;; 16-07-03 23:53:00 XamTine-PC INFO [narjure.core:104] - Reset system Parameters:
+;;; 16-07-03 23:53:00 XamTine-PC INFO [narjure.core:106] - nars-id:  -1
+;;; 16-07-03 23:53:00 XamTine-PC INFO [narjure.core:108] - nars-time:  0
+;;; 16-07-03 23:53:00 XamTine-PC INFO [narjure.core:111] - NARS initialising...
+;;; 16-07-03 23:53:00 XamTine-PC INFO [narjure.core:49] - Initialising system timers...
+;;; 16-07-03 23:53:00 XamTine-PC INFO [narjure.core:46] - 	[OK] :inference-timer (110 ms)
+;;; 16-07-03 23:53:00 XamTine-PC INFO [narjure.core:46] - 	[OK] :system-timer (150 ms)
+;;; 16-07-03 23:53:00 XamTine-PC INFO [narjure.core:61] - System timer initialisation complete.
+;;; 16-07-03 23:53:00 XamTine-PC INFO [narjure.core:119] - NARS initialised.
+;;; 
+;; <-
+;; =>
+;;; {"type":"html","content":"<span class='clj-nil'>nil</span>","value":"nil"}
+;; <=
+
+;; **
+;;; The following are functions which are recommended for usage: 
+;;; lense will open the lense system debugger. 
+;;; input-narsese inputs a Narsese statement into the system. 
+;;; concept-taskbag shows the taskbag of a concept specified as Narsese string.
+;;; Concepts shows all concepts in the system sorted according to their priority.
+;;; Concept shows a specific concept specified by a Narsese string:
+;; **
+
+;; @@
+(defn lense [] (load-file "src/gui/lense.clj"))
+(defn input-narsese [narsese-str] (cast! (whereis :sentence-parser) [:narsese-string-msg narsese-str]))
+(defn concept-taskbag [concept-str] (map second (:elements-map (@lense-taskbags (:statement (parse2 (str concept-str ".")))))))
+(defn concepts [] (:priority-index @c-bag))
+(defn concept [concept-str] (first (narjure.bag/get-by-id @c-bag (:statement (parse2 (str concept-str "."))))))
+;; @@
+;; =>
+;;; {"type":"html","content":"<span class='clj-var'>#&#x27;narjure.gorilla/concept</span>","value":"#'narjure.gorilla/concept"}
+;; <=
+
+;; **
+;;; Resets the system:
+;; **
+
+;; @@
+(shutdown)
+(run)
+;; @@
+;; ->
+;;; 16-07-04 00:05:04 XamTine-PC INFO [narjure.core:125] - Shutting down actors...
+;;; 16-07-04 00:05:04 XamTine-PC INFO [narjure.core:132] - System shutdown complete.
+;;; 16-07-04 00:05:04 XamTine-PC INFO [narjure.core:98] - Resetting concepts bagss:
+;;; 16-07-04 00:05:04 XamTine-PC INFO [narjure.core:100] - c-bag count:  0
+;;; 16-07-04 00:05:04 XamTine-PC INFO [narjure.core:104] - Reset system Parameters:
+;;; 16-07-04 00:05:04 XamTine-PC INFO [narjure.core:106] - nars-id:  -1
+;;; 16-07-04 00:05:04 XamTine-PC INFO [narjure.core:108] - nars-time:  0
+;;; 16-07-04 00:05:04 XamTine-PC INFO [narjure.core:111] - NARS initialising...
+;;; 16-07-04 00:05:04 XamTine-PC INFO [narjure.core:49] - Initialising system timers...
+;;; 16-07-04 00:05:04 XamTine-PC INFO [narjure.core:46] - 	[OK] :inference-timer (110 ms)
+;;; 16-07-04 00:05:04 XamTine-PC INFO [narjure.core:46] - 	[OK] :system-timer (150 ms)
+;;; 16-07-04 00:05:04 XamTine-PC INFO [narjure.core:61] - System timer initialisation complete.
+;;; 16-07-04 00:05:04 XamTine-PC INFO [narjure.core:119] - NARS initialised.
+;;; 
+;; <-
+;; =>
+;;; {"type":"html","content":"<span class='clj-nil'>nil</span>","value":"nil"}
+;; <=
+
+;; **
+;;; Here we input two test statements:
+;; **
+
+;; @@
+(input-narsese "<a --> b>.")
+(input-narsese "<b --> c>.")
+;; @@
+;; =>
+;;; {"type":"html","content":"<span class='clj-nil'>nil</span>","value":"nil"}
+;; <=
+
+;; **
+;;; Showing what was input, executed or derived recently:
+;; **
+
+;; @@
+@output-display
+;; @@
+;; =>
+;;; {"type":"list-like","open":"<span class='clj-list'>(</span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;:derived &lt;a --&gt; c&gt;.  %1.0;0.81%&quot;</span>","value":"\":derived <a --> c>.  %1.0;0.81%\""},{"type":"html","content":"<span class='clj-string'>&quot;§&quot;</span>","value":"\"§\""}],"value":"[\":derived <a --> c>.  %1.0;0.81%\" \"§\"]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;:derived &lt;c --&gt; a&gt;.  %1;0.44751381215469616%&quot;</span>","value":"\":derived <c --> a>.  %1;0.44751381215469616%\""},{"type":"html","content":"<span class='clj-string'>&quot;§&quot;</span>","value":"\"§\""}],"value":"[\":derived <c --> a>.  %1;0.44751381215469616%\" \"§\"]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;:derived &lt;a --&gt; c&gt;.  %1.0;0.81%&quot;</span>","value":"\":derived <a --> c>.  %1.0;0.81%\""},{"type":"html","content":"<span class='clj-string'>&quot;§&quot;</span>","value":"\"§\""}],"value":"[\":derived <a --> c>.  %1.0;0.81%\" \"§\"]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;:derived &lt;c --&gt; a&gt;.  %1;0.44751381215469616%&quot;</span>","value":"\":derived <c --> a>.  %1;0.44751381215469616%\""},{"type":"html","content":"<span class='clj-string'>&quot;§&quot;</span>","value":"\"§\""}],"value":"[\":derived <c --> a>.  %1;0.44751381215469616%\" \"§\"]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;:derived (--,&lt;b --&gt; c&gt;).  %0.0;0.9%&quot;</span>","value":"\":derived (--,<b --> c>).  %0.0;0.9%\""},{"type":"html","content":"<span class='clj-string'>&quot;§&quot;</span>","value":"\"§\""}],"value":"[\":derived (--,<b --> c>).  %0.0;0.9%\" \"§\"]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;:derived &lt;c --&gt; a&gt;.  %1;0.44751381215469616%&quot;</span>","value":"\":derived <c --> a>.  %1;0.44751381215469616%\""},{"type":"html","content":"<span class='clj-string'>&quot;§&quot;</span>","value":"\"§\""}],"value":"[\":derived <c --> a>.  %1;0.44751381215469616%\" \"§\"]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;:derived &lt;a --&gt; c&gt;.  %1.0;0.81%&quot;</span>","value":"\":derived <a --> c>.  %1.0;0.81%\""},{"type":"html","content":"<span class='clj-string'>&quot;§&quot;</span>","value":"\"§\""}],"value":"[\":derived <a --> c>.  %1.0;0.81%\" \"§\"]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;:input &lt;b --&gt; c&gt;.  %1.0;0.9%&quot;</span>","value":"\":input <b --> c>.  %1.0;0.9%\""},{"type":"html","content":"<span class='clj-string'>&quot;§&quot;</span>","value":"\"§\""}],"value":"[\":input <b --> c>.  %1.0;0.9%\" \"§\"]"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-string'>&quot;:input &lt;a --&gt; b&gt;.  %1.0;0.9%&quot;</span>","value":"\":input <a --> b>.  %1.0;0.9%\""},{"type":"html","content":"<span class='clj-string'>&quot;§&quot;</span>","value":"\"§\""}],"value":"[\":input <a --> b>.  %1.0;0.9%\" \"§\"]"}],"value":"([\":derived <a --> c>.  %1.0;0.81%\" \"§\"] [\":derived <c --> a>.  %1;0.44751381215469616%\" \"§\"] [\":derived <a --> c>.  %1.0;0.81%\" \"§\"] [\":derived <c --> a>.  %1;0.44751381215469616%\" \"§\"] [\":derived (--,<b --> c>).  %0.0;0.9%\" \"§\"] [\":derived <c --> a>.  %1;0.44751381215469616%\" \"§\"] [\":derived <a --> c>.  %1.0;0.81%\" \"§\"] [\":input <b --> c>.  %1.0;0.9%\" \"§\"] [\":input <a --> b>.  %1.0;0.9%\" \"§\"])"}
+;; <=
+
+;; **
+;;; Shows the current concepts:
+;; **
+
+;; @@
+(concepts)
+;; @@
+;; =>
+;;; {"type":"list-like","open":"<span class='clj-set'>#{</span>","close":"<span class='clj-set'>}</span>","separator":" ","items":[{"type":"list-like","open":"<span class='clj-map'>{</span>","close":"<span class='clj-map'>}</span>","separator":", ","items":[{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:id</span>","value":":id"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>--&gt;</span>","value":"-->"},{"type":"html","content":"<span class='clj-symbol'>b</span>","value":"b"},{"type":"html","content":"<span class='clj-symbol'>c</span>","value":"c"}],"value":"[--> b c]"}],"value":"[:id [--> b c]]"},{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:priority</span>","value":":priority"},{"type":"html","content":"<span class='clj-double'>0.965</span>","value":"0.965"}],"value":"[:priority 0.965]"}],"value":"{:id [--> b c], :priority 0.965}"},{"type":"list-like","open":"<span class='clj-map'>{</span>","close":"<span class='clj-map'>}</span>","separator":", ","items":[{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:id</span>","value":":id"},{"type":"html","content":"<span class='clj-symbol'>c</span>","value":"c"}],"value":"[:id c]"},{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:priority</span>","value":":priority"},{"type":"html","content":"<span class='clj-double'>0.965</span>","value":"0.965"}],"value":"[:priority 0.965]"}],"value":"{:id c, :priority 0.965}"},{"type":"list-like","open":"<span class='clj-map'>{</span>","close":"<span class='clj-map'>}</span>","separator":", ","items":[{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:id</span>","value":":id"},{"type":"html","content":"<span class='clj-symbol'>a</span>","value":"a"}],"value":"[:id a]"},{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:priority</span>","value":":priority"},{"type":"html","content":"<span class='clj-double'>0.965</span>","value":"0.965"}],"value":"[:priority 0.965]"}],"value":"{:id a, :priority 0.965}"},{"type":"list-like","open":"<span class='clj-map'>{</span>","close":"<span class='clj-map'>}</span>","separator":", ","items":[{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:id</span>","value":":id"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>--&gt;</span>","value":"-->"},{"type":"html","content":"<span class='clj-symbol'>a</span>","value":"a"},{"type":"html","content":"<span class='clj-symbol'>b</span>","value":"b"}],"value":"[--> a b]"}],"value":"[:id [--> a b]]"},{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:priority</span>","value":":priority"},{"type":"html","content":"<span class='clj-double'>0.965</span>","value":"0.965"}],"value":"[:priority 0.965]"}],"value":"{:id [--> a b], :priority 0.965}"},{"type":"list-like","open":"<span class='clj-map'>{</span>","close":"<span class='clj-map'>}</span>","separator":", ","items":[{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:id</span>","value":":id"},{"type":"html","content":"<span class='clj-symbol'>b</span>","value":"b"}],"value":"[:id b]"},{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:priority</span>","value":":priority"},{"type":"html","content":"<span class='clj-double'>0.965</span>","value":"0.965"}],"value":"[:priority 0.965]"}],"value":"{:id b, :priority 0.965}"},{"type":"list-like","open":"<span class='clj-map'>{</span>","close":"<span class='clj-map'>}</span>","separator":", ","items":[{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:id</span>","value":":id"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>--&gt;</span>","value":"-->"},{"type":"html","content":"<span class='clj-symbol'>c</span>","value":"c"},{"type":"html","content":"<span class='clj-symbol'>a</span>","value":"a"}],"value":"[--> c a]"}],"value":"[:id [--> c a]]"},{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:priority</span>","value":":priority"},{"type":"html","content":"<span class='clj-double'>0.383</span>","value":"0.383"}],"value":"[:priority 0.383]"}],"value":"{:id [--> c a], :priority 0.383}"},{"type":"list-like","open":"<span class='clj-map'>{</span>","close":"<span class='clj-map'>}</span>","separator":", ","items":[{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:id</span>","value":":id"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>--&gt;</span>","value":"-->"},{"type":"html","content":"<span class='clj-symbol'>a</span>","value":"a"},{"type":"html","content":"<span class='clj-symbol'>c</span>","value":"c"}],"value":"[--> a c]"}],"value":"[:id [--> a c]]"},{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:priority</span>","value":":priority"},{"type":"html","content":"<span class='clj-double'>0.383</span>","value":"0.383"}],"value":"[:priority 0.383]"}],"value":"{:id [--> a c], :priority 0.383}"},{"type":"list-like","open":"<span class='clj-map'>{</span>","close":"<span class='clj-map'>}</span>","separator":", ","items":[{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:id</span>","value":":id"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>--</span>","value":"--"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>--&gt;</span>","value":"-->"},{"type":"html","content":"<span class='clj-symbol'>b</span>","value":"b"},{"type":"html","content":"<span class='clj-symbol'>c</span>","value":"c"}],"value":"[--> b c]"}],"value":"[-- [--> b c]]"}],"value":"[:id [-- [--> b c]]]"},{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:priority</span>","value":":priority"},{"type":"html","content":"<span class='clj-double'>0.374</span>","value":"0.374"}],"value":"[:priority 0.374]"}],"value":"{:id [-- [--> b c]], :priority 0.374}"},{"type":"list-like","open":"<span class='clj-map'>{</span>","close":"<span class='clj-map'>}</span>","separator":", ","items":[{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:id</span>","value":":id"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>--</span>","value":"--"},{"type":"list-like","open":"<span class='clj-vector'>[</span>","close":"<span class='clj-vector'>]</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>--&gt;</span>","value":"-->"},{"type":"html","content":"<span class='clj-symbol'>a</span>","value":"a"},{"type":"html","content":"<span class='clj-symbol'>c</span>","value":"c"}],"value":"[--> a c]"}],"value":"[-- [--> a c]]"}],"value":"[:id [-- [--> a c]]]"},{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:priority</span>","value":":priority"},{"type":"html","content":"<span class='clj-double'>0.17</span>","value":"0.17"}],"value":"[:priority 0.17]"}],"value":"{:id [-- [--> a c]], :priority 0.17}"}],"value":"#{{:id [--> b c], :priority 0.965} {:id c, :priority 0.965} {:id a, :priority 0.965} {:id [--> a b], :priority 0.965} {:id b, :priority 0.965} {:id [--> c a], :priority 0.383} {:id [--> a c], :priority 0.383} {:id [-- [--> b c]], :priority 0.374} {:id [-- [--> a c]], :priority 0.17}}"}
+;; <=
+
+;; **
+;;; Showing the priority of the specified concept:
+;; **
+
+;; @@
+(:priority (concept "<a --> b>"))
+;; @@
+;; =>
+;;; {"type":"html","content":"<span class='clj-double'>0.959</span>","value":"0.959"}
+;; <=
+
+;; **
+;;; Creating a plot of concept priority of the specific concept (a --> c) over time:
+;; **
+
+;; @@
+(plot/list-plot
+  (vec (for [i (range 20)]
+          (let [priority (:priority (concept "<a --> c>"))]
+            (do (println priority)
+                (Thread/sleep 50)
+                priority)))) :plot-range [:all [0 1]] :joined true)
+  
+
+;; @@
+;; ->
+;;; 0.288
+;;; 0.288
+;;; 0.288
+;;; 0.287
+;;; 0.287
+;;; 0.287
+;;; 0.286
+;;; 0.286
+;;; 0.286
+;;; 0.285
+;;; 0.285
+;;; 0.285
+;;; 0.284
+;;; 0.284
+;;; 0.284
+;;; 0.283
+;;; 0.283
+;;; 0.283
+;;; 0.282
+;;; 0.282
+;;; 
+;; <-
+;; =>
+;;; {"type":"vega","content":{"width":400,"height":247.2187957763672,"padding":{"top":10,"left":55,"bottom":40,"right":10},"data":[{"name":"689704c3-4fd3-4f9a-b074-ebc8d662cc37","values":[{"x":0,"y":0.288},{"x":1,"y":0.288},{"x":2,"y":0.288},{"x":3,"y":0.287},{"x":4,"y":0.287},{"x":5,"y":0.287},{"x":6,"y":0.286},{"x":7,"y":0.286},{"x":8,"y":0.286},{"x":9,"y":0.285},{"x":10,"y":0.285},{"x":11,"y":0.285},{"x":12,"y":0.284},{"x":13,"y":0.284},{"x":14,"y":0.284},{"x":15,"y":0.283},{"x":16,"y":0.283},{"x":17,"y":0.283},{"x":18,"y":0.282},{"x":19,"y":0.282}]}],"marks":[{"type":"line","from":{"data":"689704c3-4fd3-4f9a-b074-ebc8d662cc37"},"properties":{"enter":{"x":{"scale":"x","field":"data.x"},"y":{"scale":"y","field":"data.y"},"stroke":{"value":"#FF29D2"},"strokeWidth":{"value":2},"strokeOpacity":{"value":1}}}}],"scales":[{"name":"x","type":"linear","range":"width","zero":false,"domain":{"data":"689704c3-4fd3-4f9a-b074-ebc8d662cc37","field":"data.x"}},{"name":"y","type":"linear","range":"height","nice":true,"zero":false,"domain":[0,1]}],"axes":[{"type":"x","scale":"x"},{"type":"y","scale":"y"}]},"value":"#gorilla_repl.vega.VegaView{:content {:width 400, :height 247.2188, :padding {:top 10, :left 55, :bottom 40, :right 10}, :data [{:name \"689704c3-4fd3-4f9a-b074-ebc8d662cc37\", :values ({:x 0, :y 0.288} {:x 1, :y 0.288} {:x 2, :y 0.288} {:x 3, :y 0.287} {:x 4, :y 0.287} {:x 5, :y 0.287} {:x 6, :y 0.286} {:x 7, :y 0.286} {:x 8, :y 0.286} {:x 9, :y 0.285} {:x 10, :y 0.285} {:x 11, :y 0.285} {:x 12, :y 0.284} {:x 13, :y 0.284} {:x 14, :y 0.284} {:x 15, :y 0.283} {:x 16, :y 0.283} {:x 17, :y 0.283} {:x 18, :y 0.282} {:x 19, :y 0.282})}], :marks [{:type \"line\", :from {:data \"689704c3-4fd3-4f9a-b074-ebc8d662cc37\"}, :properties {:enter {:x {:scale \"x\", :field \"data.x\"}, :y {:scale \"y\", :field \"data.y\"}, :stroke {:value \"#FF29D2\"}, :strokeWidth {:value 2}, :strokeOpacity {:value 1}}}}], :scales [{:name \"x\", :type \"linear\", :range \"width\", :zero false, :domain {:data \"689704c3-4fd3-4f9a-b074-ebc8d662cc37\", :field \"data.x\"}} {:name \"y\", :type \"linear\", :range \"height\", :nice true, :zero false, :domain [0 1]}], :axes [{:type \"x\", :scale \"x\"} {:type \"y\", :scale \"y\"}]}}"}
+;; <=
+
+;; @@
+
+;; @@
