@@ -1,0 +1,6 @@
+//@TonyLo: This represemtations work fine,
+//feel free to make it more complicated as your
+//example suggests!
+<<({SELF},$1) --> op_lighter> =/> <$1 --> [heated]>>.
+<<$1 --> [heated]> =/> <$1 --> [pliable]>>.
+<toothbrush --> [pliable]>! :|:
