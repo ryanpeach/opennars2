@@ -213,18 +213,18 @@
                                  (catch Exception e false))
                            {:name          (str "\n" (narsese-print id)
                                                 (if (= id @selected-concept)
-                                                  (str "\npriority: " priority " " "quality: " quality " "
+                                                  (str "\nfilter: " @task-filter "priority: " priority " " "quality: " quality " "
                                                        "truth: " (:truth (lense-max-statement-confidence-projected-to-now id :belief nil)) " "
                                                        "desire: " (:truth (lense-max-statement-confidence-projected-to-now id :goal nil)) "\n"
                                                        (bag-format
                                                          (limit-string (str (apply vector
                                                                                    (if @link-labels
-                                                                                      (:elements-map (@lense-taskbags id))
+                                                                                      (bagfilter task-filter (:elements-map (@lense-taskbags id)))
                                                                                       (let [curbag (@lense-taskbags id)
                                                                                             pindex (:priority-index curbag)]
                                                                                         (map (fn [has-id]
                                                                                                 (assoc has-id :truth (:truth (:task (first (b/get-by-id curbag (:id has-id)))))))
-                                                                                              (:priority-index (@lense-taskbags id))))))) 20000)))
+                                                                                              (bagfilter task-filter (:priority-index (@lense-taskbags id)))))))) 20000)))
                                                   ""))       ;"\n" @lense-termlinks
                             :px            px
                             :py            py
@@ -234,6 +234,7 @@
                             :stroke-weight 0.5
                             :id            id
                             :onclick       (fn [state]
+                                             (reset! input-string task-filter)
                                              (reset! selected-concept id))})))
                edges (for [n nodes
                            [k [freq conf]] (@lense-termlinks (:id n))]
