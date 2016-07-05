@@ -42,7 +42,7 @@
     (strengthen-temporal-link @state selected)
     (when (sufficient-priority? selected)
       (cast! (:ref selected) [:inference-request-msg (:id selected)])
-      (debuglogger search display (str "Concept selected: " [:task selected :priority (:priority selected)])))))
+      (debuglogger search display (list "Concept selected: " [:task selected :priority (:priority selected)])))))
 
 (defn initialise
   "Initialises actor:

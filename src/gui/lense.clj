@@ -30,17 +30,17 @@
             [clojure.string :as str]))
 
 (defn bag-format [st]
-  (clojure.string/replace st "}" "}\n"))
+  (clojure.string/replace (clojure.string/replace st "(:id" "\n( :id") "(\n( " "(("))
 
 (defn bagfilter [fil bag]
   (apply vector (filter (fn [x]
-                          (every? (fn [y] (.contains (str x) y))
+                          (every? (fn [y] (.contains (narsese-print x) y))
                                   (str/split (deref fil) #"\n"))) bag)))
 
 (defn bagshow [bag filteratom]
   (bag-format (limit-string
-                (str (bagfilter filteratom
-                                (:priority-index bag))) 20000)))
+                (narsese-print (bagfilter filteratom
+                                          (:priority-index bag))) 20000)))
 
 (def debugmessage {:inference-request-router [(fn [] (deref inference-request-router/display)) inference-request-router/search]
                    :concept-selector     [(fn [] (deref concept-selector/display)) concept-selector/search]
@@ -204,7 +204,7 @@
                              quality (:quality ((:elements-map (deref c-bag)) id))]
                          (when (try
                                  (and
-                                   (every? (fn [x] (.contains (str id) x))
+                                   (every? (fn [x] (.contains (narsese-print id) x))
                                            (str/split (deref concept-filter) #"\n"))
                                       (> priority priority-threshold)
                                       (> priority @prio-threshold)
@@ -217,7 +217,7 @@
                                                        "truth: " (:truth (lense-max-statement-confidence-projected-to-now id :belief nil)) " "
                                                        "desire: " (:truth (lense-max-statement-confidence-projected-to-now id :goal nil)) "\n"
                                                        (bag-format
-                                                         (limit-string (str (apply vector
+                                                         (limit-string (narsese-print (apply vector
                                                                                    (if @link-labels
                                                                                       (bagfilter task-filter (:elements-map (@lense-taskbags id)))
                                                                                       (let [curbag (@lense-taskbags id)
