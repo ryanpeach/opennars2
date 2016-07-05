@@ -55,7 +55,8 @@
                    :derived-load-reducer [(fn [] (deref derived-load-reducer/display)) derived-load-reducer/search]
                    :input                [(fn [] "") inputstr]
                    :output               [(fn [] (deref output-display)) output-search]
-                   :+prioTh. [(fn [] (deref prio-threshold))]})
+                   :+prioTh. [(fn [] (deref prio-threshold))]
+                   :speed [(fn [] (deref speed))]})
 
 (def static-graphs [graph-actors graph-gui])
 (def graphs (atom static-graphs))

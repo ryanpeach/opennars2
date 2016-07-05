@@ -47,12 +47,12 @@
 
 (defn start-timers []
   (info "Initialising system timers...")
-  (schedule inference-tick {:in    inference-tick-interval
-                            :every inference-tick-interval})
-  (prn-ok :inference-timer inference-tick-interval)
+  (schedule inference-tick {:in    @inference-tick-interval
+                            :every @inference-tick-interval})
+  (prn-ok :inference-timer @inference-tick-interval)
 
-  (schedule system-tick {:every system-tick-interval})
-  (prn-ok :system-timer system-tick-interval)
+  (schedule system-tick {:every @system-tick-interval})
+  (prn-ok :system-timer @system-tick-interval)
 
   ;uncomment following two line to auto generate input sentences
   ;(schedule sentence-tick {:every sentence-tick-interval})

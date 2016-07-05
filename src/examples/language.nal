@@ -1,0 +1,10 @@
+//based on the sentence "tim buys beer"
+<(tim,buys,beer) --> sentence>.
+//and given syntactical knowledge that buys is a verb
+<buys --> VERB>.
+//identify drinks as a verb because of its position
+<(tim,drinks,beer) --> sentence>.
+<drinks --> VERB>?
+
+
+

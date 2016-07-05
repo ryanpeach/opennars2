@@ -7,3 +7,4 @@
 (def link-labels (atom false))
 (def concept-filter (atom "_DELETE_ME_"))
 (def inputstr (atom ""))
+(def speed (atom "slow"))

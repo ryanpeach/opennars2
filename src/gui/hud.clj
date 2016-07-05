@@ -4,7 +4,8 @@
             [co.paralleluniverse.pulsar.actors :refer [whereis cast!]]
             [clojure.string :as str]
             [narjure.core :refer [start-timers shutdown run stop-timers]]
-            [gui.gui-utils :refer :all]))
+            [gui.gui-utils :refer :all]
+            [narjure.defaults :refer :all]))
 
 (def backcolor [230 230 230 100])
 (def hud-width 50)
@@ -30,17 +31,32 @@
                                                       (run))
              :backcolor backcolor}
 
-            {:name :color :px 225 :py 0 :onclick (fn [state]
+            {:name :color :px 200 :py 0 :onclick (fn [state]
                                                        (reset! invert-colors (not @invert-colors)))
              :backcolor backcolor}
-            {:name :+prioTh. :px 275 :py 0 :onclick (fn [state]
-                                                            (reset! prio-threshold (+ @prio-threshold 0.1)))
+            {:name :speed :px 250 :py 0 :onclick (fn [state]
+                                                   (reset! speed
+                                                           (if (= @speed "slow")
+                                                             (do
+                                                               (reset! system-tick-interval system-tick-interval-fast)
+                                                               (reset! inference-tick-interval inference-tick-interval-fast)
+                                                               "fast")
+                                                             (do
+                                                               (reset! system-tick-interval system-tick-interval-slow)
+                                                               (reset! inference-tick-interval inference-tick-interval-slow)
+                                                               "slow")))
+                                                   (stop-timers)
+                                                   (start-timers))
              :displaysize 10
              :backcolor backcolor}
-            {:name :-prioTh. :px 325 :py 0 :onclick (fn [state]
+            {:name :+prioTh. :px 300 :py 0 :onclick (fn [state]
+                                                      (reset! prio-threshold (+ @prio-threshold 0.1)))
+             :displaysize 10
+             :backcolor backcolor}
+            {:name :-prioTh. :px 350 :py 0 :onclick (fn [state]
                                                             (reset! prio-threshold (- @prio-threshold 0.1)))
              :backcolor backcolor}
-            {:name :details :px 375 :py 0 :onclick (fn [state]
+            {:name :details :px 400 :py 0 :onclick (fn [state]
                                                             (reset! link-labels (not @link-labels)))
              :backcolor backcolor}
 
