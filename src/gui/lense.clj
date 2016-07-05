@@ -94,6 +94,16 @@
       true
       false)))
 
+(defn in-picture-aggressive [state p hud]
+  (if hud
+    true
+    (if (and (> (:px p) (hnav/mouse-to-world-coord-x state 0.0))
+             (< (:px p) (hnav/mouse-to-world-coord-x state (hnav/width)))
+             (> (:py p) (hnav/mouse-to-world-coord-y state 0.0))
+             (< (:py p) (hnav/mouse-to-world-coord-y state (hnav/height))))
+      true
+      false)))
+
 (defn draw-graph [state [nodes edges node-width node-height] hud]
   (let [prefer-id (fn [n] (if (= nil (:id n))
                             (:name n)
@@ -181,7 +191,7 @@
                               ratio (* 30.0 (+ 0.10 (/ i (count elems))))
                               px (pxfun ratio)
                               py (pyfun ratio)]
-                          (when (in-picture state {:px px :py py} false)
+                          (when ((if @link-labels in-picture in-picture-aggressive) state {:px px :py py} false)
                             (set/union (set (keys (@lense-termlinks (:id elem))))
                                        #{(:id elem)})))))
                nodes (for [i (range (count elems))]
@@ -199,7 +209,7 @@
                                       (> priority priority-threshold)
                                       (> priority @prio-threshold)
                                       (or (isin id)
-                                          (in-picture state {:px px :py py} false)))
+                                          ((if @link-labels in-picture in-picture-aggressive) state {:px px :py py} false)))
                                  (catch Exception e false))
                            {:name          (str "\n" (narsese-print id)
                                                 (if (= id @selected-concept)
@@ -208,7 +218,13 @@
                                                        "desire: " (:truth (lense-max-statement-confidence-projected-to-now id :goal nil)) "\n"
                                                        (bag-format
                                                          (limit-string (str (apply vector
-                                                                                   ((if @link-labels :elements-map :priority-index) (@lense-taskbags id)))) 20000)))
+                                                                                   (if @link-labels
+                                                                                      (:elements-map (@lense-taskbags id))
+                                                                                      (let [curbag (@lense-taskbags id)
+                                                                                            pindex (:priority-index curbag)]
+                                                                                        (map (fn [has-id]
+                                                                                                (assoc has-id :truth (:truth (:task (first (b/get-by-id curbag (:id has-id)))))))
+                                                                                              (:priority-index (@lense-taskbags id))))))) 20000)))
                                                   ""))       ;"\n" @lense-termlinks
                             :px            px
                             :py            py

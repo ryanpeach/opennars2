@@ -1,6 +1,7 @@
 (ns gui.globals)
 
 (def init-size 800)
+(def task-filter (atom ""))
 (def input-string (atom (atom "")))
 (def invert-colors (atom true))
 (def prio-threshold (atom 0.0))
