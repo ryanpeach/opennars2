@@ -87,10 +87,10 @@
 (defn in-picture [state p hud]
   (if hud
     true
-    (if (and (> (:px p) (hnav/mouse-to-world-coord-x state 0))
-             (< (:px p) (hnav/mouse-to-world-coord-x state (hnav/width)))
-             (> (:py p) (hnav/mouse-to-world-coord-y state 0))
-             (< (:py p) (hnav/mouse-to-world-coord-y state (hnav/height))))
+    (if (and (> (:px p) (hnav/mouse-to-world-coord-x state (- (hnav/width))))
+             (< (:px p) (hnav/mouse-to-world-coord-x state (+ (hnav/width) (hnav/width))))
+             (> (:py p) (hnav/mouse-to-world-coord-y state (- (hnav/height))))
+             (< (:py p) (hnav/mouse-to-world-coord-y state (+ (hnav/height) (hnav/height)))))
       true
       false)))
 

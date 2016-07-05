@@ -21,10 +21,16 @@
             {:name :resume :px 0 :py 0 :onclick (fn [state]
                                                        (start-timers))
              :backcolor backcolor}
-            {:name :pause :px 50 :py 0 :onclick (fn [state]
+            {:name :pause :px 50 :py 0 :custom-w 40 :onclick (fn [state]
                                                      (stop-timers))
              :backcolor backcolor}
-            {:name :off :px 100 :py 0 :onclick (fn [state]
+            {:name :step :custom-w 35 :px 90 :py 0 :onclick (fn [state]
+                                                               (cast! (whereis :concept-selector) [:inference-tick-msg])
+                                                               (cast! (whereis :task-creator) [:system-time-tick-msg])
+                                                               (cast! (whereis :derived-load-reducer) [:system-time-tick-msg])
+                                                               (cast! (whereis :forgettor) [:system-time-tick-msg]))
+             :backcolor backcolor}
+            {:name :off :custom-w 25 :px 125 :py 0 :onclick (fn [state]
                                                     (shutdown))
              :backcolor backcolor}
             {:name :start :px 150 :py 0 :onclick (fn [state]
