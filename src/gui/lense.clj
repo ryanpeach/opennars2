@@ -153,8 +153,8 @@
                          (not (:opposite-edge-exists c)))
                 (if (:ghost-opposite c)
                   (do
-                    (q/stroke (invert-comp 220.0))
-                    (q/stroke-weight 0.009))
+                    (q/stroke (invert-comp 210.0))
+                    (q/stroke-weight 0.15))
                   (do
                     (q/stroke-weight weight)))
                 (q/line right-x right-y
