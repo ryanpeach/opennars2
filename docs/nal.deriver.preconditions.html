@@ -2873,7 +2873,7 @@ net.brehaut.ClojureTools = (function (SH) {
             [nal.deriver.substitution :refer [substitute munification-map]]
             [nal.deriver.terms-permutation :refer [implications equivalences]]
             [clojure.set :refer [union intersection]]
-            [narjure.defaults :refer [duration]]
+            [narjure.defaults :refer [temporal-window-duration]]
             [clojure.core.match :as m]
             [nal.deriver.normalization :refer [reduce-seq-conj]]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn abs [^long n] (Math/abs n))</pre></td></tr><tr><td class="docs"><p>Expands compound precondition to clojure sequence
@@ -2936,10 +2936,19 @@ net.brehaut.ClojureTools = (function (SH) {
   [_]
   [`(not= :eternal :t-occurrence)
    `(not= :eternal :b-occurrence)
-   `(&lt;= ~duration (abs (- :t-occurrence :b-occurrence)))])</pre></td></tr><tr><td class="docs">
+   `(&lt; :b-occurrence :t-occurrence)
+   #_`(&lt;= ~temporal-window-duration (abs (- :t-occurrence :b-occurrence)))])</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defmethod compound-precondition :measure-time-backward
+  [_]
+  [`(not= :eternal :t-occurrence)
+   `(not= :eternal :b-occurrence)
+   `(&gt; :b-occurrence :t-occurrence)
+   #_`(&lt;= ~temporal-window-duration (abs (- :t-occurrence :b-occurrence)))])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmethod compound-precondition :concurrent
   [_]
-  [`(&gt; ~duration (abs (- :t-occurrence :b-occurrence)))])</pre></td></tr><tr><td class="docs"><h2></h2>
+  [`(not= :eternal :t-occurrence)
+   `(not= :eternal :b-occurrence)
+   `(&gt; ~temporal-window-duration (abs (- :t-occurrence :b-occurrence)))])</pre></td></tr><tr><td class="docs"><h2></h2>
 </td><td class="codes"><pre class="brush: clojure">(defmulti precondition-transformation (fn [arg1 _] (first arg1)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmethod precondition-transformation :default [_ conclusion] conclusion)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn sets-transformation
@@ -2971,6 +2980,13 @@ net.brehaut.ClojureTools = (function (SH) {
              ~(walk conclusion
                 (= :el arg) [:interval arg]))
       (= :el arg) mt)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defmethod precondition-transformation :measure-time-backward
+  [[_ arg] conclusion]
+  (let [mt (gensym)]
+    (walk `(let [~arg (abs (- :t-occurrence :b-occurrence))]
+             ~(walk conclusion
+                    (= :el arg) [:interval arg]))
+          (= :el arg) mt)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn check-precondition
   [conclusion precondition]
   (if (seq? precondition)
@@ -2982,10 +2998,10 @@ net.brehaut.ClojureTools = (function (SH) {
 </td><td class="codes"><pre class="brush: clojure">(defmulti conclusion-transformation (fn [arg1 _] (first arg1)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn shift-forward-let
   ([sym conclusion] (shift-forward-let sym nil conclusion nil))
-  ([sym op conclusion duration]
+  ([sym op conclusion temporal-window-duration]
    `(let [interval# ~sym
-          ~@(if duration
-              `[:t-occurrence (~op :t-occurrence ~duration)]
+          ~@(if temporal-window-duration
+              `[:t-occurrence (~op :t-occurrence ~temporal-window-duration)]
               [])
           :t-occurrence (if interval# (+ :t-occurrence interval#)
                                       :t-occurrence)]
@@ -2995,21 +3011,21 @@ net.brehaut.ClojureTools = (function (SH) {
   (m/match (mapv #(if (and (coll? %) (= 'quote (first %)))
                    (second %) %) (rest args))
     [(:or '=|&gt; '==&gt;)] concl
-    ['pred-impl] `(let [:t-occurrence (+ :t-occurrence ~duration)] ~concl)
-    ['retro-impl] `(let [:t-occurrence (- :t-occurrence ~duration)] ~concl)
+    ['pred-impl] `(let [:t-occurrence (+ :t-occurrence ~temporal-window-duration)] ~concl)
+    ['retro-impl] `(let [:t-occurrence (- :t-occurrence ~temporal-window-duration)] ~concl)
     [sym (:or '=|&gt; '==&gt;)] (shift-forward-let sym concl)
-    [sym 'pred-impl] (shift-forward-let sym `+ concl duration)
-    [sym 'retro-impl] (shift-forward-let sym `- concl duration)))</pre></td></tr><tr><td class="docs">
+    [sym 'pred-impl] (shift-forward-let sym `+ concl temporal-window-duration)
+    [sym 'retro-impl] (shift-forward-let sym `- concl temporal-window-duration)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn backward-interval-check [sym]
   `(and (coll? ~sym) (= (first ~sym) (quote ~'seq-conj))
         (let [cnt# (count ~sym)]
           (and (odd? cnt#) (get-in ~sym [(dec cnt#) 1])))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn shift-backward-let
   ([sym conclusion] (shift-backward-let sym nil conclusion nil))
-  ([sym op conclusion duration]
+  ([sym op conclusion temporal-window-duration]
    `(let [interval# ~(backward-interval-check sym)
-          ~@(if duration
-              `[:t-occurrence (~op :t-occurrence ~duration)]
+          ~@(if temporal-window-duration
+              `[:t-occurrence (~op :t-occurrence ~temporal-window-duration)]
               [])
           :t-occurrence (if interval# (+ :t-occurrence interval#)
                                       :t-occurrence)]
@@ -3018,15 +3034,15 @@ net.brehaut.ClojureTools = (function (SH) {
         ~conclusion))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmethod conclusion-transformation :shift-occurrence-backward
   [args concl]
-  (let [duration (- duration)]
+  (let [temporal-window-duration (- temporal-window-duration)]
     (m/match (mapv #(if (and (coll? %) (= 'quote (first %)))
                      (second %) %) (rest args))
       [(:or '=|&gt; '==&gt;)] concl
-      ['pred-impl] `(let [:t-occurrence (+ :t-occurrence ~duration)] ~concl)
-      ['retro-impl] `(let [:t-occurrence (- :t-occurrence ~duration)] ~concl)
+      ['pred-impl] `(let [:t-occurrence (+ :t-occurrence ~temporal-window-duration)] ~concl)
+      ['retro-impl] `(let [:t-occurrence (- :t-occurrence ~temporal-window-duration)] ~concl)
       [sym (:or '=|&gt; '==&gt;)] (shift-backward-let sym concl)
-      [sym 'pred-impl] (shift-backward-let sym `+ concl duration)
-      [sym 'retro-impl] (shift-backward-let sym `- concl duration))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
+      [sym 'pred-impl] (shift-backward-let sym `+ concl temporal-window-duration)
+      [sym 'retro-impl] (shift-backward-let sym `- concl temporal-window-duration))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
 SyntaxHighlighter.all();
 
 // hackity hack

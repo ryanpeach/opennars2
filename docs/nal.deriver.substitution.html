@@ -2877,11 +2877,12 @@ net.brehaut.ClojureTools = (function (SH) {
     (-&gt;&gt; :el second (str &quot;?&quot;) symbol)))</pre></td></tr><tr><td class="docs"><p>Returns map of inified elements from both collections.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn unification-map
   [var-symbol p2 p3]
-  (let [var-type (if (= var-symbol &quot;$&quot;)
-                   'ind-var
-                   'dep-var)]
-    ((u/make-occurs-unify-fn #(and (coll? %) (= var-type (first %)))) p2 p3)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def munification-map (memoize unification-map))</pre></td></tr><tr><td class="docs">
+  (let [check-var-type (if (= var-symbol &quot;$&quot;)                ;in this cases also dependent var
+                         #(or (= % 'ind-var) (= % 'dep-var)) ;elimination is fine!
+                         #(= % 'dep-var))]
+    ((u/make-occurs-unify-fn #(and (coll? %) (check-var-type (first %)))) p2 p3)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">#_(def munification-map (memoize unification-map))
+(def munification-map unification-map)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn placeholder-&gt;symbol [pl]
   (-&gt;&gt; pl str (drop 1) s/join symbol))</pre></td></tr><tr><td class="docs"><p>Updates keys in unification map from placeholders like ?X to vectors like
   ['dep-var X]</p>

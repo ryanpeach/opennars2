@@ -2940,76 +2940,59 @@ not commutative: --> ==> =/> => </> &amp;/ - ~</p>
 </td><td class="codes"><pre class="brush: clojure">(defn reduce-int-inter
   [st]
   (m/match st
-    ['| t] t
-    ['| ['| &amp; l1] ['| &amp; l2]] (union '| l1 l2)
-    ['| ['| &amp; l1] l2] (union '| l1 [l2])
-    ['| l1 ['| &amp; l2]] (union '| [l1] l2)
-    ['| ['int-set &amp; l1] ['int-set &amp; l2]] (union 'int-set l1 l2)
-    ['| ['ext-set &amp; l1] ['ext-set &amp; l2]] (union 'ext-set l1 l2)
-    :else st))</pre></td></tr><tr><td class="docs">
+           ['| t] t
+           ['| ['| &amp; l1] ['| &amp; l2]] (union '| l1 l2)
+           ['| ['| &amp; l1] l2] (union '| l1 [l2])
+           ['| l1 ['| &amp; l2]] (union '| [l1] l2)
+           ['| ['int-set &amp; l1] ['int-set &amp; l2]] (union 'int-set l1 l2)
+           ['| ['ext-set &amp; l1] ['ext-set &amp; l2]] (union 'ext-set l1 l2)
+           :else st))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn reduce-int-dif
   [st]
   (m/match st
-    [_ ['int-set &amp; l1] ['int-set &amp; l2]] (diff 'int-set l1 l2)
-    :else st))</pre></td></tr><tr><td class="docs">
+           [_ ['int-set &amp; l1] ['int-set &amp; l2]] (diff 'int-set l1 l2)
+           :else st))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn reduce-ext-dif
   [st]
   (m/match st
-    [_ ['ext-set &amp; l1] ['ext-set &amp; l2]] (diff 'ext-set l1 l2)
-    :else st))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-symilarity
-  [st]
-  (m/match st
-    ['&lt;-&gt; ['ext-set s] ['ext-set p]] ['&lt;-&gt; s p]
-    ['&lt;-&gt; ['int-set s] ['int-set p]] ['&lt;-&gt; s p]
-    :else st))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-production
-  [st]
-  (m/match st
-    ['* ['* &amp; l1] &amp; l2] (vec (conj (concat l1 l2) '*))
-    :else st))</pre></td></tr><tr><td class="docs">
+           [_ ['ext-set &amp; l1] ['ext-set &amp; l2]] (diff 'ext-set l1 l2)
+           :else st))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn reduce-image
   [st]
   (m/match st
-    [_ ['* t1 t2] t3] (if (and (= t2 t3) (not= t1 t2)) t1 st)
-    :else st))</pre></td></tr><tr><td class="docs">
+           [_ ['* t1 t2] t3] (if (and (= t2 t3) (not= t1 t2)) t1 st)
+           :else st))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn reduce-neg
   [st]
   (m/match st
-    ['-- ['-- t]] t
-    :else st))</pre></td></tr><tr><td class="docs">
+           ['-- ['-- t]] t
+           :else st))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn reduce-or
   [st]
   (m/match st
-    ['|| t] t
-    ['|| ['|| &amp; l1] ['|| &amp; l2]] (union '|| l1 l2)
-    ['|| ['|| &amp; l1] l2] (union '|| l1 [l2])
-    ['|| l1 ['|| &amp; l2]] (union '|| [l1] l2)
-    ['|| t1 t2] (if (= t1 t2) t1 st)
-    :else st))</pre></td></tr><tr><td class="docs">
+           ['|| t] t
+           ['|| ['|| &amp; l1] ['|| &amp; l2]] (union '|| l1 l2)
+           ['|| ['|| &amp; l1] l2] (union '|| l1 [l2])
+           ['|| l1 ['|| &amp; l2]] (union '|| [l1] l2)
+           ['|| t1 t2] (if (= t1 t2) t1 st)
+           :else st))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn reduce-and
   [st]
   (m/match st
-    ['conj t] t
-    ['conj ['conj &amp; l1] ['conj &amp; l2]] (union 'conj l1 l2)
-    ['conj ['conj &amp; l1] l2] (union 'conj l1 [l2])
-    ['conj l1 ['conj &amp; l2]] (union 'conj [l1] l2)
-    ['conj t1 t2] (if (= t1 t2) t1 st)
-    :else st))</pre></td></tr><tr><td class="docs">
+           ['conj t] t
+           ['conj ['conj &amp; l1] ['conj &amp; l2]] (union 'conj l1 l2)
+           ['conj ['conj &amp; l1] l2] (union 'conj l1 [l2])
+           ['conj l1 ['conj &amp; l2]] (union 'conj [l1] l2)
+           ['conj t1 t2] (if (= t1 t2) t1 st)
+           :else st))</pre></td></tr><tr><td class="docs"><p>Not in use currently, may change</p>
 </td><td class="codes"><pre class="brush: clojure">(defn reduce-seq-conj
   [st]
-  (let [cnt (count st)]
-    (cond
-      (= 3 cnt) (second st)
-      (odd? cnt) (vec (butlast st))
-      :else st)))</pre></td></tr><tr><td class="docs">
+  st)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def reducible-ops
   {'ext-inter `reduce-ext-inter
    '|         `reduce-int-inter
    '-         `reduce-ext-dif
    'int-dif   `reduce-int-dif
-   '&lt;-&gt;       `reduce-symilarity
-   '*         `reduce-production
    'int-image `reduce-image
    'ext-image `reduce-image
    '--        `reduce-neg
@@ -3023,8 +3006,6 @@ not commutative: --> ==> =/> => </> &amp;/ - ~</p>
       | (reduce-int-inter st)
       - (reduce-ext-dif st)
       int-dif (reduce-int-dif st)
-      &lt;-&gt; (reduce-symilarity st)
-      * (reduce-production st)
       int-image (reduce-image st)
       ext-image (reduce-image st)
       -- (reduce-neg st)

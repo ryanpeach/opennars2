@@ -25,7 +25,7 @@
             [jonase/eastwood "0.2.3"]
             [lein-kibit "0.1.2"]
             [cider/cider-nrepl "0.11.0-SNAPSHOT"]
-            [michaelblume/lein-marginalia "0.9.0"]
+            [lein-marginalia "0.9.0"]
             [lein-gorilla "0.3.6"]]
   :eastwood {:exclude-namespaces [nal.rules]}
   :target-path "target/%s"

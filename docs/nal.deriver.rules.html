@@ -2912,17 +2912,23 @@ net.brehaut.ClojureTools = (function (SH) {
                       (assoc ac k r))))
                 {} rules)))</pre></td></tr><tr><td class="docs"><p>Return true if rule allows only question as task.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn question?
-  [{:keys [pre]}]
-  (some #{:question?} pre))</pre></td></tr><tr><td class="docs"><p>Return true if rule allows only goal as task.</p>
+  [{:keys [pre] [{post :post}] :conclusions}]
+  (some #{:question?} pre))                                ;all rules that allow backward can be used for question generation</pre></td></tr><tr><td class="docs"><p>all rules that allow backward can be used for question generation</p>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>Return true if rule allows only quest as task.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn quest?
+  [{:keys [pre] [{post :post}] :conclusions}]
+  (some #{:question?} pre))                                ;all rules that allow backward can be used for quests and goals</pre></td></tr><tr><td class="docs"><p>all rules that allow backward can be used for quests and goals</p>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>Return true if rule allows only goal as task.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn goal?
-  [{pre :pre [{post :post} :as concls] :conclusions}]
-  (or (some #{:goal?} pre)
-      (some (fn [el] (and (keyword? el)
-                          (s/starts-with? (str el) &quot;:d/&quot;)))
-            post)))</pre></td></tr><tr><td class="docs"><p>Return true if rule allows only belief as task.</p>
+  [{pre :pre [{post :post}] :conclusions}]
+  (and (not (some #{:belief?} pre))                         ;these which don't want a question or belief
+       (not (some #{:question?} pre))))                     ;can also be used for goal tasks</pre></td></tr><tr><td class="docs"><p>can also be used for goal tasks</p>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>Return true if rule allows only belief as task.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn belief?
   [{:keys [pre] :as rule}]
-  (not (or (question? rule) (some #{:goal} pre))))</pre></td></tr><tr><td class="docs"><p>Selects all rules that will match the same path as current rule and adds
+  (and (not (some #{:goal?} pre))                          ;these which don't want a question or goal
+       (not (some #{:question?} pre))))                    ;can also be used for belief tasks</pre></td></tr><tr><td class="docs"><p>can also be used for belief tasks</p>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>Selects all rules that will match the same path as current rule and adds
   these rules to the set of rules that matches path.
   For instance:
   current rule's path [[--> [- :any :any] :any] :and [--> [:any :any]]]</p>
@@ -2931,9 +2937,9 @@ net.brehaut.ClojureTools = (function (SH) {
   it matches to current's rule path too, hence it should be added to the set
   of rules that matches [[--> [- :any :any] :any] :and [--> [:any :any]]] path.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn add-possible-paths
-  [ac [k {:keys [all starts-with]}]]
+  [ac [k {:keys [all]}]]
   (let [rules (mapcat :rules (vals (select-keys ac all)))]
-    ac #_(-&gt; ac
+    (-&gt; ac
         (update-in [k :rules] concat rules)
         (update-in [k :rules] set))))</pre></td></tr><tr><td class="docs"><p>Adds rule to map of rules, conjoin rule to set of rules that
   matches to pattern. Rules paths are keys in this map.</p>
@@ -2950,7 +2956,7 @@ net.brehaut.ClojureTools = (function (SH) {
 </td><td class="codes"><pre class="brush: clojure">(defn rules-map
   [ruleset task-type]
   (let [rules (reduce rule-&gt;map {} ruleset)]
-    (generate-matching (reduce add-possible-paths rules rules) task-type)))</pre></td></tr><tr><td class="docs"><hr />
+    (generate-matching rules task-type)))</pre></td></tr><tr><td class="docs"><hr />
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmacro rules-&gt;&gt; [raw-rules &amp; transformations]
   (let [pairs (partition 2 transformations)]
@@ -2965,7 +2971,7 @@ net.brehaut.ClojureTools = (function (SH) {
 </td><td class="codes"><pre class="brush: clojure">(defmacro defrules
   [name first &amp; rules]
   (let [rules (if (string? first) rules (cons first rules))]
-    `(def ~name (quote ~rules))))</pre></td></tr><tr><td class="docs">
+    `(def ~name (quote ~rules))))</pre></td></tr><tr><td class="docs"><p>Define rules. Rules must be #R statements.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn compile-rules
   ;TODO exception on duplication of the rule
   [&amp; rules]
@@ -2979,13 +2985,16 @@ net.brehaut.ClojureTools = (function (SH) {
                           allow-backward? expand-backward-rules)
           belief-rules# (check-duplication (filter belief? rules))
           question-rules# (check-duplication (filter question? rules))
-          goal-rules# (check-duplication (filter goal? rules))]
-      (println &quot;Q rules:&quot; (count question-rules#))
-      (println &quot;J rules:&quot; (count belief-rules#))
-      (println &quot;G rules:&quot; (count goal-rules#))
+          goal-rules# (check-duplication (filter goal? rules))
+          quest-rules# (check-duplication (filter quest? rules))]
+      (println &quot;Beliefs rules:&quot; (count belief-rules#))
+      (println &quot;Questions rules:&quot; (count question-rules#))
+      (println &quot;Goal rules:&quot; (count goal-rules#))
+      (println &quot;Quests rules:&quot; (count quest-rules#))
       {:belief (rules-map belief-rules# :belief)
        :question  (rules-map question-rules# :question)
-       :goal      (rules-map goal-rules# :goal)})))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
+       :goal      (rules-map goal-rules# :goal)
+       :quest     (rules-map quest-rules# :quest)})))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
 SyntaxHighlighter.all();
 
 // hackity hack

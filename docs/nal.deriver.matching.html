@@ -2869,10 +2869,10 @@ net.brehaut.ClojureTools = (function (SH) {
 </td><td class="codes"><pre class="brush: clojure">(ns nal.deriver.matching
   (:require
     [nal.deriver.utils :refer [walk operator? not-operator?]]
-    [clojure.core.match :refer [match]]
     [clojure.core.unify :as u]
     [clojure.set :refer [map-invert intersection]]
     [clojure.string :as s]
+    [narjure.global-atoms :refer [nars-time]]               ;because of projection!
     [nal.deriver
      [set-functions :refer [f-map not-empty-diff? not-empty-inter?]]
      [substitution :refer [munification-map substitute]]
@@ -2881,81 +2881,112 @@ net.brehaut.ClojureTools = (function (SH) {
                             preconditions-transformations]]
      [normalization :refer [commutative-ops sort-commutative reducible-ops]
       :as n]
-     [truth :as t]]))</pre></td></tr><tr><td class="docs"><p>operators/functions that shouldn't be quoted</p>
+     [truth :as t]
+     [projection-eternalization :refer [project-eternalize-to]]]))</pre></td></tr><tr><td class="docs"><p>operators/functions that shouldn't be quoted</p>
 </td><td class="codes"><pre class="brush: clojure">(def reserved-operators
   #{`= `not= `seq? `first `and `let `pos? `&gt; `&gt;= `&lt; `&lt;= `coll? `set `quote
     `count 'aops `- `not-empty-diff? `not-empty-inter? `walk `munification-map
     `substitute `sets `some `deref `do `vreset! `volatile! `fn `mapv `if
-    `sort-commutative `n/reduce-ext-inter `n/reduce-symilarity `complement
+    `sort-commutative `n/reduce-ext-inter `complement
     `n/reduce-int-dif `n/reduce-and `n/reduce-ext-dif `n/reduce-image
     `n/reduce-int-inter `n/reduce-neg `n/reduce-or `nil? `not `or `abs
     `implications-and-equivalences `get-terms `empty? `intersection
     `n/reduce-seq-conj})</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn operators-&gt;placeholders
+  [statement]
+  (walk statement
+        (and (symbol? :el)
+             (operator? :el)) '_
+        (= :interval :el) '_
+        (coll? :el) (vec :el)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn quote-operators
   [statement]
   (walk statement
-    (and
-      (not (reserved-operators :el))
-      (symbol? :el)
-      (or (operator? :el) (#{'Y 'X} :el))) `'~:el
-    (and (coll? :el)
-         ((complement map?) :el)
-         (let [f (first :el)]
-           (and (not (reserved-operators f))
-                (not (fn? f)))))
-    (vec :el)))</pre></td></tr><tr><td class="docs"><p>Formation of cocnlusion in terms of task and truth/desire functions</p>
+        (and
+          (not (reserved-operators :el))
+          (symbol? :el)
+          (or (operator? :el) (#{'Y 'X} :el))) `'~:el
+        (and (coll? :el)
+             ((complement map?) :el)
+             (let [f (first :el)]
+               (and (not (reserved-operators f))
+                    (not (fn? f)))))
+        (vec :el)))</pre></td></tr><tr><td class="docs"><p>Formation of conclusion in terms of task and truth/desire functions</p>
 </td><td class="codes"><pre class="brush: clojure">(defn form-conclusion
-  [{:keys [t1 t2 task-type]}
+  [{:keys [t1 t2 task-type task belief]}
    {c  :statement tf :t-function pj :p/belief df :d-function
-    sc :shift-conditions}]
+    sc :shift-conditions swap-truth :swap-truth time-measured :time-measured}]
   (let [conclusion-type (if pj :belief task-type)
         conclusion {:statement  c
                     :task-type  conclusion-type
                     :occurrence :t-occurrence}
+        get-func (fn [f] (let [secure (fn [func t1 t2 task belief swapped time-measure]
+                                        (let [belief-truth (fn [t task belief] ;2. this is why args are necessary here
+                                                             (if (or (= nil belief)
+                                                                     time-measure
+                                                                     (not (:truth belief))) ;as task and belief are not aviable on rule generation
+                                                               #_(:truth (project-eternalize-to (:occurrence task) ;just to play the role of less confidence for further apart
+                                                                                              belief @nars-time)) ;not necessary as time is kept track of!!
+                                                               t
+                                                               (:truth (project-eternalize-to (:occurrence task)
+                                                                                                belief @nars-time))))]
+                                          (if swapped
+                                            (try
+                                              (func (belief-truth t2 task belief) t1)
+                                              (catch Exception e [0 0]))
+                                            (try
+                                              (func t1 (belief-truth t2 task belief))
+                                              (catch Exception e [0 0])))))]
+                           (list secure f t1 t2 task belief swap-truth time-measured))) ;1. at this place the entries are not generated yet!
         conclusion (case conclusion-type
-                     :belief (assoc conclusion :truth (list tf t1 t2))
-                     :goal (assoc conclusion :desire (list df t1 t2))
+                     :belief (assoc conclusion :truth (get-func tf))
+                     :goal (assoc conclusion :truth (get-func df))
                      conclusion)]
     (if sc
       (conclusion-transformation sc conclusion)
       conclusion)))</pre></td></tr><tr><td class="docs"><p>Generates code for precondition node.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn traverse-node
   [vars result {:keys [conclusions children condition]}]
-  `(when ~(quote-operators condition)
-     ~(when-not (zero? (count conclusions))
-        `(vswap! ~result concat
-                 ~@(set (map #(mapv (partial form-conclusion vars) %)
-                             (quote-operators conclusions)))))
-     ~@(map (fn [n] (traverse-node vars result n)) children)))</pre></td></tr><tr><td class="docs"><p>Walk through preconditions tree and generates code for matcher.</p>
+  (let [conclusions (remove
+                      nil?
+                      [(when-not (zero? (count conclusions))
+                         `(vswap! ~result concat
+                                  ~@(set (map #(mapv (partial form-conclusion vars) %)
+                                              (quote-operators conclusions)))))])
+        children (mapcat (fn [n] (traverse-node vars result n)) children)]
+    (if (true? condition)
+      (concat conclusions children)
+      [`(when ~(quote-operators condition)
+          ~@(concat conclusions children))])))</pre></td></tr><tr><td class="docs"><p>Walk through preconditions tree and generates code for matcher.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn traversal
   [vars tree]
   (let [results (gensym)]
     `(let [~results (volatile! [])]
-       ~(traverse-node vars results tree)
+       ~@(traverse-node vars results tree)
        @~results)))</pre></td></tr><tr><td class="docs"><p>Reblaces occurrences keywords from matcher's code by generated symbols.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn replace-occurrences
   [code]
   (let [t-occurrence (gensym) b-occurrence (gensym)]
     (walk code
-      (= :el :t-occurrence) t-occurrence
-      (= :el :b-occurrence) b-occurrence)))</pre></td></tr><tr><td class="docs"><p>Generates code of function that will match premises. Generated function
-  should be called with task and beleif as arguments.</p>
+          (= :el :t-occurrence) t-occurrence
+          (= :el :b-occurrence) b-occurrence)))</pre></td></tr><tr><td class="docs"><p>Generates code of function that will match premises. Generated function
+  should be called with task and belief as arguments.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn match-rules
   [rules pattern task-type]
   (let [t1 (gensym) t2 (gensym)
         task (gensym) belief (gensym)
-        truth-kw (if (= :goal task-type) :desire :truth)]
+        truth-kw :truth]
     (replace-occurrences
       `(fn [{p1# :statement ~t1 ~truth-kw :t-occurrence :occurrence :as ~task}
             {p2# :statement ~t2 :truth :b-occurrence :occurrence :as ~belief}]
-         (match [p1# p2#] ~(quote-operators pattern)
+         (let [~(operators-&gt;placeholders (first pattern)) p1#
+               ~(operators-&gt;placeholders (second pattern)) p2#]
            ~(traversal {:t1        t1
                         :t2        t2
                         :task      task
                         :belief    belief
                         :task-type task-type}
-                       rules)
-           :else nil)))))</pre></td></tr><tr><td class="docs"><p>Replaces all terms in statemnt to placeholders that will be used in pattern
+                       rules))))))</pre></td></tr><tr><td class="docs"><p>Replaces all terms in statemnt to placeholders that will be used in pattern
   matching or unification. Return vector, where the first element is map from
   placeolder to term and the second is statement with replaced terms.
   Form instance:</p>
@@ -2968,11 +2999,11 @@ net.brehaut.ClojureTools = (function (SH) {
         sym-map (volatile! {})
         get-sym #(symbol (str prefix %))
         result (walk statement
-                 (and (symbol? el) (not-operator? el))
-                 (let [s (get-sym @cnt)]
-                   (vswap! cnt inc)
-                   (vswap! sym-map assoc s el)
-                   s))]
+                     (and (symbol? el) (not-operator? el))
+                     (let [s (get-sym @cnt)]
+                       (vswap! cnt inc)
+                       (vswap! sym-map assoc s el)
+                       s))]
     [@sym-map result]))</pre></td></tr><tr><td class="docs"><p>Replaces </p>
 </td><td class="codes"><pre class="brush: clojure">(defn symbols-&gt;placeholders
   [premise]
@@ -3000,7 +3031,7 @@ net.brehaut.ClojureTools = (function (SH) {
   [conclusion sym-map]
   (let [sym-map (map-invert sym-map)]
     (walk conclusion
-      (sym-map el) (sym-map el))))</pre></td></tr><tr><td class="docs">
+          (sym-map el) (sym-map el))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn find-kv-by-prefix [prefix coll]
   (first (filter #(and (keyword? %) (s/starts-with? (str %) prefix)) coll)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn get-truth-fn [post] (find-kv-by-prefix &quot;:t/&quot; post))</pre></td></tr><tr><td class="docs">
@@ -3031,126 +3062,132 @@ net.brehaut.ClojureTools = (function (SH) {
     conclusion))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn check-reduction [conclusion]
   (walk conclusion
-    (and (coll? :el) (reducible-ops (first :el)) (&lt;= 3 (count :el)))
-    `(~(reducible-ops (first :el)) ~:el)))</pre></td></tr><tr><td class="docs">
+        (and (coll? :el) (reducible-ops (first :el)) (&lt;= 2 (count :el)))
+        `(~(reducible-ops (first :el)) ~:el)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn find-shift-precondition
   [preconditions]
   (first
     (filter
-      #(and (coll? %)
+      #(and false                                           ;disabled due to new handling!!
+            (coll? %)                                       ;TODO remove if successful
             (#{:shift-occurrence-backward
                :shift-occurrence-forward}
-              (first %))) preconditions)))</pre></td></tr><tr><td class="docs"><p>Creates map with preconditions and conclusions regarding to the main pattern
-   of rules branch.
-   Example:</p>
+              (first %))) preconditions)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn arg-count [f]
+  {:pre [(instance? clojure.lang.AFunction f)]}
+  (-&gt; f class .getDeclaredMethods first .getParameterTypes alength))</pre></td></tr><tr><td class="docs"><p>Creates map with preconditions and conclusions regarding to the main pattern
+     of rules branch.
+     Example:</p>
 
-<p>   the main pattern of riles branch is
-   [[--> :any [- :any :any]] :and [--> :any :any]]</p>
+<pre><code> the main pattern of riles branch is
+ [[--&gt; :any [- :any :any]] :and [--&gt; :any :any]]
 
-<p>   before it will be applied to pattern matching it will be transformed to
-   [[--> x1 [- x2 x3]] [--> x4 x5]]</p>
+ before it will be applied to pattern matching it will be transformed to
+ [[--&gt; x1 [- x2 x3]] [--&gt; x4 x5]]
 
-<p>   When whe want to use the pattern above to derive conclusions from some
-   another rule, we have to map placeholders from pattern to terms in this rule.</p>
+ When whe want to use the pattern above to derive conclusions from some
+ another rule, we have to map placeholders from pattern to terms in this rule.
 
-<p>   For rule with premises [[--> A B] [--> B C]] and conclusion [--> A C]
-   map will be
-   {x1 A, ['- x2 x3] B, x4 B, x5 C}</p>
+ For rule with premises [[--&gt; A B] [--&gt; B C]] and conclusion [--&gt; A C]
+ map will be
+ {x1 A, ['- x2 x3] B, x4 B, x5 C}
 
-<p>   From this map, conditions will be the list with one condition:
-   [(= ['- x2 x3] x4)]</p>
+ From this map, conditions will be the list with one condition:
+ [(= ['- x2 x3] x4)]
 
-<p>   and conclusion will be
-   [--> x1 x4].</p>
-</td><td class="codes"><pre class="brush: clojure">(defn premises-pattern
-  [pattern premise {:keys [post conclusion]} preconditions]
-  (let [[sym-map pat] (find-and-replace-symbols premise &quot;?a&quot;)
-        unification-map (u/unify pattern pat)
-        sym-map (into {} (map (fn [[k v]] [(k unification-map) v]) sym-map))
-        inverted-sym-map (map-invert sym-map)
-        pre (walk (apply-preconditions preconditions)
-              (inverted-sym-map el) (inverted-sym-map el)
-              (seq? el)
-              (let [[f &amp; tail] el]
-                (if-not (#{`munification-map `not-empty-diff?} f)
-                  (concat (list f) (sort-placeholders tail))
-                  el)))]
-    {:conclusion {:statement        (-&gt; conclusion
-                                        (preconditions-transformations preconditions)
-                                        (replace-symbols sym-map)
-                                        check-commutative
-                                        check-reduction)
-                  :shift-conditions (replace-symbols
-                                      (find-shift-precondition preconditions)
-                                      sym-map)
-                  :t-function       (t/tvtypes (get-truth-fn post))
-                  :d-function       (t/dvtypes (get-desire-fn post))
-                  :p/belief      (some #{:p/belief} post)}
-     :conditions (remove nil?
-                         (walk (concat (check-conditions sym-map) pre)
-                           (and (coll? el) (= \a (first (str (first el)))))
-                           (concat '() el)
-                           (and (coll? el) (not ((conj reserved-operators 'quote)
-                                                  (first el))))
-                           (vec el)))}))</pre></td></tr><tr><td class="docs"><p>Creates map from conditions to conclusions.</p>
-</td><td class="codes"><pre class="brush: clojure">(defn conditions-&gt;conclusions-map
-  [main rules]
-  (-&gt;&gt; rules
-       (map (fn [[premises conclusions preconditions]]
-              (premises-pattern main premises conclusions preconditions)))
-       (group-by :conditions)
-       (map (fn [[k v]] [k (map :conclusion v)]))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defrecord TreeNode [condition conclusions children])</pre></td></tr><tr><td class="docs"><p>Groups conditions->conclusions map by first condition and remove it.</p>
-</td><td class="codes"><pre class="brush: clojure">(defn group-conditions
-  [conds]
-  (into {} (map (fn [[k v]]
-                  [k (map (fn [[k v]]
-                            [(drop 1 k) (set v)]) v)])
-                (group-by #(-&gt; % first first) conds))))</pre></td></tr><tr><td class="docs"><p>Generates tree of conditions from conditions->conclusions map.</p>
-</td><td class="codes"><pre class="brush: clojure">(defn generate-tree
-  ([conds] (generate-tree true conds))
-  ([cond conds]
-   (let [grouped-conditions (group-conditions conds)
-         reached-keys (map second (grouped-conditions nil))
-         other (dissoc grouped-conditions nil)]
-     (-&gt;TreeNode cond reached-keys
-                 (map (fn [[cond conds]]
-                        (generate-tree cond conds))
-                      other)))))</pre></td></tr><tr><td class="docs"><p>Generates the map of priorities for coditions according to their frequency.</p>
-</td><td class="codes"><pre class="brush: clojure">(defn conds-priorities-map
-  [conds]
-  (-&gt;&gt; (mapcat (fn [[cnds k]]
-                 (if (not-empty cnds)
-                   (map (fn [c] [c k]) cnds)
-                   [(list '() k)])) conds)
-       (group-by first)
-       (map (fn [[k v]] [k (+ (- (count v)) (rand 0.4))]))
-       (into {})))</pre></td></tr><tr><td class="docs"><p>Sorts conditions in conditions->conclusions map according to the map of
-   priorities of conditions. If condition occurs frequntly it will have higher
-   priority.</p>
-</td><td class="codes"><pre class="brush: clojure">(defn sort-conds
-  [conds cpm]
-  (map (fn [[cnds k]] [(sort-by cpm cnds) k]) conds))</pre></td></tr><tr><td class="docs"><p>Prepeares data for generation of conditions tree and then generates tree.</p>
-</td><td class="codes"><pre class="brush: clojure">(defn gen-rules
-  [main-pattern rules]
-  (let [rules (mapcat (fn [{:keys [p1 p2 conclusions pre]}]
-                        (map #(vector [p1 p2] % pre) conclusions))
-                      rules)
-        cond-conclusions-m (conditions-&gt;conclusions-map main-pattern rules)
-        cpm (conds-priorities-map cond-conclusions-m)
-        sorted-conds (sort-conds cond-conclusions-m cpm)]
-    (generate-tree sorted-conds)))</pre></td></tr><tr><td class="docs"><p>Generates code for rule matcher.</p>
-</td><td class="codes"><pre class="brush: clojure">(defn generate-matching
-  [rules task-type]
-  (-&gt;&gt; rules
-       (map (fn [[k {:keys [pattern rules] :as v}]]
-              (let [main-pattern (symbols-&gt;placeholders pattern)
-                    match-fn-code (-&gt; main-pattern
-                                      (gen-rules rules)
-                                      (match-rules main-pattern task-type))]
-                [k (assoc v :matcher (eval match-fn-code)
-                            :matcher-code match-fn-code)])))
-       (into {})))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
+ and conclusion will be
+ [--&gt; x1 x4].
+</code></pre>
+</td><td class="codes"><pre class="brush: clojure">  (defn premises-pattern
+    [pattern premise {:keys [post conclusion]} preconditions]
+    (let [[sym-map pat] (find-and-replace-symbols premise &quot;?a&quot;)
+          unification-map (u/unify pattern pat)
+          sym-map (into {} (map (fn [[k v]] [(k unification-map) v]) sym-map))
+          inverted-sym-map (map-invert sym-map)
+          pre (walk (apply-preconditions preconditions)
+                    (inverted-sym-map el) (inverted-sym-map el)
+                    (seq? el)
+                    (let [[f &amp; tail] el]
+                      (if-not (#{`munification-map `not-empty-diff?} f)
+                        (concat (list f) (sort-placeholders tail))
+                        el)))]
+      {:conclusion {:statement        (-&gt; conclusion
+                                          (preconditions-transformations preconditions)
+                                          (replace-symbols sym-map)
+                                          check-commutative
+                                          check-reduction)
+                    :shift-conditions (replace-symbols
+                                        (find-shift-precondition preconditions)
+                                        sym-map)
+                    :t-function       (t/tvtypes (get-truth-fn post))
+                    :d-function       (t/dvtypes (get-desire-fn post))
+                    :swap-truth       (some #{:truth-swapped} post)
+                    :time-measured    (some #{:measure-time} post)
+                    :p/belief         (some #{:p/belief} post)}
+       :conditions (remove nil?
+                           (walk (concat (check-conditions sym-map) pre)
+                                 (and (coll? el) (= \a (first (str (first el)))))
+                                 (concat '() el)
+                                 (and (coll? el) (not ((conj reserved-operators 'quote)
+                                                        (first el))))
+                                 (vec el)))}))</pre></td></tr><tr><td class="docs"><p>Creates map from conditions to conclusions.</p>
+</td><td class="codes"><pre class="brush: clojure">  (defn conditions-&gt;conclusions-map
+    [main rules]
+    (-&gt;&gt; rules
+         (map (fn [[premises conclusions preconditions]]
+                (premises-pattern main premises conclusions preconditions)))
+         (group-by :conditions)
+         (map (fn [[k v]] [k (map :conclusion v)]))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">  (defrecord TreeNode [condition conclusions children])</pre></td></tr><tr><td class="docs"><p>Groups conditions->conclusions map by first condition and remove it.</p>
+</td><td class="codes"><pre class="brush: clojure">  (defn group-conditions
+    [conds]
+    (into {} (map (fn [[k v]]
+                    [k (map (fn [[k v]]
+                              [(drop 1 k) (set v)]) v)])
+                  (group-by #(-&gt; % first first) conds))))</pre></td></tr><tr><td class="docs"><p>Generates tree of conditions from conditions->conclusions map.</p>
+</td><td class="codes"><pre class="brush: clojure">  (defn generate-tree
+    ([conds] (generate-tree true conds))
+    ([cond conds]
+     (let [grouped-conditions (group-conditions conds)
+           reached-keys (map second (grouped-conditions nil))
+           other (dissoc grouped-conditions nil)]
+       (-&gt;TreeNode cond reached-keys
+                   (map (fn [[cond conds]]
+                          (generate-tree cond conds))
+                        other)))))</pre></td></tr><tr><td class="docs"><p>Generates the map of priorities for conditions according to their frequency.</p>
+</td><td class="codes"><pre class="brush: clojure">  (defn conds-priorities-map
+    [conds]
+    (-&gt;&gt; (mapcat (fn [[cnds k]]
+                   (if (not-empty cnds)
+                     (map (fn [c] [c k]) cnds)
+                     [(list '() k)])) conds)
+         (group-by first)
+         (map (fn [[k v]] [k (+ (- (count v)) (rand 0.4))]))
+         (into {})))</pre></td></tr><tr><td class="docs"><p>Sorts conditions in conditions->conclusions map according to the map of
+     priorities of conditions. If condition occurs frequently it will have higher
+     priority.</p>
+</td><td class="codes"><pre class="brush: clojure">  (defn sort-conds
+    [conds cpm]
+    (map (fn [[cnds k]] [(sort-by cpm cnds) k]) conds))</pre></td></tr><tr><td class="docs"><p>Prepeares data for generation of conditions tree and then generates tree.</p>
+</td><td class="codes"><pre class="brush: clojure">  (defn gen-rules
+    [main-pattern rules]
+    (let [rules (mapcat (fn [{:keys [p1 p2 conclusions pre]}]
+                          (map #(vector [p1 p2] % pre) conclusions))
+                        rules)
+          cond-conclusions-m (conditions-&gt;conclusions-map main-pattern rules)
+          cpm (conds-priorities-map cond-conclusions-m)
+          sorted-conds (sort-conds cond-conclusions-m cpm)]
+      (generate-tree sorted-conds)))</pre></td></tr><tr><td class="docs"><p>Generates code for rule matcher.</p>
+</td><td class="codes"><pre class="brush: clojure">  (defn generate-matching
+    [rules task-type]
+    (-&gt;&gt; rules
+         (map (fn [[k {:keys [pattern rules] :as v}]]
+                (let [main-pattern (symbols-&gt;placeholders pattern)
+                      match-fn-code (-&gt; main-pattern
+                                        (gen-rules rules)
+                                        (match-rules main-pattern task-type))]
+                  [k (eval match-fn-code)])))
+         (into {})))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
 SyntaxHighlighter.all();
 
 // hackity hack

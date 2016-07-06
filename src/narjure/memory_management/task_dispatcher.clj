@@ -83,4 +83,3 @@
       (init [_] (initialise aname @self))
       (terminate [_ _])
       (handle-cast [_ from _ message] (msg-handler from message)))))
-:event-buffer

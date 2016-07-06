@@ -2879,11 +2879,19 @@ https://github.com/opennars/opennars/blob/7b27dacec4cdbe77ca03d89296323d49875ac2
 </td><td class="codes"><pre class="brush: clojure">(defn w2c ^double [^double w]
   (let [^double h horizon] (/ w (+ w h))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn c2w ^double [^double c]
-  (let [^double h horizon] (/ (* h c) (- 1 c))))</pre></td></tr><tr><td class="docs"><h2></h2>
+  (let [^double h horizon] (/ (* h c) (- 1 c))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn t2-evidence-weights [[f c]]
+  (let [total-evidence (c2w c)
+        positive-evidence (* f total-evidence)
+        negative-evidence (- total-evidence positive-evidence)]
+  {:negative-evidence negative-evidence
+   :positive-evidence positive-evidence
+   :total-evidence total-evidence }))                                        ;not used by deriver, just by anticipations</pre></td></tr><tr><td class="docs"><p>not used by deriver, just by anticipations</p>
+</td><td class="codes"></td></tr><tr><td class="docs"><h2></h2>
 </td><td class="codes"><pre class="brush: clojure">(defn conversion [_ p1]
   (when-let [[f c] p1] [1 (w2c (and f c))]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn negation [[^double f ^double c] _] [(- 1 f) c])</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn contraposition [[^double f ^double c]]
+</td><td class="codes"><pre class="brush: clojure">(defn contraposition [[^double f ^double c]  [^double f2 ^double c2]]
   [0 (w2c (and (- 1 f) c))])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn revision [[^double f1 ^double c1] [^double f2 ^double c2]]
   (let [w1 (c2w c1)
@@ -2891,10 +2899,13 @@ https://github.com/opennars/opennars/blob/7b27dacec4cdbe77ca03d89296323d49875ac2
         w (+ w1 w2)]
     [(/ (+ (* w1 f1) (* w2 f2)) w) (w2c w)]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn deduction [[^double f1 ^double c1] [^double f2 ^double c2]]
-  [(t-and f1 f2) (t-and c1 c2)])
-(defn a-deduction [[^double f1 ^double c1] c2] [f1 (t-and f1 c1 c2)])</pre></td></tr><tr><td class="docs">
+  (let [f (t-and f1 f2)]
+    [f (t-and f c1 c2)]))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn a-deduction [[^double f1 ^double c1] c2] [f1 (t-and f1 c1 c2)])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn analogy [[^double f1 ^double c1] [^double f2 ^double c2]]
   [(t-and f1 f2) (t-and c1 c2 f2)])</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn desire-strong [a b]
+  (analogy a b))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn resemblance [[^double f1 ^double c1] [^double f2 ^double c2]]
   [(t-and f1 f2) (t-and c1 c2 (t-or f1 f2))])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn abduction [[^double f1 ^double c1] [^double f2 ^double c2]]
@@ -2937,14 +2948,15 @@ https://github.com/opennars/opennars/blob/7b27dacec4cdbe77ca03d89296323d49875ac2
   [(t-and f1 (- 1 f2)) (t-and c1 c2)])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn structual-intersection [_ p2] (deduction p2 [1 d/belief-confidence]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn structual-deduction [p1 _] (deduction p1 [1 d/belief-confidence]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn structual-abduction [p1 _] (abduction p1 [1 d/belief-confidence]))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn structual-abduction [_ p2] (abduction p2 [1 d/belief-confidence]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn reduce-conjunction [p1 p2]
   (-&gt; (negation p1 p2)
       (intersection p2)
       (a-deduction 1)
       (negation p2)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn t-identity [p1 _] p1)</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn belief-identity [p1 p2] (when p2 p1))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn d-identity [p1 _] p1)</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn belief-identity [_ p2] p2)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn belief-structural-deduction [_ p2]
   (when p2 (deduction p2 [1 d/belief-confidence])))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn belief-structural-difference [_ p2]
@@ -2960,8 +2972,14 @@ https://github.com/opennars/opennars/blob/7b27dacec4cdbe77ca03d89296323d49875ac2
 </td><td class="codes"><pre class="brush: clojure">(defn desire-structural-strong
   [t _]
   (analogy t [1.0 d/belief-confidence]))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn expectation [t]
+  (+ (* (second t) (- (first t) 0.5)) 0.5))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn confidence [t]
+  (second (:truth t)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn frequency [t]
+  (first (:truth t)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def tvtypes
-  {:t/structural-deduction         structual-abduction
+  {:t/structural-deduction         structual-deduction
    :t/struct-int                   structual-intersection
    :t/struct-abd                   structual-abduction
    :t/identity                     t-identity
@@ -2994,7 +3012,7 @@ https://github.com/opennars/opennars/blob/7b27dacec4cdbe77ca03d89296323d49875ac2
    :d/deduction         intersection
    :d/weak              desire-weak
    :d/induction         desire-induction
-   :d/identity          identity
+   :d/identity          d-identity
    :d/negation          negation
    :d/structural-strong desire-structural-strong})</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
 SyntaxHighlighter.all();

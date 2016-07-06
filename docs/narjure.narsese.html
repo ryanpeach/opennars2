@@ -2869,43 +2869,47 @@ net.brehaut.ClojureTools = (function (SH) {
 </td><td class="codes"><pre class="brush: clojure">(ns narjure.narsese
   (:require [instaparse.core :as i]
             [clojure.java.io :as io]
-            [narjure.defaults :refer :all]))</pre></td></tr><tr><td class="docs">
+            [narjure.defaults :refer :all]
+            [nal.term_utils :refer :all]
+            [clojure.string :as str]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def bnf-file &quot;narsese.bnf&quot;)</pre></td></tr><tr><td class="docs"><p>Loads narsese.bnf into instaparse</p>
 </td><td class="codes"><pre class="brush: clojure">(def parser
   (i/parser (io/resource bnf-file) :auto-whitespace :standard))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def copulas
-  {&quot;--&gt;&quot;  'inheritance
-   &quot;&lt;-&gt;&quot;  'similarity
+  {&quot;--&gt;&quot;  '--&gt;
+   &quot;&lt;-&gt;&quot;  '&lt;-&gt;
    &quot;{--&quot;  'instance
    &quot;--]&quot;  'property
    &quot;{-]&quot;  'instance-property
-   &quot;==&gt;&quot;  'implication
-   &quot;=/&gt;&quot;  'predictive-implication
-   &quot;=|&gt;&quot;  'concurrent-implication
-   &quot;=\\&gt;&quot; 'retrospective-implication
-   &quot;&lt;=&gt;&quot;  'equivalence
-   &quot;&lt;/&gt;&quot;  'predictive-equivalence
-   &quot;&lt;|&gt;&quot;  'concurrent-equivalence})</pre></td></tr><tr><td class="docs">
+   &quot;==&gt;&quot;  '==&gt;
+   &quot;=/&gt;&quot;  'pred-impl
+   &quot;=|&gt;&quot;  '=|&gt;
+   &quot;=\\&gt;&quot; 'retro-impl
+   &quot;&lt;=&gt;&quot;  '&lt;=&gt;
+   &quot;&lt;/&gt;&quot;  '&lt;/&gt;
+   &quot;&lt;|&gt;&quot;  '&lt;|&gt;})</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def compound-terms
   {&quot;{&quot;  'ext-set
    &quot;[&quot;  'int-set
-   &quot;&amp;&quot;  'ext-intersection
-   &quot;|&quot;  'int-intersection
-   &quot;-&quot;  'ext-difference
-   &quot;~&quot;  'int-difference
-   &quot;*&quot;  'product
-   &quot;(&quot;  'product
+   &quot;&amp;&quot;  'ext-inter
+   &quot;|&quot;  '|
+   &quot;-&quot;  '-
+   &quot;~&quot;  'int-dif
+   &quot;*&quot;  '*
+   &quot;(&quot;  '*
    &quot;/&quot;  'ext-image
    &quot;\\&quot; 'int-image
-   &quot;--&quot; 'negation
-   &quot;||&quot; 'disjunction
-   &quot;&amp;&amp;&quot; 'conjunction
-   &quot;&amp;/&quot; 'sequential-events
-   &quot;&amp;|&quot; 'parallel-events})</pre></td></tr><tr><td class="docs">
+   &quot;--&quot; '--
+   &quot;||&quot; '||
+   &quot;&amp;&amp;&quot; 'conj
+   &quot;&amp;/&quot; 'seq-conj
+   &quot;&amp;|&quot; '&amp;|})</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn get-compound-term [[_ operator-srt]]
   (compound-terms operator-srt))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def actions {&quot;.&quot; :belief
-              &quot;?&quot; :question})</pre></td></tr><tr><td class="docs">
+              &quot;?&quot; :question
+              &quot;@&quot; :quest
+              &quot;!&quot; :goal})</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def ^:dynamic *action* (atom nil))
 (def ^:dynamic *lvars* (atom []))
 (def ^:dynamic *truth* (atom []))
@@ -2941,11 +2945,13 @@ net.brehaut.ClojureTools = (function (SH) {
   (let [comp-operator (get-comp-operator second-el data)]
     `[~(get-compound-term comp-operator)
       ~@(keep-cat element (remove string? data))]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def var-prefixes {&quot;#&quot; &quot;d_&quot; &quot;?&quot; &quot;?&quot;})
+</td><td class="codes"><pre class="brush: clojure">(def var-prefixes '{&quot;#&quot; dep-var &quot;?&quot; qu-var &quot;$&quot; ind-var})
 (defmethod element :variable [[_ type [_ v]]]
-  (let [v (symbol (str (var-prefixes type) v))]
+  (let [front (var-prefixes type)
+        v [front (symbol v)]]
     (swap! *lvars* conj v)
-    v))</pre></td></tr><tr><td class="docs">
+    v))                                                     ;let v (symbol (str (var-prefixes type) v))</pre></td></tr><tr><td class="docs"><p>let v (symbol (str (var-prefixes type) v))</p>
+</td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmethod element :word [[_ word]] (symbol word))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmethod element :truth
   [[_ &amp; data]]
@@ -2990,13 +2996,36 @@ net.brehaut.ClojureTools = (function (SH) {
                 *budget* (atom [])]
         (let [statement (element data)
               act @*action*]
-          {:action    act
+          {:task-type act
            :lvars     @*lvars*
            :truth     (check-truth-value @*truth*)
            :budget    (check-budget @*budget* act)
            :statement statement
-           :terms     (terms statement)}))
-      data)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
+           ;:terms     (terms statement)  ; this is now done in task-creator and uses termlink-subterms
+           }))
+      data)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn parse2 [stmt-with-potential-comment]
+  &quot;workaround in order to have (&amp;&amp;,a) as [conj a] rather than [[conj a]],
+  also in order to support :|: as 0 occurring versus :eternal
+  and also in order to support recognizing i50 as [interval 50],
+  so everything needed to workaround the parser issues.
+  Also apply sentence reduction here, as also done for derivations.&quot;            ;TODO fix paser accordingly when there is time!
+  (let [stmt (first (str/split stmt-with-potential-comment #&quot;//&quot;)) ;get rid of comments
+        parser-workaround (fn [prem, stmt]
+                            (if (and (vector? stmt)
+                                     (= (count stmt) 1))
+                              (assoc prem :statement (first stmt))
+                              (assoc prem :statement stmt)))
+        time (if (.contains stmt &quot;:|:&quot;)
+               0
+               (if (and (.contains stmt &quot;:|&quot;)
+                        (.contains stmt &quot;|:&quot;))
+                 (read-string (first (str/split (second (str/split stmt #&quot;\:\|&quot;)) #&quot;\|\:&quot;)))
+                 :eternal))
+        parsedstmt (assoc (parse (str (first (str/split stmt #&quot;\:\|&quot;))
+                                      (second (str/split stmt #&quot;\|\:&quot;)))) :occurrence time)]
+    (let [parsed (interval-reduction (parser-workaround parsedstmt (parse-intervals (:statement parsedstmt))))]
+      (no-truth-for-questions-and-quests parsed))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
 SyntaxHighlighter.all();
 
 // hackity hack
