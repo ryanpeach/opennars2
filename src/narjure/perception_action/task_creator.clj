@@ -85,7 +85,7 @@
    if the sentence is an event, and posts to task-dispatcher."
   [from [_ sentence]]
   (let [syntactic-complexity (syntactic-complexity (:statement sentence))]
-    (when (< syntactic-complexity max-term-complexity)
+    (when true #_(< syntactic-complexity max-term-complexity)
       (let [new-task (create-new-task
                        sentence
                        syntactic-complexity)

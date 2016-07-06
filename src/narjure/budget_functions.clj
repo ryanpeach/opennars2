@@ -59,7 +59,7 @@
 (defn derived-budget
   [task derived-task]
   (when (< (:sc derived-task) max-term-complexity)
-    (let [priority (* 0.8 (first (:budget task)))
+    (let [priority (* 0.9 (first (:budget task)))
          durability 0.5
          truth-quality (if (:truth derived-task) (truth-to-quality (:truth derived-task))
                                                  (w2c 1.0))
