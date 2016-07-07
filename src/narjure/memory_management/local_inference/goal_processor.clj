@@ -263,10 +263,10 @@
             (best-operation-selection (filter #(= (:task-type %) :belief) (get-tasks state))
                                       (:task (first (b/get-by-id (:tasks @state) (get-task-id total-revision)))))
             (catch Exception e () #_(println "operator selector error")))
-          ))
+          )))
 
       ;best operation project goal to current time
-      ; if above decision threshold then execute
+      ; if above decision threshold then execute#
       (let [projected-goals (map #(project-eternalize-to @nars-time % @nars-time)
                                  (filter #(= (:statement %) (:statement task))
                                          (filter #(= (:task-type %) :goal) ;re-getting the goals because we also want our just added goal
@@ -276,8 +276,7 @@
                 operation (if (not-empty possible-operations)
                             (apply max-key confidence possible-operations)
                             nil)]
-            (when (not= (:occurrence task) :eternal)
-              (when-not (= nil operation)                   ;todo change to - when operation
+            (when-not (= nil operation)                   ;todo change to - when operation
                 #_(println (str (:truth operation) (expectation (:truth operation))))
                 ;(println (str  "goal: " operation))
-                (cast! (whereis :operator-executor) [:operator-execution-msg operation])))))))))
+                (cast! (whereis :operator-executor) [:operator-execution-msg operation])))))))
