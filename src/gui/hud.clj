@@ -20,6 +20,7 @@
 
             {:name :resume :px 0 :py 0 :onclick (fn [state]
                                                        (start-timers))
+             :displaysize 10
              :backcolor backcolor}
             {:name :pause :px 50 :py 0 :custom-w 40 :onclick (fn [state]
                                                      (stop-timers))

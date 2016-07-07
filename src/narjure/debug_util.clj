@@ -104,7 +104,7 @@
         time-print (fn [occurrence]
                       (if (= occurrence :eternal)
                         ""
-                        (str ":|" occurrence "|:")))
+                        (str ":|" (- occurrence @nars-time) "|:")))
         truth-print (fn [truth]
                       (if (= truth nil)
                         ""

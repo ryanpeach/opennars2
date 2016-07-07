@@ -25,7 +25,7 @@
             [narjure.global-atoms :refer :all]
             [narjure.debug-util :refer :all]
             [narjure.bag :as b]
-            [narjure.defaults :refer [priority-threshold]]
+            [narjure.defaults :refer [priority-threshold max-concept-selections max-tasks]]
             [clojure.set :as set]
             [clojure.string :as str]))
 
@@ -43,20 +43,21 @@
                                           (:priority-index bag))) 20000)))
 
 (def debugmessage {:inference-request-router [(fn [] (deref inference-request-router/display)) inference-request-router/search]
-                   :concept-selector     [(fn [] (deref concept-selector/display)) concept-selector/search]
-                   :general-inferencer   [(fn [] (deref general-inferencer/display)) general-inferencer/search]
-                   :concept-manager      [(fn [] (deref concept-manager/display)) concept-manager/search]
-                   :task-dispatcher      [(fn [] (deref task-dispatcher/display)) task-dispatcher/search]
-                   :operator-executor    [(fn [] (deref operator-executor/display)) operator-executor/search]
-                   :sentence-parser      [(fn [] (deref sentence-parser/display)) sentence-parser/search]
-                   :task-creator         [(fn [] (deref task-creator/display)) task-creator/search]
-                   :concepts             [(fn [] (deref concepts/display)) concepts/search]
-                   :concept-bag          [(fn [] (bagshow @c-bag concept-filter)) concept-filter]
-                   :derived-load-reducer [(fn [] (deref derived-load-reducer/display)) derived-load-reducer/search]
-                   :input                [(fn [] "") inputstr]
-                   :output               [(fn [] (deref output-display)) output-search]
-                   :+prioTh. [(fn [] (deref prio-threshold))]
-                   :speed [(fn [] (deref speed))]})
+                   :concept-selector         [(fn [] (deref concept-selector/display)) concept-selector/search]
+                   :general-inferencer       [(fn [] (deref general-inferencer/display)) general-inferencer/search]
+                   :concept-manager          [(fn [] (deref concept-manager/display)) concept-manager/search]
+                   :task-dispatcher          [(fn [] (deref task-dispatcher/display)) task-dispatcher/search]
+                   :operator-executor        [(fn [] (deref operator-executor/display)) operator-executor/search]
+                   :sentence-parser          [(fn [] (deref sentence-parser/display)) sentence-parser/search]
+                   :task-creator             [(fn [] (deref task-creator/display)) task-creator/search]
+                   :concepts                 [(fn [] (deref concepts/display)) concepts/search]
+                   :concept-bag              [(fn [] (bagshow @c-bag concept-filter)) concept-filter]
+                   :derived-load-reducer     [(fn [] (deref derived-load-reducer/display)) derived-load-reducer/search]
+                   :input                    [(fn [] "") inputstr]
+                   :output                   [(fn [] (deref output-display)) output-search]
+                   :+prioTh.                 [(fn [] (deref prio-threshold))]
+                   :speed                    [(fn [] (deref speed))]
+                   :resume                   [(fn [] (* max-tasks max-concept-selections (deref nars-time)))]})
 
 (def static-graphs [graph-actors graph-gui])
 (def graphs (atom static-graphs))
@@ -218,13 +219,18 @@
                                                        "desire: " (:truth (lense-max-statement-confidence-projected-to-now id :goal nil)) "\n"
                                                        (bag-format
                                                          (limit-string (narsese-print (apply vector
-                                                                                   (if @link-labels
-                                                                                      (bagfilter task-filter (:elements-map (@lense-taskbags id)))
-                                                                                      (let [curbag (@lense-taskbags id)
-                                                                                            pindex (:priority-index curbag)]
-                                                                                        (map (fn [has-id]
-                                                                                                (assoc has-id :truth (:truth (:task (first (b/get-by-id curbag (:id has-id)))))))
-                                                                                              (bagfilter task-filter (:priority-index (@lense-taskbags id)))))))) 20000)))
+                                                                                             (if @link-labels
+                                                                                               (bagfilter task-filter (:elements-map (@lense-taskbags id)))
+                                                                                               (let [curbag (@lense-taskbags id)
+                                                                                                     pindex (:priority-index curbag)]
+                                                                                                 (map (fn [has-id]
+                                                                                                        (let [task (:task (first (b/get-by-id curbag (:id has-id))))]
+                                                                                                          (assoc has-id :truth (:truth task)
+                                                                                                                        :occurrence (if (= (:occurrence task) :eternal)
+                                                                                                                                      :eternal
+                                                                                                                                      (- (:occurrence task) @nars-time))
+                                                                                                                        :quality (nth (:budget task) 2))))
+                                                                                                      (bagfilter task-filter (:priority-index (@lense-taskbags id)))))))) 20000)))
                                                   ""))       ;"\n" @lense-termlinks
                             :px            px
                             :py            py
