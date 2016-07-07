@@ -33,17 +33,23 @@
 ])
 
 (defn concept [concept-str]
-  (dissoc
-    (first (narjure.bag/get-by-id @c-bag (:statement (parse2 (str concept-str ".")))))
-    :ref))
+  (try
+    (let [statement (parse2 (str concept-str "."))]
+      (dissoc
+        (first (narjure.bag/get-by-id @c-bag (:statement statement)))
+        :ref))
+    (catch Exception e (str "Invalid narsese " concept-str))))
 
 (defn concepts []
   (:priority-index @c-bag))
 
 (defn parse-narsese [string]
-  (nars-input-narsese string)
-  (println (str "NARS hears " string))
-  (str "NARS hears " string))
+  (try
+    (let [statement (parse2 string)]
+      (nars-input-narsese string)
+      (println (str "NARS hears " string))
+      (str "NARS hears " string))
+    (catch Exception e (str "Invalid narsese " string))))
 
 (defn reset-nars []
   (nar/shutdown)
