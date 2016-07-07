@@ -6,7 +6,9 @@
 <<$1 --> [heated]> =/> <$1 --> [melted]>>.
 <<$1 --> [melted]> <|> <$1 --> [pliable]>>.
 <(&/,<$1 --> [pliable]>,<({SELF},$1) --> op_reshape>) =/> <$1 --> [hardened]>>.
-<toothbrush --> [hardened]>! :|100000|: %1.00;0.99999%
+<<$1 --> [hardened]> =|> <$1 --> [unscrewing]>>.
+<toothbrush --> object>.
+(&&,<#1 --> object>,<#1 --> [unscrewing]>)!
 
 
 //should be entered after it applied the lighter as it predicted to observe it:
