@@ -150,7 +150,6 @@
                 :priority (first (:budget newtask))
                 :task newtask}
             bag' (b/add-element bag el)]
-        (println (str "updating: " oldtask " with: " newtask))
         (set-state! (assoc @state :tasks bag'))))))
 
 (defn match-belief-to-question [task belief]

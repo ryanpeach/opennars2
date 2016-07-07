@@ -8,7 +8,7 @@
     [narjure.global-atoms :refer :all]
     [narjure.debug-util :refer :all]
     [narjure.defaults :refer [priority-threshold]]
-    [narjure.control-utils :refer [make-evidence round2]]
+    [narjure.control-utils :refer [make-evidence]]
     [nal.deriver.truth :refer [expectation]])
   (:refer-clojure :exclude [promise await]))
 

@@ -12,7 +12,7 @@
      [debug-util :refer :all]
      [budget-functions :refer [derived-budget]]
      [defaults :refer :all]
-     [control-utils :refer [make-evidence non-overlapping-evidence? round2]]])
+     [control-utils :refer [make-evidence non-overlapping-evidence?]]])
   (:refer-clojure :exclude [promise await]))
 
 (def display (atom '()))
