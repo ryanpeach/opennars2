@@ -745,12 +745,12 @@
 (deftest inference_on_tense_2_nonvar
   (is (derived "<<(John,key) --> hold> =/> <(John,room) --> enter>>."
                "<(John,room) --> enter>. :|:"
-               ["<(John,key) --> hold>. %1.00;0.30%"])))    ;just 0.30 because of eternalization
+               ["<(John,key) --> hold>. :|0|: %1.00;0.45%"])))    ;just 0.30 because of eternalization
 
 (deftest inference_on_tense_2_nonvar_2
   (is (derived "<<(John,key) --> hold> =/> <(John,room) --> enter>>."
                "<(John,key) --> hold>. :|:"
-               ["<(*,John,room) --> enter>. %1.0;0.43%"]))) ;just 0.43 because of eternalization
+               ["<(*,John,room) --> enter>. :|0|: %1.0;0.81%"]))) ;just 0.43 because of eternalization
 
 (deftest temporal_var_introduction_concurrent
   (is (derived "<John --> (/,open,_,door)>. :|:"
@@ -773,20 +773,20 @@
                ["<<s --> S> =/> <p --> P>>. %0.9;0.73%"])))
 
 (deftest interval_preserve_shift_occurrence
-  (is (derived "<s --> S>. :|10|:"
-               "(&/,<s --> S>,i64,<y --> Y>,i8,<z --> Z>)."
-               ["(&/, <y --> Y>, i8, <z --> Z>). :|74|: %1.0;0.43%"])))
+  (is (derived "(&/,<s --> S>,i64,<y --> Y>,i8,<z --> Z>)!"
+               "<s --> S>. :|10|:"
+               ["(&/, <y --> Y>, i8, <z --> Z>)! :|74|: %1.0;0.81%"])))
 
 (deftest interval_preserve_shift_occurrence_2
-  (is (derived "<s --> S>. :|:"
-               "(&/,<s --> S>,i64,<z --> Z>). :|:"
-               ["<z --> Z>. :|64|: %1.0;0.43%"])))
+  (is (derived "(&/,<s --> S>,i64,<z --> Z>)! :|:"
+               "<s --> S>. :|:"
+               ["<z --> Z>! :|64|: %1.0;0.81%"])))
 
 (deftest sub_condition_detachment
   (is (derived "<(&/,<(SELF,{t002}) --> reachable>,<({t002}) --> op_pick>) =/> <(SELF,{t002}) --> hold>>."
                "<(SELF,{t002}) --> reachable>. :|:"
                ;just to simulate single prem termlink selection
-               ["<<({t002}) --> op_pick> =/> <(SELF, {t002}) --> hold>>. %1.0;0.43%"]))) ;just 0.43 because of eternalization
+               ["<<({t002}) --> op_pick> =/> <(SELF, {t002}) --> hold>>. :|0|: %1.0;0.81%"]))) ;just 0.43 because of eternalization
 
 ;NAL8 testcases:
 

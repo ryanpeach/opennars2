@@ -402,7 +402,7 @@ So these rules are for bringing NAL-statements into a different, implied and mor
           #R[(&& S :list/A) S |- S :post (:t/structural-deduction :d/structural-strong)]
           #R[(&/ S :list/A) S |- S :post (:t/structural-deduction :d/structural-strong)]
           #R[(&| S :list/A) S |- S :post (:t/structural-deduction :d/structural-strong)]
-          #R[(&/ B :list/A) B |- (&/ :list/A) :pre (:goal?) :post (:t/deduction :d/strong :seq-interval-from-premises)]
+          #R[(&& B :list/A) B |- (&& :list/A) :pre (:goal?) :post (:t/deduction :d/strong :order-for-all-same :seq-interval-from-premises)]
 
           ; propositional decomposition
           ; If S is the case and (&& S :list/A) is not the case it can't be that (&& :list/A) is the case
@@ -488,6 +488,7 @@ So these rules are for bringing NAL-statements into a different, implied and mor
 
           #R[(S --> M) (P --> M) |- (((P --> $X) =|> (S --> $X)) :post (:t/abduction :linkage-temporal)
                                       ((S --> $X) =|> (P --> $X)) :post (:t/induction :linkage-temporal)
+                                      ((P --> $X) =|> (S --> $X)) :post (:t/induction :linkage-temporal)
                                       ((P --> $X) <|> (S --> $X)) :post (:t/comparison :linkage-temporal)
                                       (&| (P --> #Y) (S --> #Y)) :post (:t/intersection :linkage-temporal))
                                           :pre (:belief? (:!= S P) (:concurrent Task Belief))]
@@ -512,6 +513,7 @@ So these rules are for bringing NAL-statements into a different, implied and mor
 
           #R[(M --> S) (M --> P) |- ((($X --> S) =|> ($X --> P)) :post (:t/induction :linkage-temporal)
                                       (($X --> P) =|> ($X --> S)) :post (:t/abduction :linkage-temporal)
+                                      (($X --> S) =|> ($X --> P)) :post (:t/abduction :linkage-temporal)
                                       (($X --> S) <|> ($X --> P)) :post (:t/comparison :linkage-temporal)
                                       (&| (#Y --> S) (#Y --> P)) :post (:t/intersection :linkage-temporal))
              :pre (:belief? (:!= S P) (:concurrent (M --> P) (M --> S)))]
@@ -571,6 +573,8 @@ So these rules are for bringing NAL-statements into a different, implied and mor
           ; dependent variable elimination
           ; Decomposition with elimination of a variable
           #R[B (&& A :list/A) |- (&& :list/A) :pre (:belief? (:substitute-if-unifies "#" A B)) :post (:t/anonymous-analogy :d/strong :order-for-all-same :seq-interval-from-premises)]
+          ;and for the goal-task belief combination:
+          #R[(&& A :list/A) B |- (&& :list/A) :pre (:goal? (:substitute-if-unifies "#" A B)) :post (:t/deduction :d/strong :order-for-all-same :seq-interval-from-premises)]
 
           ; independent variable elimination
           #R[B (A ==> C) |- C :post (:t/deduction :d/induction :order-for-all-same) :pre ((:substitute-if-unifies "$" B A) (:shift-occurrence-forward ==>))]
@@ -621,6 +625,7 @@ So these rules are for bringing NAL-statements into a different, implied and mor
              :pre (:belief? (:measure-time-backward I) (:not-implication-or-equivalence P) (:not-implication-or-equivalence S) (:!= S P))]
 
           #R[P S |- ((S =|> P) :post (:t/induction :linkage-temporal)
+                      (P =|> S) :post (:t/induction :linkage-temporal)
                       (S <|> P) :post (:t/comparison :linkage-temporal)
                       (&| S P) :post (:t/intersection :linkage-temporal))
              :pre [:belief? (:concurrent Task Belief) (:not-implication-or-equivalence P) (:not-implication-or-equivalence S) (:!= S P)]]
