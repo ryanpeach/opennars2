@@ -9,7 +9,7 @@
 (def belief-priority 0.99)
 (def belief-durability 0.9)
 ;todo clarify this
-(def belief-quality 0.5)
+(def belief-quality 0.8)
 
 (def belief-budget
   [belief-priority belief-durability belief-quality])

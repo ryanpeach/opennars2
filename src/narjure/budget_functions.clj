@@ -64,7 +64,7 @@
          truth-quality (if (:truth derived-task) (truth-to-quality (:truth derived-task))
                                                  (w2c 1.0))
          complexity (:sc derived-task)
-         rescale-factor 0.8
+         rescale-factor 0.8 ;should probably not above input belief quality!
          quality (* truth-quality
                     rescale-factor
                     #_(/ 1.0 (Math/sqrt complexity)))]

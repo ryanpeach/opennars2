@@ -57,7 +57,7 @@
                    :output                   [(fn [] (deref output-display)) output-search]
                    :+prioTh.                 [(fn [] (deref prio-threshold))]
                    :speed                    [(fn [] (deref speed))]
-                   :resume                   [(fn [] (* max-tasks max-concept-selections (deref nars-time)))]})
+                   :resume                   [(fn [] (deref nars-time))]})
 
 (def static-graphs [graph-actors graph-gui])
 (def graphs (atom static-graphs))
