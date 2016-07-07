@@ -171,10 +171,10 @@
 (defn parse2 [stmt-with-potential-comment]
   "workaround in order to have (&&,a) as [conj a] rather than [[conj a]],
   also in order to support :|: as 0 occurring versus :eternal
-  and also in order to support recognizing i50 as [interval 50],
+  and also in order to support recognizing i50 as [interval 50], op_test as ^test
   so everything needed to workaround the parser issues.
   Also apply sentence reduction here, as also done for derivations."            ;TODO fix paser accordingly when there is time!
-  (let [stmt (first (str/split stmt-with-potential-comment #"//")) ;get rid of comments
+  (let [stmt (clojure.string/replace (first (str/split stmt-with-potential-comment #"//")) "^" "op_") ;get rid of comments
         parser-workaround (fn [prem, stmt]
                             (if (and (vector? stmt)
                                      (= (count stmt) 1))

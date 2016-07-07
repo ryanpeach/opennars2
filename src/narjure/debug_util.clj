@@ -22,7 +22,10 @@
                      int-image "\\"
                      conj "&&"
                      seq-conj "&/"
-                     co))]
+                     (let [outp (str co)]
+                       (if (clojure.string/starts-with? outp "op_")
+                         (clojure.string/replace outp "op_" "^")
+                         outp))))]
     (if (coll? st)
       (let [isvector (vector? st)
             isdict (map? st)
