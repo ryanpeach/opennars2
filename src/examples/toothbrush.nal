@@ -1,6 +1,8 @@
 //@TonyLo: This represemtations work fine,
 //feel free to make it more complicated as your
 //example suggests!
-<<({SELF},$1) --> op_lighter> =/> <$1 --> [heated]>>.
-<<$1 --> [heated]> =/> <$1 --> [pliable]>>.
-<toothbrush --> [pliable]>! :|:
+<(*,toothbrush,plastic) --> made_of>.
+<(&&,<(*,$1,plastic) --> made_of>,<({SELF},$1) --> op_lighter>) =/> <$1 --> [heated]>>.
+<<$1 --> [heated]> =/> <$1 --> [melted]>>.
+<<$1 --> [melted]> <|> <$1 --> [pliable]>>.
+<toothbrush --> [pliable]>! :|1000|: %1.00;0.999%
