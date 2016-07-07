@@ -3,6 +3,7 @@
             [irclj.parser :refer :all]
             [narjure.global-atoms :refer :all]
             [narjure.core :as nar]
+            [narjure.narsese :refer [parse2]]
             [narjure.sensorimotor :refer :all]))
 
 ; - Constants -
@@ -25,8 +26,19 @@
 (def help [
    "Commands:"
    "!n {string} - input narsese."
+   "!c {string} - show concept."
+   "!cs - show concepts."
+   "!r - reset NARS."
    "!h - see this message."
 ])
+
+(defn concept [concept-str]
+  (dissoc
+    (first (narjure.bag/get-by-id @c-bag (:statement (parse2 (str concept-str ".")))))
+    :ref))
+
+(defn concepts []
+  (:priority-index @c-bag))
 
 (defn parse-narsese [string]
   (nars-input-narsese string)
@@ -43,6 +55,10 @@
     (case command
       ("!n" "!nars" "!narsese")
         [(parse-narsese string) state]
+      ("!c" "!concept")
+        [(concept string) state]
+      ("!cs" "!concepts")
+        [(concepts) state]
       ("!r" "!reset")
         [(reset-nars) state]
       ("!h" "!help")
