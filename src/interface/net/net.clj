@@ -1,3 +1,5 @@
+; TODO< suck up entropy from https://github.com/Raynes/irclj/blob/master/src/irclj/connection.clj >
+
 (ns interface.net
     (:require [quil.core :as q]
               [quil.middleware :as m]
