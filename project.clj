@@ -18,7 +18,8 @@
                  [avl.clj "0.0.9"]
                  [org.clojure/math.numeric-tower "0.0.4"]
                  [quil "2.4.0"]
-                 [seesaw "1.4.5"]]
+                 [seesaw "1.4.5"]
+                 [irclj "0.5.0-alpha4"]]
   :java-agents [[co.paralleluniverse/quasar-core "0.7.5"]]
   :main ^:skip-aot narjure.core
   :plugins [[lein-cloverage "1.0.6"]
