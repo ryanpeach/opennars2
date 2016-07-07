@@ -33,11 +33,18 @@
   (println (str "NARS hears " string))
   (str "NARS hears " string))
 
+(defn reset-nars []
+  (nar/shutdown)
+  (nar/run)
+  "NARS reset")
+
 (defn user-said-in-channel [state nick said]
   (let [[command string] (clojure.string/split said #" " 2)]
     (case command
       ("!n" "!nars" "!narsese")
         [(parse-narsese string) state]
+      ("!r" "!reset")
+        [(reset-nars) state]
       ("!h" "!help")
         [help]
       [nil]
