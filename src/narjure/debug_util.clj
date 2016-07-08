@@ -130,4 +130,7 @@
 (defn potential-output-answer [state task result]
   (when (and (user? task)
              (= (:statement task) (:id @state)))
-    (output-task [:answer-to (str (narsese-print (:statement task)) (punctuation-print (:task-type task)))] result)))
+    (do
+      (doseq [f @answer-handlers]
+        (f task result))
+      (output-task [:answer-to (str (narsese-print (:statement task)) (punctuation-print (:task-type task)))] result))))

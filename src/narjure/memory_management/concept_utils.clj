@@ -173,7 +173,10 @@
                 newtask (assoc task :solution belief :priority new-prio :budget new-budget)]
              ;4. print our result
             (if (= (:source task) :input)
-              (output-task [:answer-to (str (narsese-print (:statement task)) "?" " c: " (:id @state))] (:solution newtask)))
+              (do
+                (doseq [f @answer-handlers]
+                  (f task (:solution newtask)))
+                (output-task [:answer-to (str (narsese-print (:statement task)) "?" " c: " (:id @state))] (:solution newtask))))
             ;5. send answer-update-msg OLD NEW to the task concept so that it can remove the old task bag entry
             ;and replace it with the one having the better solution. (reducing priority here though according to solution before send)
             (when-let [{c-ref :ref} ((:elements-map @c-bag) (:statement task))]
