@@ -102,24 +102,28 @@
     :question "?"
     :belief "."))
 
-(defn output-task [type task]
-  (let [type-print (fn [t] t)
-        time-print (fn [occurrence]
-                      (if (= occurrence :eternal)
-                        ""
-                        (str ":|" (- occurrence @nars-time) "|:")))
+(defn task-to-narsese [task]
+  (let [time-print (fn [occurrence]
+                     (if (= occurrence :eternal)
+                       ""
+                       (str ":|" (- occurrence @nars-time) "|:")))
         truth-print (fn [truth]
                       (if (= truth nil)
                         ""
                         (str "%" (first truth) ";" (second truth) "%")))]
+    (str (narsese-print (:statement task))
+         (punctuation-print (:task-type task))
+         " "
+         (time-print (:occurrence task))
+         " "
+         (truth-print (:truth task)))))
+
+(defn output-task [type task]
+  (let [type-print (fn [t] t)]
     (debuglogger output-search output-display (str (type-print type)
                                                    " "
-                                                   (narsese-print (:statement task))
-                                                   (punctuation-print (:task-type task))
-                                                   " "
-                                                   (time-print (:occurrence task))
-                                                   " "
-                                                   (truth-print (:truth task))))))
+                                                   (task-to-narsese task)))))
+
 (defn user? [task]
   (= (:source task) :input))
 

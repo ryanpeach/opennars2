@@ -4,7 +4,8 @@
             [narjure.global-atoms :refer :all]
             [narjure.core :as nar]
             [narjure.narsese :refer [parse2]]
-            [narjure.sensorimotor :refer :all]))
+            [narjure.sensorimotor :refer :all]
+            [narjure.debug-util :refer :all]))
 
 ; - Constants -
 (def channel "#narstest")
@@ -23,7 +24,7 @@
                                         (message irc channel msg)
                                         true)))
   (nars-register-answer-handler (fn [task solution]
-                                  (let [msg (str "NARS answer on " (:statement task) " is " solution)]
+                                  (let [msg (str "NARS answer on " (narsese-print (:statement task)) "? is " (task-to-narsese solution))]
                                     (println msg)
                                     (message irc channel msg)))))
 
