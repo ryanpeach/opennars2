@@ -18,10 +18,14 @@
 
 (defn setup-nars [irc]
   (nars-register-operation 'op_talk (fn [args operationgoal]
-                                    (do
-                                      (println (str "NARS says " args))
-                                      (message irc channel (str "NARS says " args))
-                                      true))))
+                                      (let [msg (str "NARS says " args)]
+                                        (println msg)
+                                        (message irc channel msg)
+                                        true)))
+  (nars-register-answer-handler (fn [task solution]
+                                  (let [msg (str "NARS answer on " (:statement task) " is " solution)]
+                                    (println msg)
+                                    (message irc channel msg)))))
 
 (def help [
    "Commands:"
@@ -103,12 +107,12 @@
   (prn args)
   (println))
 
-(defn -main []
-  (println "Connecting...")
+(defn -main [& args]
+  (println "Connecting..." server)
   (def irc (connect server port bot-nick :callbacks {:privmsg callback}))
   (setup-nars irc)
 
   ;(identify irc bot-nick-password)
 
-  (println "Joining")
+  (println "Joining" channel)
   (join irc channel))
