@@ -9,10 +9,10 @@
             [gui.hud :refer [set-fast-speed]]))
 
 ; - Constants -
-(def channel "#narstest")
+(def channel "#nars")
 (def server "irc.freenode.org")
 (def port 6667)
-(def bot-nick "grazkripo")
+(def bot-nick "mr_nars")
 ;(def bot-nick-password "password")
 
 ; - State, with example structure -

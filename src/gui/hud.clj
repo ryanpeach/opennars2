@@ -30,10 +30,9 @@
   (start-timers))
 
 (defn swap-speed []
-  (reset! speed
-          (if (= @speed "slow")
-            (set-fast-speed)
-            (set-slow-speed))))
+  (if (= @speed "slow")
+    (set-fast-speed)
+    (set-slow-speed)))
 
 (def nodes [{:name :pop-up :px 700 :py 0 :onclick (fn [state]
                                                        (cast! (whereis :sentence-parser) [:narsese-string-msg (str (input "Add Narsese" :to-string :name) "\n")]))

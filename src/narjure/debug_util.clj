@@ -124,6 +124,20 @@
                                                    " "
                                                    (task-to-narsese task)))))
 
+(def max-qu-track 10)
+(def last-qu-answers (atom []))
+
+(defn get-solution-id [task]
+  [(:statement task) (:task-type task) (:occurrence task) (:truth task)])
+
+(defn potentially-ouput-question-var-question-solution [task-id concept-id task solution]
+  (let [solution-id (get-solution-id solution)]
+    (when (not (some #{[task-id solution-id]} @last-qu-answers))
+     (reset! last-qu-answers (concat [[task-id solution-id]] @last-qu-answers))
+     (while (> (count @last-qu-answers) max-qu-track)
+       (reset! last-qu-answers (drop-last @last-qu-answers)))
+     (output-task [:answer-to (str (narsese-print (:statement task)) "?" " c: " concept-id)] solution))))
+
 (defn user? [task]
   (= (:source task) :input))
 
