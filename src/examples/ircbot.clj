@@ -31,6 +31,7 @@
 (def help [
    "Commands:"
    "!n {string} - input narsese."
+   "!s {string} - input sentence."
    "!c {string} - show concept."
    "!cs - show concepts."
    "!r - reset NARS."
@@ -56,6 +57,11 @@
       (str "NARS hears " string))
     (catch Exception e (str "Invalid narsese " string))))
 
+(defn parse-sentence [string]
+  (let [words (clojure.string/split string #" ")
+        sentence (str "<(*," (clojure.string/join "," words) ") --> SENTENCE>.")]
+    (parse-narsese sentence)))
+
 (defn reset-nars []
   (nar/shutdown)
   (nar/run)
@@ -66,6 +72,8 @@
     (case command
       ("!n" "!nars" "!narsese")
         [(parse-narsese string) state]
+      ("!s" "!sentence")
+        [(parse-sentence string) state]
       ("!c" "!concept")
         [(concept string) state]
       ("!cs" "!concepts")
