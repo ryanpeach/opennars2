@@ -11,6 +11,30 @@
 (def hud-width 50)
 (def hud-height 25)
 
+;TODO put at proper place
+(defn set-fast-speed []
+  "Sets the speed of the reasoner to fast"
+  (reset! system-tick-interval system-tick-interval-fast)
+  (reset! inference-tick-interval inference-tick-interval-fast)
+  (reset! speed "fast")
+  (stop-timers)
+  (start-timers))
+
+;TODO put at proper place
+(defn set-slow-speed []
+  "Sets the speed of the reasoner to slow"
+  (reset! system-tick-interval system-tick-interval-slow)
+  (reset! inference-tick-interval inference-tick-interval-slow)
+  (reset! speed "slow")
+  (stop-timers)
+  (start-timers))
+
+(defn swap-speed []
+  (reset! speed
+          (if (= @speed "slow")
+            (set-fast-speed)
+            (set-slow-speed))))
+
 (def nodes [{:name :pop-up :px 700 :py 0 :onclick (fn [state]
                                                        (cast! (whereis :sentence-parser) [:narsese-string-msg (str (input "Add Narsese" :to-string :name) "\n")]))
              :backcolor backcolor}
@@ -42,18 +66,7 @@
                                                        (reset! invert-colors (not @invert-colors)))
              :backcolor backcolor}
             {:name :speed :px 250 :py 0 :onclick (fn [state]
-                                                   (reset! speed
-                                                           (if (= @speed "slow")
-                                                             (do
-                                                               (reset! system-tick-interval system-tick-interval-fast)
-                                                               (reset! inference-tick-interval inference-tick-interval-fast)
-                                                               "fast")
-                                                             (do
-                                                               (reset! system-tick-interval system-tick-interval-slow)
-                                                               (reset! inference-tick-interval inference-tick-interval-slow)
-                                                               "slow")))
-                                                   (stop-timers)
-                                                   (start-timers))
+                                                   (swap-speed))
              :displaysize 10
              :backcolor backcolor}
             {:name :+prioTh. :px 300 :py 0 :onclick (fn [state]
