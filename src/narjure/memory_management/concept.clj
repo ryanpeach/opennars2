@@ -62,6 +62,12 @@
                                 (= (:task-type %) :belief)) tasks)
           projected-belief-tuples (map (fn [z] [z (project-eternalize-to (:occurrence task) z @nars-time)]) beliefs)]
 
+      #_(when (not-empty projected-belief-tuples)
+        (let [belief (rand-nth beliefs)]
+          (debuglogger search display ["selected belief:" belief "§"])
+          (cast! (:inference-request-router @state) [:do-inference-msg [task-concept-id (:id @state) task belief]])
+          (match-belief-to-question task belief)))
+
       (when (not-empty projected-belief-tuples)
         (doseq [belief beliefs]
           (debuglogger search display ["selected belief:" belief "§"])
