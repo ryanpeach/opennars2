@@ -51,6 +51,7 @@
                         :inference-request-router
                         :concept-manager)
         {:keys [path concept-count]} @state]
+    (println (str "c-state:" c-state))
     (spit path (pr-str c-state) :append true)
     (set-state! (update @state :received-states inc))
     (when (= (:received-states @state) concept-count)

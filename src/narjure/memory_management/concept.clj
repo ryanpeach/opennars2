@@ -109,7 +109,11 @@
 (defn set-concept-state-handler
   "set concept state to value passed in message"
   [from [_ new-state]]
-  (set-state! (merge @state new-state)))
+  (set-state! (merge @state new-state))
+  (let [elements (:elements-map (:tasks new-state))]
+    (set-state! (assoc @state :tasks (b/default-bag max-tasks)))
+    (doseq [[_ el] elements]
+     (set-state! (assoc @state :tasks (b/add-element (:tasks @state) el))))))
 
 (defn concept-forget-handler
   "update cocnept budget"
