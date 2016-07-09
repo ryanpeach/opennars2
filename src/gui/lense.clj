@@ -263,6 +263,9 @@
            (reset! graphs (concat static-graphs [concept-graph])))
          (catch Exception e (println "test"))))
   (q/pop-matrix)
+  (try
+    (draw-graph state hud true)
+    (catch Exception e ()))
   (draw-graph state hud true)
   )
 
