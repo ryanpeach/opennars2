@@ -17,7 +17,7 @@
      [goal-processor :refer [process-goal]]
      [quest-processor :refer [process-quest]]
      [question-processor :refer [process-question]]]
-    [clojure.core.unify :refer [unifier]]
+    [clojure.core.unify :refer [unify]]
     [nal.deriver
      [truth :refer [w2c t-or t-and confidence frequency expectation revision]]
      [projection-eternalization :refer [project-eternalize-to]]])
@@ -127,9 +127,6 @@
             :strongest-desire-about-now strongest-desire-about-now}]
     (swap! c-bag b/add-element el)))
 
-(defn unifies [b a]
-  (= a (unifier a b)))
-
 (defn qu-var-transform [term]
   (if (coll? term)
     (if (= (first term) 'qu-var)
@@ -138,8 +135,14 @@
                       (qu-var-transform x))))
     term))
 
+(defn valid-answer-unifier [unifier]
+  (not (some #{'dep-var} (flatten (vals unifier)))))
+
 (defn question-unifies [question solution]
-  (unifies (qu-var-transform question) solution))
+  (let [unifier (unify (qu-var-transform question) solution)]
+    (when (and unifier
+               (valid-answer-unifier unifier))
+      true)))
 
 (defn solution-update-handler
   ""
@@ -176,7 +179,7 @@
               (do
                 (doseq [f @answer-handlers]
                   (f task (:solution newtask)))
-                (output-task [:answer-to (str (narsese-print (:statement task)) "?" " c: " (:id @state))] (:solution newtask))))
+                (potentially-ouput-question-solution (get-task-id task) task (:solution newtask))))
             ;5. send answer-update-msg OLD NEW to the task concept so that it can remove the old task bag entry
             ;and replace it with the one having the better solution. (reducing priority here though according to solution before send)
             (when-let [{c-ref :ref} ((:elements-map @c-bag) (:statement task))]

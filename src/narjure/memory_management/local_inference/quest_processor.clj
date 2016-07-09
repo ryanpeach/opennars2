@@ -37,7 +37,7 @@
               (add-to-tasks state result)                   ;its a new quest
 
               ;if answer to user quest ouput answer
-              (potential-output-answer state quest (:solution result)))
+              (potential-output-answer state (get-task-id quest) quest (:solution result)))
 
             (add-to-tasks state quest)        ;it was not better, we just add the question and dont replace the solution
             ))

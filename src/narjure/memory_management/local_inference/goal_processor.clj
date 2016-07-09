@@ -56,7 +56,7 @@
     (when (not-empty projected-list)
       (doseq [[quest goal-task-projected-to-quest] projected-list]
         (when (better-solution goal-task quest)
-          (potential-output-answer state quest goal-task)
+          (potential-output-answer state (get-task-id quest) quest goal-task)
           ;update budget and solution
           (let [new-quest (reduced-quest-budget-by-goal quest goal-task-projected-to-quest)
                 new-quest-with-solution (assoc new-quest :solution goal-task)]

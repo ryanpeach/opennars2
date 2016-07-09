@@ -5,13 +5,14 @@
             [narjure.core :as nar]
             [narjure.narsese :refer [parse2]]
             [narjure.sensorimotor :refer :all]
-            [narjure.debug-util :refer :all]))
+            [narjure.debug-util :refer :all]
+            [gui.hud :refer [set-fast-speed]]))
 
 ; - Constants -
-(def channel "#narstest")
+(def channel "#nars")
 (def server "irc.freenode.org")
 (def port 6667)
-(def bot-nick "grazkripo")
+(def bot-nick "mr_nars")
 ;(def bot-nick-password "password")
 
 ; - State, with example structure -
@@ -57,9 +58,9 @@
       (str "NARS hears " string))
     (catch Exception e (str "Invalid narsese " string))))
 
-(defn parse-sentence [string]
+(defn parse-sentence [string event-symbol]
   (let [words (clojure.string/split string #" ")
-        sentence (str "<(*," (clojure.string/join "," words) ") --> SENTENCE>.")]
+        sentence (str "<(*," (clojure.string/join "," words) ") --> SENTENCE>. " event-symbol)]
     (parse-narsese sentence)))
 
 (defn reset-nars []
@@ -72,8 +73,10 @@
     (case command
       ("!n" "!nars" "!narsese")
         [(parse-narsese string) state]
+      ("!ss" "!static-sentence")
+        [(parse-sentence string "") state]
       ("!s" "!sentence")
-        [(parse-sentence string) state]
+        [(parse-sentence string ":|:") state]
       ("!c" "!concept")
         [(concept string) state]
       ("!cs" "!concepts")
@@ -117,6 +120,7 @@
   (println))
 
 (defn -main [& args]
+  (set-fast-speed)
   (println "Connecting..." server)
   (def irc (connect server port bot-nick :callbacks {:privmsg callback}))
   (setup-nars irc)

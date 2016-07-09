@@ -124,6 +124,20 @@
                                                    " "
                                                    (task-to-narsese task)))))
 
+(def max-qu-track 10)
+(def last-qu-answers (atom []))
+
+(defn get-solution-id [task]
+  [(:statement task) (:task-type task) (:occurrence task) (:truth task)])
+
+(defn potentially-ouput-question-solution [task-id task solution]
+  (let [solution-id (get-solution-id solution)]
+    (when (not (some #{[task-id solution-id]} @last-qu-answers))
+     (reset! last-qu-answers (concat [[task-id solution-id]] @last-qu-answers))
+     (while (> (count @last-qu-answers) max-qu-track)
+       (reset! last-qu-answers (drop-last @last-qu-answers)))
+     (output-task [:answer-to (str (narsese-print (:statement task)) (punctuation-print (:task-type task)) #_" c: " #_concept-id)] solution))))
+
 (defn user? [task]
   (= (:source task) :input))
 
@@ -131,10 +145,10 @@
   (when (= (:id @state) st)
     (println stru)))
 
-(defn potential-output-answer [state task result]
+(defn potential-output-answer [state task-id task solution]
   (when (and (user? task)
              (= (:statement task) (:id @state)))
     (do
       (doseq [f @answer-handlers]
-        (f task result))
-      (output-task [:answer-to (str (narsese-print (:statement task)) (punctuation-print (:task-type task)))] result))))
+        (f task solution))
+      (potentially-ouput-question-solution task-id task solution))))

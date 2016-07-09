@@ -94,7 +94,7 @@
     (when (not-empty projected-list)
       (doseq [[question belief-task-projected-to-question] projected-list]
         (when (better-solution belief-task question)
-          (potential-output-answer state question belief-task)
+          (potential-output-answer state (get-task-id question) question belief-task)
           ;update budget and solution
           (let [new-question (reduced-question-budget-by-belief question belief-task-projected-to-question)
                 new-question-with-solution (assoc new-question :solution belief-task)]
