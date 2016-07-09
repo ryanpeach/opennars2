@@ -51,7 +51,6 @@
                         :inference-request-router
                         :concept-manager)
         {:keys [path concept-count]} @state]
-    (println (str "c-state:" c-state))
     (spit path (pr-str c-state) :append true)
     (set-state! (update @state :received-states inc))
     (when (= (:received-states @state) concept-count)
@@ -61,7 +60,6 @@
   ""
   [r]
   (try
-    (println (str "r: " r))
     (read r)
     (catch java.lang.RuntimeException e
       (if (= "EOF while reading" (.getMessage e))
@@ -71,7 +69,6 @@
 (defn read-seq-from-file
   ""
   [path]
-  (println (str "rs path: " path))
   (with-open [r (java.io.PushbackReader. (clojure.java.io/reader path))]
     (binding [*read-eval* true]
       (doall (take-while #(not= ::EOF %) (repeatedly #(read-one r)))))))
