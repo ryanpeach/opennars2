@@ -119,11 +119,12 @@
       (a-deduction 1)
       (negation p2)))
 
-(defn t-identity [p1 _] p1)
+;Peis email: Confidence
+(defn t-identity [p1 _] [(first p1) (* (second p1) d/belief-confidence)])
 
-(defn d-identity [p1 _] p1)
+(defn d-identity [p1 _] [(first p1) (* (second p1) d/belief-confidence)])
 
-(defn belief-identity [_ p2] p2)
+(defn belief-identity [_ p2] [(first p2) (* (second p2) d/belief-confidence)])
 
 (defn belief-structural-deduction [_ p2]
   (when p2 (deduction p2 [1 d/belief-confidence])))

@@ -1,0 +1,7 @@
+<<((/,REPRESENT,$1,_),(/,REPRESENT,$3,_)) --> (/,REPRESENT,$2,_)> ==> <($1,$2,$3) --> SENTENCE>>.
+<((/,REPRESENT,robert,_),(/,REPRESENT,cats,_)) --> (/,REPRESENT,likes,_)>.
+(&/,<#1 --> SENTENCE>,<(*,{SELF},#1) --> op_talk>)!
+
+
+
+<(/,REPRESENT,cats) --> (/,REPRESENT,animals)>.
