@@ -15,18 +15,20 @@
 
 (defn process-quest [state quest]
   ;group-by :task-type tasks
-  (let [goals (filter #(and (= (:task-type %) :goal) (= (:statement %) (:statement quest))) (get-tasks state))]
+  (let [goals (filter #(and (= (:task-type %) :goal)
+                            (question-unifies (:statement quest) (:statement %)))
+                      (get-tasks state))]
     ;filter beliefs matching concept content
     ;project to task time
     ;select best ranked
     (let [projected-goal-tuples (map (fn [a] [a (project-eternalize-to (:occurrence quest) a @nars-time)]) goals)]
       (if (not-empty projected-goal-tuples)
         ;select best solution
-        (let [[goal projected-goal] (apply max-key (fn [a] (confidence (second a))) projected-goal-tuples)
+        (let [[goal projected-goal] (apply max-key (fn [a] (answer-quality quest (second a))) projected-goal-tuples)
               answerered-quest (assoc quest :solution goal)]
           (if (or (= (:solution quest) nil)
-                  (> (second (:truth projected-goal))
-                     (second (:truth (project-eternalize-to (:occurrence quest) (:solution quest) @nars-time)))))
+                  (better-solution projected-goal
+                                   quest))
             ;update budget and tasks
             (let [result (decrease-quest-budget-by-solution answerered-quest)]
 

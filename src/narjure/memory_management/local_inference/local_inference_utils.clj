@@ -6,6 +6,7 @@
     [taoensso.timbre :refer [debug info]]
     [narjure.bag :as b]
     [narjure.global-atoms :refer :all]
+    [clojure.core.unify :refer [unify]]
     [narjure.control-utils :refer [make-evidence round2]]
     [narjure.perception-action.task-creator :refer :all]
     [nal.term_utils :refer :all]
@@ -89,13 +90,19 @@
         evidence (make-evidence (:evidence t1) (:evidence t2))]
     (assoc t1 :truth revised-truth :source :derived :evidence evidence :budget (max-budget (:budget t1) (:budget t2)))))
 
+(defn answer-quality [question solution]
+  (if solution
+    (if (some #{'qu-var} (flatten (:statement question)))
+      (/ (expectation (:truth solution)) (Math/sqrt (:sc solution)))
+      (confidence solution))
+    0))
+
 (defn better-solution [solution task]
   (let [projected-solution (project-eternalize-to (:occurrence task) solution @nars-time)
         cur-solution (project-eternalize-to (:occurrence task) (:solution task) @nars-time)]
     (or (= nil cur-solution)
-        (>= (confidence projected-solution)
-            (confidence cur-solution)))))
-
+        (>= (answer-quality task projected-solution)
+            (answer-quality task cur-solution)))))
 
 (defn reduced-goal-budget-by-belief [goal belief]                     ;by belief satisfied goal
   (let [satisfaction (- 1.0 (Math/abs (- (expectation (:truth goal))
@@ -108,7 +115,7 @@
 (defn reduced-question-budget-by-belief [question belief]
   (let [budget (:budget question)
         p (first budget)
-        p-new (t-and p (- 1.0 (confidence belief)))]
+        p-new (t-and p (- 1.0 (answer-quality question belief)))]
     (assoc question :budget [p-new (second budget) (nth budget 2)])))
 
 (defn increased-belief-budget-by-question [belief question]  ;useful belief, answered a question
@@ -139,7 +146,7 @@
   (let [budget (:budget question)
         solution (:solution question)]
     ;todo improve budget function here
-    (let [new-budget [(* (- 1.0 (confidence solution)) (first budget))
+    (let [new-budget [(* (- 1.0 (answer-quality question solution)) (first budget))
                       (second budget)
                       (nth budget 2)]] ;TODO dependent on solution confidence
       (assoc question :budget new-budget))))
@@ -155,3 +162,20 @@
 (defn same-occurrence-type [t1 t2]
   (or (and (= (:occurrence t1) :eternal) (= (:occurrence t2) :eternal))
       (and (not= (:occurrence t1) :eternal) (not= (:occurrence t2) :eternal))))
+
+(defn qu-var-transform [term]
+  (if (coll? term)
+    (if (= (first term) 'qu-var)
+      (symbol (str "?" (second term)))
+      (apply vector (for [x term]
+                      (qu-var-transform x))))
+    term))
+
+(defn valid-answer-unifier [unifier]
+  (not (some #{'dep-var} (flatten (vals unifier)))))
+
+(defn question-unifies [question solution]
+  (let [unifier (unify (qu-var-transform question) solution)]
+    (when (and unifier
+               (valid-answer-unifier unifier))
+      true)))

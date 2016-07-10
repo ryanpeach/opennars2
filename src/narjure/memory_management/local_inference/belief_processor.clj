@@ -72,7 +72,7 @@
   ;select best ranked
   (let [projected-list
         (map (fn [a] [a (project-eternalize-to (:occurrence a) belief-task @nars-time)])
-             (filter #(= (:statement %) (:statement belief-task)) goals))]
+             (filter #(question-unifies (:statement %) (:statement belief-task)) goals))]
     (when (not-empty projected-list)
       (doseq [[goal belief-task-projected-to-goal] projected-list]
         (when (better-solution belief-task goal)
@@ -90,7 +90,8 @@
   ;select best ranked
   (let [projected-list
         (map (fn [a] [a (project-eternalize-to (:occurrence a) belief-task @nars-time)])
-             (filter #(= (:statement %) (:statement belief-task)) questions))]
+             (filter #(question-unifies (:statement %) (:statement belief-task))
+                     questions))]
     (when (not-empty projected-list)
       (doseq [[question belief-task-projected-to-question] projected-list]
         (when (better-solution belief-task question)

@@ -124,7 +124,7 @@
                                                    " "
                                                    (task-to-narsese task)))))
 
-(def max-qu-track 10)
+(def max-qu-track 50)
 (def last-qu-answers (atom []))
 
 (defn get-solution-id [task]
@@ -146,9 +146,7 @@
     (println stru)))
 
 (defn potential-output-answer [state task-id task solution]
-  (when (and (user? task)
-             (= (:statement task) (:id @state)))
-    (do
-      (doseq [f @answer-handlers]
+  (when (user? task)
+    (doseq [f @answer-handlers]
         (f task solution))
-      (potentially-ouput-question-solution task-id task solution))))
+    (potentially-ouput-question-solution task-id task solution)))

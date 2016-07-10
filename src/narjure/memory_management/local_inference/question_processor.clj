@@ -14,18 +14,23 @@
   (:refer-clojure :exclude [promise await]))
 
 (defn process-question [state question]
-  (let [beliefs (filter #(and (= (:task-type %) :belief) (= (:statement %) (:statement question))) (get-tasks state))]
+  (println "A_0")
+  (let [beliefs (filter #(and (= (:task-type %) :belief)
+                              (question-unifies (:statement question) (:statement %)))
+                        (get-tasks state))]
+    (println "A")
     ;filter beliefs matching concept content
     ;project to task time
     ;select best ranked
     (let [projected-belief-tuples (map (fn [a] [a (project-eternalize-to (:occurrence question) a @nars-time)]) beliefs)]
       (if (not-empty projected-belief-tuples)
+
         ;select best solution
-        (let [[belief projected-belief] (apply max-key (fn [a] (confidence (second a))) projected-belief-tuples)
+        (let [[belief projected-belief] (apply max-key (fn [a] (answer-quality question (second a))) projected-belief-tuples)
               answerered-question (assoc question :solution belief)]
           (if (or (= (:solution question) nil)
-                  (> (second (:truth projected-belief))
-                     (second (:truth (project-eternalize-to (:occurrence question) (:solution question) @nars-time)))))
+                  (better-solution projected-belief
+                                   question))
             ;update budget and tasks
             (let [result (decrease-question-budget-by-solution answerered-question)]
 
@@ -34,6 +39,7 @@
                 (update-task-in-tasks state (assoc belief :budget (:budget new-belief)) belief))
 
               (add-to-tasks state result)                   ;its a new question
+
               ;if answer to user quest ouput answer
               (potential-output-answer state (get-task-id question) question (:solution result)))
 
