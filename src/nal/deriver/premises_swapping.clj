@@ -15,6 +15,7 @@
     (not-any? anti-swapping-keys (flatten (concat pre post)))))
 
 (defn swap-premises
+  "Swaps the premises and truth function arguments to have symmetric rules being able to be used both ways."
   [{:keys [p1 p2] :as rule}]
 
   (let [premise-swapped (assoc rule :p1 p2

@@ -1,0 +1,183 @@
+
+\chapter{NAL-7: Temporal Inference}
+
+NAL-7 introduces \emph{time} into the logic.  
+
+\section{Time and events}
+
+In an implementation of NAL, call it NARS, time appears as a total order among the system's internal and external activities and events.
+
+\begin{defi}
+\emph{Time} within NARS can be measured by an internal clock, with the unit being certain recurrent activity in the system, such as its inference cycle. 
+\end{defi}
+Such a time measurement is relative to the system's internal activity, and independent of the hardware/software speed of the implementation, so different copies of NARS may have different ``subjective time'' associated to an activity in their common environment.
+
+\begin{defi}
+The real-time \emph{experience} of a NARS is a sequence of Narsese sentences, separated by non-negative numbers indicating the interval between the arriving time of subsequent sentences.
+\end{defi}
+Therefore, each input sentence can be associated with a moment in the system clock, and the experience of the system can be represented as a stream of Narsese sentences, with the time interval between adjacent sentences marked according to the system clock.
+
+So far, there have been three notions of \emph{experience} used in NAL:
+\begin{itemize}
+	\item In IL, \emph{idealized} experience is defined as a \emph{set} of (true) statements, with the Closed-World Assumption. The order of sentences does not matter, and is ignored by the logic.
+	\item In NAL-1 to NAL-6, \emph{actual} experience is defined as a \emph{stream} of sentences of the corresponding Narsese (i.e., Narsese-1 to Narsese-6), without the Closed-World Assumption. The timing in the stream is omitted in the language, and ignored by the inference rules (though it matters for the inference control mechanism).
+	\item Since NAL-7, \emph{real-time} experience explicitly indicates time in the input stream, using the internal clock. It covers the previous notions of experience as special cases: actual experience corresponds to the situation where there is one input per moment, and idealized experience is where all inputs arrive at the very beginning.
+\end{itemize}
+In NARS, the meaning of a term and the truth-value of a statement can be \emph{produced} from many different real-time or actual experiences expressed in Narsese, though they are \emph{defined} by an idealized experience consisting of IL statements.
+
+\begin{defi}
+An \emph{event} is a statement with a time-dependent truth-value, that is, the evidential support summarized in its truth-value is valid only for a certain period of time.
+\end{defi}
+
+Accurately speaking, almost all empirical statements are time dependent, and few statements are about relations holding forever. However, for practical purposes, it is not always necessary for a system to take the temporal attributes of a statement into consideration. Therefore, whether a \emph{statement} should be treated as an \emph{event} may change from context to context, and events are just statements whose temporal attributes are specified.  On the contrary, the time interval of a ``non-event'' statement is unspecified, except that it includes the current moment, as well as all the moments of relevance. 
+
+If the time interval of a truth-value is referred to as when the corresponding event ``happens'', then between two events $E_1$ and $E_2$, their basic temporal relation can be one of the following three cases:
+\begin{itemize}
+	\item $E_1$ happens before $E_2$ happens,
+	\item $E_1$ happens after $E_2$ happens,
+	\item $E_1$ happens when $E_2$ happens.
+\end{itemize}
+Obviously, ``before'' and ``after'' are the opposite directions of the same temporal relation.
+
+\begin{defi}
+There are two basic temporal relations between two events: ``before'' (which is irreflexive, antisymmetric, and transitive) and ``when'' (which is reflexive, symmetric, and transitive).
+\end{defi}
+
+If the temporal relation between two events is more complicated than these cases (for example, if their time intervals overlap partially), it is always possible to divide an event into subevents (such as talking about ``when $E_1$ starts'' and ``when $E_2$ ends''), then describe their temporal relations in detail. 
+
+If event $E_1$ is represented as ``before'' event $E_2$, the time interval between ``$E_1$ finishes'' and ``$E_2$ starts'' is omitted as negligible, even if the duration of this interval is not zero. When the interval is not negligible, it should be represented as an event $E_3$, which happens after $E_1$ and before $E_2$.
+
+Similarly, when two events are described as happening at the same time, it does not mean that their time intervals perfectly overlap, but that their difference in timing is negligible. If an absolute time, such as the system clock, is used to represent the temporal property of an event, then a moment in that time dimension can be treated as a special event, and these two events are described as happening at the same time. In this sense, the system clock corresponds to a sequence of events, each of which having the same duration.
+
+By using a relational description for temporal attributes of event, NAL can be applied to fields where phrases like ``at the same time'' and ``immediately after'' are used with very different scales, scopes, and accuracies. This treatment is consistent with the general semantic principle of Narsese, that is, the language is not used \emph{to represent the world as it is}, but \emph{to summarize the experience as the system needs}.
+
+The above representation of temporal information only supports some basic types of temporal inference, and more complicated and accurate types of temporal inference can be carried out by explicitly specifying temporal relations as terms, and their relationships as implication and equivalence statements.
+
+\section{Temporal operators and copulas}
+
+Since in NAL temporal attributes is optional in statements, the two temporal relations are never used alone, without any logical relations between the events. Instead, they are used in combination with certain copulas and term connectors that have been introduced before.
+
+First, ``$E_1$ happens before $E_2$ happens'' and ``$E_1$ happens when $E_2$ happens'' both assume ``$E_1$ and $E_2$ happen (at some time)'', which is ``$E_1 \wedge E_2$'' plus temporal information.
+
+\begin{defi}
+The conjunction connector has two temporal variants: ``sequential conjunction'' (``,'') and ``parallel conjunction'' (``;'').  ``\((E_1, E_2)\)'' corresponds to compound event ``$E_1$ then $E_2$'', and ``\((E_1; E_2)\)'' corresponds to compound event ``$E_1$ and $E_2$''.
+\end{defi}
+Like ordinary conjunction, either of the two temporal operators can take more than two components, and is associative. 
+
+Similarly, there are temporal variants of copulas \emph{implication} and \emph{equivalence}. 
+
+\begin{defi}
+For an implication statement ``\(S \Rightarrow T\)'' between events $S$ and $T$, three different temporal relations can be distinguished:
+\begin{enumerate}
+	\item 
+If $S$ happens \emph{before} $T$ happens, the statement is called ``predictive implication,'' and is rewritten as ``\(S \,/\!\!\!\Rightarrow T\)'', where $S$ is called a {\em sufficient precondition} of $T$, and $T$ a {\em necessary postcondition} of $S$.
+	\item 
+If $S$ happens \emph{after} $T$ happens, the statement is called ``retrospective implication,'' and  is rewritten as ``\(S \,\backslash\!\!\!\Rightarrow T\)'', where $S$ is called a {\em sufficient postcondition} of $T$, and $T$ a {\em necessary precondition} of $S$.
+	\item 
+If $S$ happens \emph{when} $T$ happens, the statement is called ``concurrent implication,'' and is rewritten as ``\(S \,|\!\!\!\Rightarrow T\)'', where $S$ is called a {\em sufficient co-condition} of $T$, and $T$ a {\em necessary co-condition} of $S$.
+\end{enumerate}
+\end{defi}
+
+\begin{defi}
+Three ``temporal equivalence'' (predictive, retrospective, and concurrent) relations can be defined. 
+\begin{enumerate}
+	\item 
+``\(S \,/\!\!\!\Leftrightarrow T\)'' (or equivalently, ``\(T \,\backslash\!\!\!\Leftrightarrow S\)'') means that $S$ is an {\em equivalent precondition} of $T$, and $T$ an {\em equivalent postcondition} of $S$.
+	\item 
+``\(S \,|\!\!\!\Leftrightarrow T\)'' means that $S$ and $T$ are {\em equivalent co-conditions} of each other.
+  \item
+To simplify the language, ``\(T \,\backslash\!\!\!\Leftrightarrow S\)'' is always represented as ``\(S \,/\!\!\!\Leftrightarrow T\)'', so the copula ``$\,\backslash\!\!\!\Leftrightarrow$'' is not actually included in the grammar of Narsese.  
+\end{enumerate}
+\end{defi}
+
+As explained in NAL-5, judgment ``\(S \langle f, \; c \rangle\)'' can be equivalently rewritten as ``\(E \Rightarrow S \langle f, \; c \rangle\)'', where $E$ is a virtual compound statement summarizing the currently available evidence. Now if statement $S$ is an event, its temporal attribute can be specified relative to $E$, taking as an event that is currently occurring. Since in Narsese $E$ is implicitly assumed, the temporal implication operators serve here as \emph{tense}, which are operators indicating the temporal nature of truth-values. In this way, adjectives like ``past,'' ``present,'' and ``future'' can be represented in Narsese.
+\begin{defi}
+The \emph{tense} of a sentence indicates the occurring time of an event with respect to ``events happening now'', a special event. The temporal implication symbols `\(\backslash\!\!\!\Rightarrow\!\)', `\(|\!\!\!\Rightarrow\!\)', and `\(/\!\!\!\Rightarrow\!\)' are also used in a sentence to indicate ``past tense'', ``present tense'', and ``future tense'', respectively.
+\end{defi}
+
+What makes the situation complicated is that tenses are always used with respect to the using time of a sentence, and in a real-time system ``now'' changes constantly, so ``future'' gradually becomes ``present'', then ``past''. Furthermore, while ``present'' is unique, the moments referred to as ``past'' and ``future'' are not.  The same judgment may have different truth-values while having the same ``past'' or ``future'' tense, and it may not be considered as conflicting evidence, because each of them is actually about a different moment. 
+
+Because of the above reasons, the above qualitative ``tense'' is not used in the internal representation of a belief. Instead, when a belief in NARS corresponds to an event, its truth-value is associated with its \emph{happening time} represented by the system clock. Additionally, the creation time of a sentence, either from outside (input) or inside (derivation) is recorded, too. When a sentence is expressed in Narsese for communication, this temporal information is translated into (and from) a tense (which has three possible values), with respect to the current time when the communication happens. The clock values are not directly used in communication, because of their system-specific nature.
+
+The new statements introduced in NAL-7 are summarized in Table \ref{Narsese-7}.
+
+\begin{table}[htb]
+\[\begin{array}{|rrl|}
+\hline
+\langle judgment \rangle & ::= & \langle statement \rangle [\langle tense \rangle] \langle truth \mbox{-} value \rangle \\
+\langle question \rangle & ::= & \langle statement \rangle [\langle tense \rangle] \\ 
+\langle statement \rangle & ::= & `(\, ,' \; \langle statement \rangle \langle statement \rangle^+ `)' \\ &&
+                  		 | \; `(\, ;' \; \langle statement \rangle \langle statement \rangle^+ `)' \\
+\langle tense \rangle & ::= & `/\!\!\!\Rightarrow' \; | \; `\backslash\!\!\!\Rightarrow' \; | \; `|\!\!\!\Rightarrow' \\
+\langle copula \rangle & ::= & `/\!\!\!\Rightarrow' \; | \; `\backslash\!\!\!\Rightarrow' \; | \; `|\!\!\!\Rightarrow' \;
+                  		 | \; `/\!\!\!\Leftrightarrow' \; | \; `|\!\!\!\Leftrightarrow' \\ 
+\hline
+\end{array} \]
+\caption{The New Grammar Rules of Narsese-7}
+\label{Narsese-7}
+\end{table}
+
+In summary, temporal information is represented in NARS in multiple ways:
+\begin{description}
+	\item[Absolute representation.] Some sentences have ``tense'' associated, to indicate the time-dependency of their truth-values. In the communication interface, tense is represented qualitatively, with respect to the current time; within the system, this information is represented by clock values, indicating the moment for which the truth-values are established.
+	\item[Relative representation.] Some compound terms (implication, equivalence, and conjunction) may have temporal order specified among its components (each taken to be an event). 
+	\item[Explicit representation.] When the above representation cannot satisfy the accuracy requirement when temporal information is needed, it is always possible to introduce terms to explicitly represent an event, as well as its beginning, ending, and duration.
+\end{description}
+
+
+\section{Temporal inference}
+
+Different types of temporal information are treated in different ways in NARS.
+
+In the reasoning process of NARS, the terms that \textbf{explicitly} represent temporal information are treated just like other term, and temporal relations are handled like other relations. There is no special inference rule needed.
+
+When temporal information is represented \textbf{relatively}, the existing rules are modified by taking the temporal properties in the premises and conclusions into consideration while processing their local properties.
+
+The temporal orders within copula and operators are handled by the inference rules based on the properties of the two basic temporal relations. Consequently, some of the inference rules in NAL-7 are variants of the rules defined in NAL-5 and NAL-6. In them, the only additional function of these rules is to decide the temporal property of the conclusions according to that of the premises, and the truth-value functions remain the same. For example, the following is a deduction rule introduced in NAL-5,
+\[\{(C \wedge M) \Rightarrow P , \; S \Rightarrow M \} \vdash (C \wedge S) \Rightarrow P \langle F_{ded}\rangle\]
+Now it has a variant in NAL-7, as listed in Table \ref{Temporal-Inference}.
+\begin{table}[htb]
+\[\begin{array}{|c|}
+\hline
+\{(M, \; C) \;/\!\!\!\Rightarrow P , \; S \;/\!\!\!\Rightarrow M \}  \vdash (S, \; C) \;/\!\!\!\Rightarrow P \; \langle F_{ded}\rangle \\
+\hline
+\end{array}\]
+\caption{Sample Temporal Inference Rule}
+\label{Temporal-Inference}
+\end{table}
+Since the logical factor and the temporal factor are independent of each other in the rules, these variant rules can be obtained by considering the two factors separately, then combining them in the conclusion. An alternative way is to see the above rules as the combinations of the NAL rules introduced previously and a ``meta-rule'' of temporal inference, based on the properties of the two basic temporal relations.
+
+When temporal information is represented \textbf{absolutely} as clock values, there are three basic cases:
+\begin{itemize}
+	\item When the premises are about the same moment $t$, the conclusion is about the same moment.
+	\item When one premise is about moment $t$, and the other one is timeless, the conclusion is about moment $t$.
+	\item When the premises are about the different moments $t_1$ and $t_2$, one of them need to be ``casted'' into another.
+\end{itemize}
+
+In a tensed sentence, the truth-value is about a given moment, indicated by a clock value. When there is no other information, this truth-value can also be used for nearby moments. When a truth-value about moment $t_1$ is used for moment $t_2$, its confidence is decreased by multiplying a ``discount factor'' $d$:
+\[d = 1 - \frac{|t_1 - t_2|}{|t - t_1| + |t - t_2|}\]
+where $t$ is the moment when the judgment is made, and when \(t = t_1 = t_2\), $d=1$.
+
+A tensed sentence can also be cased into a timeless sentence, as a form of ``temporal induction''. Since a sentence at a certain moment provides for the sentence in all moments, the frequency of the conclusion is the same as that of the premise, and the confidence of the conclusion, $c$, is determined by that of the premise, $c_0$, as \(c = c_0/(c_0+k)\), where $k$ is the evidential horizon defined in NAL-1. In other words, the confidence value is multiplied to a ``discount factor'' \(1/(c_0+k)\).
+
+Both absolute and relative temporal information are present in rules like 
+\[\{S \, , \; S \,/\!\!\!\Rightarrow P\} \vdash P \, \langle F_{ded}\rangle \]
+where if the two premises are about moment $t$, the conclusion is about moment $t+1$.
+
+Another group of NAL-7 rules are variants of the following inference rules defined in NAL-5:
+\[\{P, \; S\} \vdash S \Rightarrow P \, \langle F_{ind}\rangle \]
+\[\{P, \; S\} \vdash S \Leftrightarrow P \, \langle F_{com}\rangle \]
+Though these rules do not apply to arbitrary $P$ and $S$, they are applicable when the two are temporally related events. When $P$ and $S$ are events happening at the same time, the conclusions are ``\(S \; |\!\!\!\Rightarrow P \, \langle F_{ind}\rangle\)'' and ``\(S \; |\!\!\!\Leftrightarrow P \, \langle F_{com}\rangle\)''; when $S$ happens right before $P$, the conclusions are ``\(S \; /\!\!\!\Rightarrow P \, \langle F_{ind}\rangle\)'' and ``\(S \; /\!\!\!\Leftrightarrow P \, \langle F_{com}\rangle\)''. Here the situation is different from the above temporal meta-rule in that without a temporal relation, these rules will not be applied.
+
+
+
+
+
+
+
+
+
+
+\section*{References}
+
+\cite[Chapter 5]{wp:book1}, \cite{wp:unify,wp:agi}

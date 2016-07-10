@@ -1,0 +1,222 @@
+\chapter{NAL-3: Intersections and Differences}
+
+In NAL-3, compound terms are composed by combining the extension or intension of existing terms in certain way.
+
+\section{Intersections}
+
+\begin{defi}
+Given terms $T_1$ and $T_2$, their {\em extensional intersection}, \((T_1 \cap T_2)\), is a compound term defined by
+\[(\forall x) ((x \rightarrow (T_1 \cap T_2)) \equiv ((x  \rightarrow T_1) \wedge (x \rightarrow T_2))).\]
+\end{defi}
+From right to left, the equivalence expression defines the extension of the compound, i.e., ``\((x \rightarrow T_1) \wedge (x \rightarrow T_2)\)'' implies ``\(x \rightarrow (T_1 \cap T_2)\)''; from left to right, it defines the intension of the compound, i.e., ``\((T_1 \cap T_2) \rightarrow (T_1 \cap T_2)\)'' implies ``\((T_1 \cap T_2) \rightarrow T_1\)'' and ``\((T_1 \cap T_2) \rightarrow T_2\).''
+
+\begin{theo}
+\[(T_1 \cap T_2)^E = T_1^E \cap T_2^E, \; (T_1 \cap T_2)^I = T_1^I \cup T_2^I\]
+\end{theo}
+In the above expressions, the `$\cap$' sign is used in two different senses.  On the right-side of the first expression, it indicates the intersection of sets, but on the left-side of the two expressions, it is the term connector of extensional intersections.
+
+\begin{defi}
+Given terms $T_1$ and $T_2$, their {\em intensional intersection}, \((T_1 \cup T_2)\), is a compound term defined by
+\[(\forall x) (((T_1 \cup T_2) \rightarrow x) \equiv ((T_1 \rightarrow x) \wedge (T_2 \rightarrow x))).\]
+\end{defi}
+From right to left, the equivalence expression defines the intension of the compound, i.e., ``\((T_1 \rightarrow x) \wedge (T_2 \rightarrow x)\)'' implies ``\((T_1 \cup T_2) \rightarrow x\)''; from left to right, it defines the extension of the compound, i.e., ``\((T_1 \cup T_2) \rightarrow (T_1 \cup T_2)\)'' implies ``\(T_1 \rightarrow (T_1 \cup T_2)\)'' and ``\(T_2 \rightarrow (T_1 \cup T_2)\).''
+
+\begin{theo}
+\[(T_1 \cup T_2)^I = T_1^I \cap T_2^I, \; (T_1 \cup T_2)^E = T_1^E \cup T_2^E\]
+\end{theo}
+
+The duality of \emph{extension} and \emph{intension} in NAL corresponds to the duality of \emph{intersection} and \emph{union} in set theory --- \emph{intensional intersection} corresponds to \emph{extensional union}, and \emph{extensional intersection} corresponds to \emph{intensional union}.
+
+Both operators can be extended to take more than two arguments.  Since `$\cap$' and `$\cup$' are both associative and symmetric, the order of their components does not matter. 
+
+\begin{theo}
+\[\begin{array}{c}
+(T_1 \cap T_2) \leftrightarrow (T_2 \cap T_1) \\
+(T_1 \cup T_2) \leftrightarrow (T_2 \cup T_1) 
+\end{array}\]
+\end{theo}
+
+\begin{theo}
+\[\begin{array}{c}
+(T_1 \cap T_2) \rightarrow T_1 \\
+T_1 \rightarrow (T_1 \cup T_2) 
+\end{array}\]
+\end{theo}
+
+\begin{theo}
+\[\begin{array}{c}
+(T \cup T) \leftrightarrow T \\
+(T \cap T) \leftrightarrow T 
+\end{array}\]
+\end{theo}
+
+\begin{theo}
+\[\begin{array}{rclcr}
+T_1 \rightarrow M & \wedge & \neg ((T_1 \cup T_2) \rightarrow M) & \supset & \neg (T_2 \rightarrow M) \\
+\neg(T_1 \rightarrow M) & \wedge & (T_1 \cap T_2) \rightarrow M & \supset & T_2 \rightarrow M \\
+M \rightarrow T_1 & \wedge & \neg (M \rightarrow (T_1 \cap T_2)) & \supset & \neg (M \rightarrow T_2) \\
+\neg (M \rightarrow T_1) & \wedge & M \rightarrow (T_1 \cup T_2) & \supset & M \rightarrow T_2 \\
+\end{array}\]
+\end{theo}
+Here `$\neg$' is the negation operator in propositional logic.
+
+\begin{theo}
+\[\begin{array}{rcl}
+S \rightarrow P & \supset & (S \cup M) \rightarrow (P \cup M) \\
+S \rightarrow P & \supset & (S \cap M) \rightarrow (P \cap M) \\
+S \leftrightarrow P & \supset & (S \cup M) \leftrightarrow (P \cup M) \\
+S \leftrightarrow P & \supset & (S \cap M) \leftrightarrow (P \cap M) \\
+\end{array}\]
+\end{theo}
+In the results of the above theorem, $M$ can be any term in $V_K$.  The same is assumed for some other theorems to be introduced later.
+
+\begin{defi}
+If \(T_1, \; \cdots, \; T_n\) ($n \geq 2$) are different terms, a \emph{compound extensional set} \(\{T_1, \; \cdots , \; T_n\}\) is defined as \((\cup \; \{T_1\} \; \cdots \; \{T_n\})\); a \emph{compound intensional set} \([T_1, \; \cdots , \; T_n]\) is defined as \((\cap \; [T_1] \; \cdots \; [T_n])\).  
+\end{defi}
+In this way, extensional sets and intensional sets can both have multiple components.  The former defines a term by enumerating its \emph{instances}, and the latter by enumerating its \emph{properties}.  The order of the components does not matter. These multi-component sets no longer have the property of single-component sets that their extension or intension is minimum.
+
+\begin{theo}
+\[\begin{array}{ccc}
+(\forall x) ((\{x\} \rightarrow \{T_1, \; \cdots , \; T_n\}) & \equiv & ((x  \leftrightarrow T_1) \vee \; \cdots \; \vee (x \leftrightarrow T_n))) \\
+(\forall x) (([T_1, \; \cdots , \; T_n] \rightarrow [x]) & \equiv & ((T_1\leftrightarrow x) \vee \; \cdots \; \vee (T_n \leftrightarrow x)))
+\end{array}\]
+\end{theo}
+
+\section{Differences}
+
+\begin{defi}
+If $T_1$ and $T_2$ are different terms, their {\em extensional difference}, $(T_1 - T_2)$, is a compound term defined by
+\[(\forall x) ((x \rightarrow (T_1 - T_2)) \equiv ((x \rightarrow T_1) \wedge \neg(x \rightarrow T_2))).\]
+\end{defi}
+From right to left, the equivalence expression defines the extension of the compound, i.e., ``\((x \rightarrow T_1) \wedge \neg(x \rightarrow T_2)\)'' implies ``\(x \rightarrow (T_1 - T_2)\)''; from left to right, it defines the intension of the compound, i.e., ``\((T_1 - T_2) \rightarrow (T_1 - T_2)\)'' implies ``\((T_1 - T_2) \rightarrow T_1\)'' and ``\(\neg((T_1 \cap T_2) \rightarrow T_2)\).''
+
+Obviously, $(T_2 - T_1)$ can also be defined, but it will be different from $(T_1 - T_2)$.
+\begin{theo}
+\[(T_1 - T_2)^E = T_1^E - T_2^E, \; (T_1-T_2)^I = T_1^I\]
+\end{theo}
+
+\begin{defi}
+If $T_1$ and $T_2$ are different terms, their {\em intensional difference}, \((T_1 \ominus T_2)\), is a compound term defined by
+\[(\forall x) (((T_1 \ominus T_2) \rightarrow x) \equiv ((T_1 \rightarrow x) \wedge \neg(T_2 \rightarrow x))).\]
+\end{defi}
+From right to left, the equivalence expression defines the intension of the compound, i.e., ``\((T_1 \rightarrow x) \wedge \neg(T_2 \rightarrow x)\)'' implies ``\((T_1 \ominus T_2) \rightarrow x\)''; from left to right, it defines the extension of the compound, i.e., ``\((T_1 \ominus T_2) \rightarrow (T_1 \ominus T_2)\)'' implies ``\(T_1 \rightarrow (T_1 \ominus T_2)\)'' and ``\(\neg(T_2 \rightarrow (T_1 \ominus T_2))\).''
+
+\begin{theo}
+\[(T_1 \ominus T_2)^I = T_1^I - T_2^I, \; (T_1 \ominus T_2)^E = T_1^E\]
+\end{theo}
+
+\begin{theo}
+\[\begin{array}{c}
+(T_1 - T_2) \rightarrow T_1 \\
+T_1 \rightarrow (T_1 \ominus T_2) 
+\end{array}\]
+\end{theo}
+
+\begin{theo}
+\[\begin{array}{c}
+M \rightarrow (T_1 - T_2) \supset \neg(M \rightarrow T_2) \\
+(T_1 \ominus T_2) \rightarrow M \supset \neg(T_2 \rightarrow M)
+\end{array}\]
+\end{theo}
+
+Unlike the \emph{intersection} operators, the \emph{difference} operators cannot take more than two arguments. Also, neither $(T - T)$ nor $(T \ominus T)$ is a valid term.
+
+\begin{theo}
+\[\begin{array}{rcrcr}
+T_1 \rightarrow M & \wedge & \neg ((T_1 \ominus T_2) \rightarrow M) & \supset & T_2 \rightarrow M \\
+\neg (T_1 \rightarrow M) & \wedge & \neg ((T_2 \ominus T_1) \rightarrow M) & \supset & \neg (T_2 \rightarrow M) \\
+M \rightarrow T_1 & \wedge & \neg (M \rightarrow (T_1 - T_2)) & \supset & M \rightarrow T_2 \\
+\neg (M \rightarrow T_1) & \wedge & \neg (M \rightarrow (T_2 - T_1)) & \supset & \neg (M \rightarrow T_2) \\
+\end{array}\]
+\end{theo}
+
+\begin{theo}
+\[\begin{array}{rcl}
+S \rightarrow P & \supset & (S - M) \rightarrow (P - M) \\
+S \rightarrow P & \supset & (M - P) \rightarrow (M - S) \\
+S \rightarrow P & \supset & (S \ominus M) \rightarrow (P \ominus M) \\
+S \rightarrow P & \supset & (M \ominus P) \rightarrow (M \ominus S) \\
+S \leftrightarrow P & \supset & (S - M) \leftrightarrow (P - M) \\
+S \leftrightarrow P & \supset & (M - P) \leftrightarrow (M - S) \\
+S \leftrightarrow P & \supset & (S \ominus M) \leftrightarrow (P \ominus M) \\
+S \leftrightarrow P & \supset & (M \ominus P) \leftrightarrow (M \ominus S) \\
+\end{array}\]
+\end{theo}
+
+\begin{theo}
+\[\begin{array}{ccc}
+(\{T_1, \; \cdots , \; T_n\} - \{T_n\}) & \leftrightarrow & \{T_1, \; \cdots , \; T_{n-1}\} \\
+([T_1, \; \cdots , \; T_n] \ominus [T_n]) & \leftrightarrow & [T_1, \; \cdots , \; T_{n-1}]
+\end{array}\] 
+\end{theo}
+
+\section{Grammar and inference rules}
+
+The additional grammar rules of Narsese-3 are listed in Table \ref{Narsese-3}.
+
+\begin{table}[htb]
+\[\begin{array}{|rrl|}
+\hline
+\langle  term \rangle  & ::= & \;\; `\{' \langle term \rangle ^+ `\}' \\ &&
+                  		 | \; `[' \, \langle term \rangle ^+ \, `]' \\ &&
+                  		 | \; `( \, \!\cap' \langle  term \rangle  \langle  term \rangle ^+ \, `)' \\ &&
+                  		 | \; `( \, \!\cup' \langle  term \rangle  \langle  term \rangle ^+ \, `)' \\ &&
+               	  		 | \; `( \, \!-' \langle  term \rangle  \langle  term \rangle \, `)'\\ &&
+                  		 | \; `( \, \!\ominus' \langle term \rangle \langle term \rangle \, `)' \\
+\hline
+\end{array} \]
+\caption{The New Grammar Rules of Narsese-3}
+\label{Narsese-3}
+\end{table}
+
+The previous grammar rule for extensional set and intensional set becomes a special case of the new rule. 
+
+Each inference rule in Table \ref{NAL-3-Composition} introduce a compound term in conclusion.  Such a rule is applicable only when $T_1$ and $T_2$ are different, and do not have each other as component. Also, the two premises cannot be based on overlapping evidence.
+
+\begin{table}[htb]
+\[\begin{array}{|c||c|c|} \hline 
+J_2 \; \backslash \; J_1 & M \rightarrow T_1 & T_1 \rightarrow M\\
+\hline \hline
+T_2 \rightarrow M
+  & & (T_1 \cup T_2)    \rightarrow M \; \langle F_{int}\rangle  \\
+  & & (T_1 \cap T_2)    \rightarrow M \; \langle F_{uni}\rangle  \\
+  & & (T_1 \ominus T_2) \rightarrow M \; \langle F_{dif}\rangle  \\
+  & & (T_2 \ominus T_1) \rightarrow M \; \langle F'_{dif} \rangle  \\
+\hline 
+M \rightarrow T_2
+  & M \rightarrow (T_1 \cap T_2) \; \langle F_{int}\rangle  & \\
+  & M \rightarrow (T_1 \cup T_2) \; \langle F_{uni}\rangle  & \\
+  & M \rightarrow (T_1 - T_2)    \; \langle F_{dif}\rangle  & \\
+  & M \rightarrow (T_2 - T_1)    \; \langle F'_{dif} \rangle  & \\
+\hline \end{array}\]
+\caption{The Composition Rules of NAL-3}
+\label{NAL-3-Composition}
+\end{table}
+
+The truth-value functions in Table \ref{NAL-3-Composition} are defined in Table \ref{NAL-3-Composition-Functions}, in an extended Boolean version. 
+
+The frequency functions are obtained based on the assumption that the two premises have independent truth-values, which is assumed when the two do not use overlapping evidence. When $T_1$ and $T_2$ are either highly similar or opposite to each other, the compound terms produced by these rules may not have much practical value. However, even when it happens, it is an issue to be handled by inference control, not by logic.
+
+In the confidence functions, each case for the conclusion to reach its maximum is separately considered. The \emph{plus} operator is used in place of an \emph{or} operator, because the two cases involved are mutually exclusive, rather than independent of each other. 
+
+\begin{table}[htb]
+\[\begin{array}{|rcl|} \hline
+F_{int} &:& \mbox{\textbf{Intersection}}	\\
+f &=& and(f_1, f_2) \\
+c &=& or(and(not(f_1), c_1), and(not(f_2), c_2)) + and(f_1, c_1, f_2, c_2) \\
+\hline
+F_{uni} &:& \mbox{\textbf{Union}} 	\\
+f &=& or(f_1, f_2) \\
+c &=& or(and(f_1, c_1), and(f_2, c_2)) + and(not(f_1), c_1, not(f_2), c_2) \\
+\hline
+F_{dif} &:& \mbox{\textbf{Difference}}	 \\
+f &=& and(f_1, not(f_2)) \\
+c &=& or(and(not(f_1), c_1), and(f_2, c_2)) + and(f_1, c_1, not(f_2), c_2) \\
+\hline \end{array}\]
+\caption{The Truth-value Functions of the Composition Rules}
+\label{NAL-3-Composition-Functions}
+\end{table}
+
+\section*{References}
+
+\cite[Chapter 4]{wp:book1}, \cite{wp:unify,wp:agi}

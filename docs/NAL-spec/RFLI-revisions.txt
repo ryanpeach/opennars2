@@ -1,0 +1,15 @@
+
+*. Using "copula" for Inheritance/Similarity/Implication/Equivalence, and reserve "relation" for ordinary relations.
+
+*. Changing the truth-value function of Analogy to c = c1c2f2
+
+*. Using a table to include all 14 truth-value functions
+
+*. Adding ";", "=|>", and "<|>" back into the grammar --- they identify the event status of the statements
+
+*. Horn clause as representation of operations, implication with multiple conditions
+
+*. compound term: level to complexity
+
+
+

@@ -1,0 +1,206 @@
+\chapter{NAL-2: Similarity and Sets}
+
+In this chapter and the following ones, first the language of IL is extended, then the inference rule of NAL is extended to handle the new items in the language under AIKR. 
+
+\section{Similarity}
+
+\begin{defi}
+For any terms $S$ and $P$, \emph{similarity} `$\leftrightarrow$' is a copula defined by 
+\[(S \leftrightarrow P) \equiv ((S \rightarrow P) \wedge (P \rightarrow S))\]
+\end{defi}
+Since `$\equiv$' and `$\wedge$' are the \emph{equivalence} and \emph{conjunction} connectives in propositional logic, respectively, the expression in the definition is not a statement in IL, but in its meta-language, though it introduce similarity statement `\(S \leftrightarrow P\)' into IL.
+
+\begin{theo}
+Similarity is a reflexive, symmetric, and transitive relation between two terms.
+\end{theo}
+
+\begin{theo}
+\((S \leftrightarrow P) \supset (S \rightarrow P)\)
+\end{theo}
+Here `$\supset$' is the \emph{implication} connective in propositional logic. Since in all the following definitions and theorems, symbols like $S$, $P$, and $M$ are used for arbitrary terms, they will not be explicitly declared as so.
+
+\begin{theo}
+\((S \leftrightarrow P) \equiv (S \in (P^E \cap P^I)) \equiv (P \in (S^E \cap S^I))\)
+\end{theo}
+
+\begin{theo}
+\((S \leftrightarrow P) \equiv (S^E = P^E) \equiv (S^I = P^I)\)
+\end{theo}
+That is, ``\(S \leftrightarrow P\)'' means the two terms have the same meaning, or are \emph{identical} to each other.  
+
+To extend the binary similarity statement in IL-2 to the similarity judgment in NAL-2, the evidence of a similarity statement is defined, alike the evidence of an inheritance statement. 
+
+\begin{defi}
+For similarity statement ``\(S \leftrightarrow P\)'', its positive evidence is in $(S^E \cap P^E)$ and $(P^I \cap S^I)$, and its negative evidence is in $(S^E - P^E)$, $(P^E - S^E)$,  $(P^I - S^I)$, and $(S^I - P^I)$.
+\end{defi}
+
+In NAL-2 a similarity statement is true to a degree, where the amounts of evidence and truth-value are defined in the same way as in NAL-1. In the following, the word ``identical'' will be reserved for terms $S$ and $P$ when they are related by the binary ``\(S \leftrightarrow P\)'' in IL, which is an extreme case of ``similar'' in both IL and NAL.
+
+Corresponding to the basic syllogistic rules in NAL-1, in NAL-2 there are three combinations of inheritance and similarity, corresponding to {\em comparison}, {\em analogy}, and {\em resemblance}, respectively, as indicated by the names of truth-value functions in Table \ref{NAL-2-Syllogisms}. To make the table (as well as the following inference tables) simpler, the truth-values of the premises are omitted in the table, though it is obvious that the truth-value of $J_1$ and $J_2$ are $\langle f_1, c_1\rangle$ and $\langle f_2, c_2\rangle$, respectively.
+
+\begin{table}[htb]
+\[\begin{array}{|c||c|c|c|} \hline
+J_2 \, \backslash \, J_1 & M \rightarrow P & P \rightarrow M & M \leftrightarrow P \\
+\hline \hline
+S \rightarrow M & & S \leftrightarrow P \langle F_{com}\rangle  & S \rightarrow P \langle F'_{ana}\rangle  \\
+\hline
+M \rightarrow S & S \leftrightarrow P \langle F_{com}\rangle  & & P \rightarrow S \langle F'_{ana}\rangle  \\
+\hline
+S \leftrightarrow M & S \rightarrow P \langle F_{ana}\rangle  & P \rightarrow S \langle F_{ana}\rangle  & S \leftrightarrow P \langle F_{res}\rangle  \\
+\hline \end{array}\]
+\caption{The Similarity-related Syllogistic Rules}
+\label{NAL-2-Syllogisms}
+\end{table}
+
+The associated truth-value functions are given in Table \ref{NAL-2-Syllogisms-Functions}.
+
+\begin{table}[htb]
+\[\begin{array}{|r|r|l|} \hline
+\mbox{\textbf{Comparison}} & \mbox{Boolean version:} & w^+ = and(f_1, c_1, f_2, c_2) \\
+								 &					                           & w = and(or(f_1, f_2), c_1, c_2) \\
+         F_{com} & \mbox{truth-value version:} & f = \frac{f_1 \times f_2}{f_1 + f_2 - f_1 \times f_2} \\
+								 &				                     & c = \frac{(f_1 + f_2 - f_1 \times f_2) \times c_1 \times c_2 }{(f_1 + f_2 - f_1 \times f_2) \times c_1 \times c_2 + k} \\
+\hline
+\mbox{\textbf{Analogy}} & \mbox{Boolean version:} & f = and(f_1, f_2) \\
+								 &					                      & c = and(c_1, f_2, c_2) \\
+         F_{ana} & \mbox{truth-value version:} & f = f_1 \times f_2 \\
+								 &					                   & c = c_1 \times f_2 \times c_2\\
+\hline
+\mbox{\textbf{Resemblance}} & \mbox{Boolean version:} & f = and(f_1, f_2) \\
+								 &					                          & c = and(or(f_1, f_2), c_1, c_2) \\
+         F_{ana} & \mbox{truth-value version:} & f = f_1 \times f_2 \\
+								 &					                   & c = (f_1 + f_2 - f_1 \times f_2) \times c_1 \times c_2 \\
+\hline \end{array}\]
+\caption{The Truth-value Functions of the Similarity-related Rules}
+\label{NAL-2-Syllogisms-Functions}
+\end{table}
+
+
+\section{Compound terms}
+
+To represent more complicated experience, ``compound terms'' are needed.
+\begin{defi}
+A {\em compound term} \((con \; c_1 \; \cdots \; c_n)\) is a term formed by a {\em term connector}, $con$, that connects one or more terms \(c_1, \cdots, c_n\), called the {\em component(s)} of the compound. The order of the components usually matters.
+\end{defi}
+
+\begin{defi}
+Each term in NAL has a syntactical {\em complexity}.  The complexity of an atomic term (i.e., word) is 1. The complexity of a compound term is 1 plus the sum of the complexity of its components.
+\end{defi}
+
+Sometimes the ``infix'' format of a compound term can be used to write \((con \; c_1 \; \cdots \; c_n)\) as \((c_1 \; con \; \cdots \; con \; c_n)\), and the syntactical complexity of the two forms are the same.
+
+When introducing term operators with two or more components in the following, usually they are only defined with two components, and the general case (for both the above prefix representation and the infix representation) is translated into the two-component case by the following definition.
+\begin{defi}
+If \(c_1 \; \cdots \; c_n\) ($n > 2$) are terms, and $con$ is a term connector defined as taking two or more arguments, then both \((con \; c_1 \; \cdots \; c_n)\) and \((c_1 \; con \; \cdots \; con \; c_n)\) are defined recursively as \((con \; (con \; c_1 \; \cdots \; c_{n-1}) \; c_n)\), though the latter form has a higher syntactical complexity.  
+\end{defi}
+
+In Narsese, all term connectors are defined in the grammar, and with predetermined (experience-independent) meaning. 
+
+The meaning of a compound term is related to the meaning of the components, so identical components form identical compounds.
+\begin{defi}
+In IL, two compound terms are \emph{identical} if they have the same term connector and pairwise identical components. \[((c_1 \leftrightarrow d_1) \wedge \cdots \wedge (c_n \leftrightarrow d_n)) \supset ((con \; c_1 \; \cdots \; c_n) \leftrightarrow (con \; d_1 \; \cdots \; d_n))\]
+\end{defi}
+
+Since the interrelations among components influence the meaning of a compound, identical compound terms do not necessarily have identical pairwise components. An exception is the compounds that have a sole component.
+\begin{defi}
+In IL, two compound terms with sole components are \emph{identical} if and only if they have the same term connector and identical components.\[(c \leftrightarrow d) \equiv ((con \; c) \leftrightarrow (con \; d))\] 
+\end{defi}
+
+Just like there are analytical truth and empirical truth, the meaning of a compound term has two parts, an {\em analytical} part and an {\em empirical} part, where the former is determined by its definitional relation with its components and other analytical truths about the term, while the latter comes from the system's experience when the compound term is used as a whole.  
+
+All compound terms can be used by the inference rules as atomic terms. When doing so, their internal structures are ignored. Furthermore, compound terms can directly appear in the (idealized or actual) experience of the system.
+
+Consequently, in NAL the meaning of a compound term is not completely reducible to the meanings of its components plus the meaning of the term connector, though related to them.
+
+
+\section{Sets and derivative copulas}
+
+\begin{defi}
+If $T$ is a term, the {\em extensional set} with $T$ as the only component, \(\{T\}\), is a compound term, and its meaning is defined by
+\[(\forall x) ((x \rightarrow \{T\}) \equiv (x \leftrightarrow \{T\})).\]
+\end{defi}
+That is, a compound term with such a form is like a set defined by a sole element or individual.  The compound therefore has a special property: all terms in the extension of \(\{T\}\) must be identical to it, and no term can be more \emph{specific} than it (though it is possible for some terms to be more specific than \(T\)).
+
+This compound term uses a special format, with `$\{\,\}$' as term connector.
+
+\begin{theo}
+For any term T, \(\{T\}^E \subseteq \{T\}^I\).
+\end{theo}
+On the other hand, ${\{T\}}^I$ is not necessarily included in ${\{T\}}^E$.
+
+An {\em instance} copula, `$\circ\!\!\rightarrow$', is another way to represent the same information.
+\begin{defi}
+The instance statement ``\(S \;\circ\!\!\rightarrow P\)'' is defined by the inheritance statement ``\(\{S\} \rightarrow P\).''
+\end{defi}
+
+\begin{theo}
+\(((S \;\circ\!\!\rightarrow M) \wedge (M \rightarrow P)) \supset (S \;\circ\!\!\rightarrow P)\).
+\end{theo}
+However, ``\(S \rightarrow M\)'' and ``\(M \;\circ\!\!\rightarrow P\)'' does not imply ``\(S \;\circ\!\!\rightarrow P\).''
+
+\begin{theo}
+\((S \;\circ\!\!\rightarrow \{P\}) \equiv (S \rightarrow P)\).
+\end{theo}
+``\(T \;\circ\!\!\rightarrow \{T\}\)'' follows as a special case.  On the other hand, the statement ``\(T \;\circ\!\!\rightarrow T\)'' is not an analytical truth, though may be an empirical one.
+
+According to the duality between extension and intension, another special compound term and the corresponding copula are defined.
+
+\begin{defi}
+If $T$ is a term, the {\em intensional set} with $T$ as the only component, \([T]\), is a compound term, and its meaning is defined by
+\[(\forall x) (([T] \rightarrow x) \equiv ([T] \leftrightarrow x)).\]
+\end{defi}
+That is, a compound term with such a form is like a set defined by a sole attribute or feature.  The compound therefore has a special property: all terms in the intension of \([T]\) must be identical to it, and no term can be more \emph{general} than it (though it is possible for some terms to be more general than \(T\)).
+
+This compound term also uses a special format, with `$[\,]$' as term connector.
+
+\begin{theo}
+For any term T, \([T]^I \subseteq [T]^E\).
+\end{theo}
+On the other hand, $[T]^E$ is not necessarily included in $[T]^I$.
+
+A {\em property} copula, `$\rightarrow\!\!\circ$', is another way to represent the same information.
+\begin{defi}
+The property statement ``\(S \rightarrow\!\!\circ\; P\)'' is defined by the inheritance statement ``\(S \rightarrow [P]\).''
+\end{defi}
+
+\begin{theo}
+\((S \rightarrow M) \wedge (M \rightarrow\!\!\circ\; P) \supset (S \rightarrow\!\!\circ\; P)\).
+\end{theo}
+However, ``\(S \rightarrow\!\!\circ\; M\)'' and ``\(M \rightarrow P\)'' does not imply ``\(S \rightarrow\!\!\circ\; P\).''
+
+\begin{theo}
+\(([S] \rightarrow\!\!\circ\; P) \equiv (S \rightarrow P)\).
+\end{theo}
+``\([T] \rightarrow\!\!\circ\; T\)'' follows as a special case.  On the other hand, the statement ``\(T \rightarrow\!\!\circ\; T\)'' is not an analytical truth, though may be an empirical one.
+
+An {\em instance-property} copula, `$\;\circ\!\!\rightarrow\!\!\circ\;$', is defined by combining `\(\;\circ\!\!\rightarrow\)' and `\(\rightarrow\!\!\circ\;\)'.
+\begin{defi}
+The instance-property statement ``\(S \;\circ\!\!\rightarrow\!\!\circ\; P\)'' is defined by the inheritance statement ``\(\{S\} \rightarrow [P]\).''
+\end{defi}
+Intuitively, it states that an instance $S$ has a property $P$.
+
+\begin{theo}
+\((S \;\circ\!\!\rightarrow\!\!\circ\; P) \equiv (\{S\} \rightarrow\!\!\circ\; P) \equiv (S \;\circ\!\!\rightarrow [P])\)
+\end{theo}
+
+\section{Grammar and inference rules}
+
+In summary, while all the grammar rules of Narsese-1 are still valid in NAL-2, there are additional grammar rules of Narsese-2, as listed in Table \ref{Narsese-2}.
+
+\begin{table}[htb]
+\[\begin{array}{|rrl|}
+\hline
+\langle copula \rangle & ::= & `\!\leftrightarrow' | \; `\circ\!\!\rightarrow' | \; `\!\rightarrow\!\!\circ' \; | \; `\circ\!\!\rightarrow\!\!\circ' \; \\ 
+\langle term \rangle  & ::= & `\{' \langle term \rangle `\}' \; | \; `[' \langle  term \rangle `]' \\
+\hline
+\end{array} \]
+\caption{The New Grammar Rules of Narsese-2}
+\label{Narsese-2}
+\end{table}
+
+Since each derivative copula is fully defined in terms of the inheritance copula, its semantics and relevant inference rules can be derived from those in NAL-1. To simplify the implementation of the system, derivative copulas \emph{instance}, \emph{property} and \emph{instance-property} are only used in the input/output interface, and within the system they are translated into \emph{inheritance}.  Therefore there is no need to introduce inference rules for them.  The same thing cannot be done to the copula \emph{similarity}.  Though in IL-2 the binary form of \emph{similarity} is defined in terms of the \emph{inheritance}, in NAL-2 \emph{similarity} judgments usually cannot be translated into equivalent \emph{inheritance} judgments.  Therefore, NAL-2 uses five copulas in its interface language, but only keep two of them (\emph{inheritance} and \emph{similarity}) in its internal representation, without losing any power in expression and inference. 
+
+
+\section*{References}
+
+\cite[Chapter 4]{wp:book1}, \cite{wp:nal2,wp:phd,wp:analogy}

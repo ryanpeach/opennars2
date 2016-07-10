@@ -66,6 +66,7 @@
       A)))
 
 (defn generate-conclusions
+  "Generate all conclusions between task t1 and task t2"
   [rules {p1 :statement :as t1} {p2 :statement :as t2}]
   ;assign statement
   (apply set/union (for [x (range 50)]
@@ -73,7 +74,9 @@
                                             (assoc t1 :statement (shuffle-term p1))
                                             (assoc t2 :statement (shuffle-term p2))))))
 
-(defn valid-statement [term]
+(defn valid-statement
+  "Valid statement filter" ;TODO extent
+  [term]
     (not-any? #(and (coll? term)
                     (= (count term) 3)
                     (= (first term) %)
@@ -81,12 +84,16 @@
               ['--> '<-> '==> 'pred-impl 'retro-impl
                '=|> '<=> '</> '<|>]))
 
-(defn occurrence-type [occ]
+(defn occurrence-type
+  "Occurrence task of tasks, either :eternal or :event"
+  [occ]
   (case occ
     :eternal :eternal
     :event))
 
-(defn reorder-inference [parsed-p1 parsed-p2]
+(defn reorder-inference
+  "Inference between both tasks, where the occurrence prefers the :event here when one is :event."
+  [parsed-p1 parsed-p2]
   (let [type1 (occurrence-type (:occurrence parsed-p1))
         type2 (occurrence-type (:occurrence parsed-p2))
         p1-occurrence (if (and (= type1 :eternal) (= type2 :event))

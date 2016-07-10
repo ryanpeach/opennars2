@@ -1,0 +1,49 @@
+\contentsline {chapter}{\numberline {1}Introduction}{1}
+\contentsline {section}{\numberline {1.1}NAL and NARS}{1}
+\contentsline {section}{\numberline {1.2}Structure of NAL}{2}
+\contentsline {section}{\numberline {1.3}Specifying NAL}{2}
+\contentsline {chapter}{\numberline {2}IL-1: Inheritance Logic}{5}
+\contentsline {section}{\numberline {2.1}Language: term and inheritance}{5}
+\contentsline {section}{\numberline {2.2}Semantics: truth and meaning}{6}
+\contentsline {section}{\numberline {2.3}Inference: deriving and matching}{9}
+\contentsline {chapter}{\numberline {3}NAL-1: Evidential Inference}{11}
+\contentsline {section}{\numberline {3.1}Evidence and uncertainty}{11}
+\contentsline {section}{\numberline {3.2}Grammar and semantics}{14}
+\contentsline {section}{\numberline {3.3}Forward inference}{16}
+\contentsline {section}{\numberline {3.4}Revision and choice}{19}
+\contentsline {section}{\numberline {3.5}Backward inference}{21}
+\contentsline {chapter}{\numberline {4}NAL-2: Similarity and Sets}{23}
+\contentsline {section}{\numberline {4.1}Similarity}{23}
+\contentsline {section}{\numberline {4.2}Compound terms}{24}
+\contentsline {section}{\numberline {4.3}Sets and derivative copulas}{26}
+\contentsline {section}{\numberline {4.4}Grammar and inference rules}{28}
+\contentsline {chapter}{\numberline {5}NAL-3: Intersections and Differences}{29}
+\contentsline {section}{\numberline {5.1}Intersections}{29}
+\contentsline {section}{\numberline {5.2}Differences}{31}
+\contentsline {section}{\numberline {5.3}Grammar and inference rules}{32}
+\contentsline {chapter}{\numberline {6}NAL-4: Products, Relations, and Images}{35}
+\contentsline {section}{\numberline {6.1}Products and relations}{35}
+\contentsline {section}{\numberline {6.2}Images}{36}
+\contentsline {section}{\numberline {6.3}Grammar and inference rules}{37}
+\contentsline {chapter}{\numberline {7}NAL-5: Statements as Terms}{39}
+\contentsline {section}{\numberline {7.1}Inference: higher-order vs. first-order}{39}
+\contentsline {section}{\numberline {7.2}Implication as conditional statement}{42}
+\contentsline {section}{\numberline {7.3}Negation}{44}
+\contentsline {section}{\numberline {7.4}Analytical truths of IL applied in NAL}{46}
+\contentsline {chapter}{\numberline {8}NAL-6: Inference with Variable Terms}{49}
+\contentsline {section}{\numberline {8.1}Variable terms}{49}
+\contentsline {section}{\numberline {8.2}Variable elimination and introduction}{51}
+\contentsline {chapter}{\numberline {9}NAL-7: Temporal Inference}{55}
+\contentsline {section}{\numberline {9.1}Time and events}{55}
+\contentsline {section}{\numberline {9.2}Temporal operators and copulas}{57}
+\contentsline {section}{\numberline {9.3}Temporal inference}{60}
+\contentsline {chapter}{\numberline {10}NAL-8: Procedural Inference}{63}
+\contentsline {section}{\numberline {10.1}Operations and goals}{63}
+\contentsline {section}{\numberline {10.2}Inference on operations and goals}{66}
+\contentsline {section}{\numberline {10.3}Sensorimotor interface}{67}
+\contentsline {section}{\numberline {10.4}Self-monitoring and self-control}{68}
+\contentsline {chapter}{\numberline {11}Summary}{71}
+\contentsline {section}{\numberline {11.1}Narsese grammar and semantics}{71}
+\contentsline {section}{\numberline {11.2}NAL Inference Rules}{71}
+\contentsline {section}{\numberline {11.3}NAL Truth-value Functions}{74}
+\contentsline {chapter}{Bibliography}{85}

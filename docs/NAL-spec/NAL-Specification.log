@@ -1,0 +1,338 @@
+This is pdfTeX, Version 3.1415926-1.40.10 (MiKTeX 2.8) (preloaded format=pdflatex 2009.12.7)  15 SEP 2010 14:01
+entering extended mode
+**C:/WangPei/Writing/NAL-spec/NAL-Specification.tex
+(C:/WangPei/Writing/NAL-spec/NAL-Specification.tex
+LaTeX2e <2009/09/24>
+Babel <v3.8l> and hyphenation patterns for english, dumylang, nohyphenation, ge
+rman, ngerman, german-x-2009-06-19, ngerman-x-2009-06-19, french, loaded.
+("C:\Program Files (x86)\MiKTeX 2.8\tex\latex\base\latex209.def"
+File: latex209.def 1998/05/13 v0.52 Standard LaTeX file
+
+
+          Entering LaTeX 2.09 COMPATIBILITY MODE
+ *************************************************************
+    !!WARNING!!    !!WARNING!!    !!WARNING!!    !!WARNING!!   
+ 
+ This mode attempts to provide an emulation of the LaTeX 2.09
+ author environment so that OLD documents can be successfully
+ processed. It should NOT be used for NEW documents!
+ 
+ New documents should use Standard LaTeX conventions and start
+ with the \documentclass command.
+ 
+ Compatibility mode is UNLIKELY TO WORK with LaTeX 2.09 style
+ files that change any internal macros, especially not with
+ those that change the FONT SELECTION or OUTPUT ROUTINES.
+ 
+ Therefore such style files MUST BE UPDATED to use
+          Current Standard LaTeX: LaTeX2e.
+ If you suspect that you may be using such a style file, which
+ is probably very, very old by now, then you should attempt to
+ get it updated by sending a copy of this error message to the
+ author of that file.
+ *************************************************************
+
+\footheight=\dimen102
+\@maxsep=\dimen103
+\@dblmaxsep=\dimen104
+\@cla=\count79
+\@clb=\count80
+\mscount=\count81
+("C:\Program Files (x86)\MiKTeX 2.8\tex\latex\base\tracefnt.sty"
+Package: tracefnt 1997/05/29 v3.0j Standard LaTeX package (font tracing)
+\tracingfonts=\count82
+LaTeX Info: Redefining \selectfont on input line 101.
+)
+\symbold=\mathgroup4
+\symsans=\mathgroup5
+\symtypewriter=\mathgroup6
+\symitalic=\mathgroup7
+\symsmallcaps=\mathgroup8
+\symslanted=\mathgroup9
+LaTeX Font Info:    Redeclaring math alphabet \mathbf on input line 293.
+LaTeX Font Info:    Redeclaring math alphabet \mathsf on input line 294.
+LaTeX Font Info:    Redeclaring math alphabet \mathtt on input line 295.
+LaTeX Font Info:    Redeclaring math alphabet \mathit on input line 301.
+LaTeX Info: Redefining \em on input line 311.
+
+("C:\Program Files (x86)\MiKTeX 2.8\tex\latex\base\latexsym.sty"
+Package: latexsym 1998/08/17 v2.2e Standard LaTeX package (lasy symbols)
+\symlasy=\mathgroup10
+LaTeX Font Info:    Overwriting symbol font `lasy' in version `bold'
+(Font)                  U/lasy/m/n --> U/lasy/b/n on input line 47.
+)
+LaTeX Font Info:    Redeclaring math delimiter \lgroup on input line 375.
+LaTeX Font Info:    Redeclaring math delimiter \rgroup on input line 377.
+LaTeX Font Info:    Redeclaring math delimiter \bracevert on input line 379.
+)
+("C:\Program Files (x86)\MiKTeX 2.8\tex\latex\base\book.cls"
+Document Class: book 2007/10/19 v1.4h Standard LaTeX document class
+("C:\Program Files (x86)\MiKTeX 2.8\tex\latex\base\bk10.clo"
+File: bk10.clo 2007/10/19 v1.4h Standard LaTeX file (size option)
+)
+\c@part=\count83
+\c@chapter=\count84
+\c@section=\count85
+\c@subsection=\count86
+\c@subsubsection=\count87
+\c@paragraph=\count88
+\c@subparagraph=\count89
+\c@figure=\count90
+\c@table=\count91
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+Compatibility mode: definition of \rm ignored.
+Compatibility mode: definition of \sf ignored.
+Compatibility mode: definition of \tt ignored.
+Compatibility mode: definition of \bf ignored.
+Compatibility mode: definition of \it ignored.
+Compatibility mode: definition of \sl ignored.
+Compatibility mode: definition of \sc ignored.
+LaTeX Info: Redefining \cal on input line 592.
+LaTeX Info: Redefining \mit on input line 593.
+\bibindent=\dimen105
+)
+(C:\WangPei\Writing\NAL-spec\NAL-Specification.aux
+(C:\WangPei\Writing\NAL-spec\Acknowledgment.aux)
+(C:\WangPei\Writing\NAL-spec\Introduction.aux)
+(C:\WangPei\Writing\NAL-spec\NAL-0.aux) (C:\WangPei\Writing\NAL-spec\NAL-1.aux)
+(C:\WangPei\Writing\NAL-spec\NAL-2.aux) (C:\WangPei\Writing\NAL-spec\NAL-3.aux)
+(C:\WangPei\Writing\NAL-spec\NAL-4.aux) (C:\WangPei\Writing\NAL-spec\NAL-5.aux)
+(C:\WangPei\Writing\NAL-spec\NAL-6.aux) (C:\WangPei\Writing\NAL-spec\NAL-7.aux)
+(C:\WangPei\Writing\NAL-spec\NAL-8.aux)
+(C:\WangPei\Writing\NAL-spec\Summary.aux)
+(C:\WangPei\Writing\NAL-spec\NAL-bbl.aux))
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 5.
+LaTeX Font Info:    ... okay on input line 5.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 5.
+LaTeX Font Info:    ... okay on input line 5.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 5.
+LaTeX Font Info:    ... okay on input line 5.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 5.
+LaTeX Font Info:    ... okay on input line 5.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 5.
+LaTeX Font Info:    ... okay on input line 5.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 5.
+LaTeX Font Info:    ... okay on input line 5.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <12> on input line 9.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <8> on input line 9.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <6> on input line 9.
+LaTeX Font Info:    Try loading font information for U+lasy on input line 9.
+
+("C:\Program Files (x86)\MiKTeX 2.8\tex\latex\base\ulasy.fd"
+File: ulasy.fd 1998/08/17 v2.2e LaTeX symbol font definitions
+) [0
+
+
+{C:/ProgramData/MiKTeX/2.8/pdftex/config/pdftex.map}]
+\c@defi=\count92
+\c@theo=\count93
+
+(C:\WangPei\Writing\NAL-spec\NAL-Specification.toc
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <7> on input line 2.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <5> on input line 2.
+ [1
+
+])
+\tf@toc=\write3
+ [2]
+(C:\WangPei\Writing\NAL-spec\NAL-Specification.lot [3
+
+])
+\tf@lot=\write4
+ [4]
+(C:\WangPei\Writing\NAL-spec\Acknowledgment.tex) [5
+
+
+]
+(C:\WangPei\Writing\NAL-spec\Introduction.tex
+Chapter 1.
+
+Underfull \vbox (badness 5036) has occurred while \output is active []
+
+ [1
+
+
+
+])
+[2] [3] (C:\WangPei\Writing\NAL-spec\NAL-0.tex [4
+
+
+
+]
+Chapter 2.
+[5] [6] [7] [8]) [9] [10] (C:\WangPei\Writing\NAL-spec\NAL-1.tex
+Chapter 3.
+[11
+
+
+
+] [12]
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 59.
+ ("C:\Program Files (x86)\MiKTeX 2.8\tex\latex\base\omscmr.fd"
+File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
+)
+LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 59.
+
+[13] [14] [15]
+Overfull \hbox (2.44867pt too wide) in paragraph at lines 152--154
+\OT1/cmr/m/n/10 where $\OMS/cmsy/m/n/10 h\OML/cmm/m/it/10 f;  c\OMS/cmsy/m/n/10
+ i$ \OT1/cmr/m/n/10 is cal-cu-lated by a truth-value func-tion from $\OMS/cmsy/
+m/n/10 h\OML/cmm/m/it/10 f[];  c[]\OMS/cmsy/m/n/10 i$ \OT1/cmr/m/n/10 and $\OMS
+/cmsy/m/n/10 h\OML/cmm/m/it/10 f[];  c[]\OMS/cmsy/m/n/10 i$\OT1/cmr/m/n/10 .
+ []
+
+[16]
+Overfull \hbox (6.51648pt too wide) detected at line 220
+[]
+ []
+
+[17] [18]
+Overfull \hbox (0.52997pt too wide) detected at line 271
+[]
+ []
+
+[19] [20])
+Overfull \hbox (25.81358pt too wide) in paragraph at lines 335--23
+\OT1/cmr/m/n/10 [[], Chap-ter 3], [[], [], [], [],
+ []
+
+[21] [22] (C:\WangPei\Writing\NAL-spec\NAL-2.tex
+Chapter 4.
+[23
+
+
+
+] [24] [25] [26] [27]) [28] (C:\WangPei\Writing\NAL-spec\NAL-3.tex
+Chapter 5.
+[29
+
+
+
+] [30] [31] [32]) [33] [34] (C:\WangPei\Writing\NAL-spec\NAL-4.tex
+Chapter 6.
+[35
+
+
+
+] [36]) [37] (C:\WangPei\Writing\NAL-spec\NAL-5.tex [38
+
+
+
+]
+Chapter 7.
+[39] [40] [41] [42] [43] [44] [45] [46]) [47]
+(C:\WangPei\Writing\NAL-spec\NAL-6.tex [48
+
+
+
+]
+Chapter 8.
+[49] [50]
+Overfull \hbox (12.1515pt too wide) in paragraph at lines 69--70
+\OML/cmm/m/it/10 t$\OT1/cmr/m/it/10 , and does not con-tain de-pen-dent vari-ab
+le $\OT1/cmr/m/n/10 #\OML/cmm/m/it/10 v\OT1/cmr/m/n/10 ()$\OT1/cmr/m/it/10 , th
+en the state-ment $\OML/cmm/m/it/10 S\OMS/cmsy/m/n/10 f\OML/cmm/m/it/10 t=\OT1/
+cmr/m/n/10 #\OML/cmm/m/it/10 v\OT1/cmr/m/n/10 ()\OMS/cmsy/m/n/10 g$
+ []
+
+[51] [52]) [53] (C:\WangPei\Writing\NAL-spec\NAL-7.tex [54
+
+
+
+]
+Chapter 9.
+[55] [56] [57] [58] [59] [60] [61]) [62] (C:\WangPei\Writing\NAL-spec\NAL-8.tex
+Chapter 10.
+[63
+
+
+
+] [64] [65] [66] [67] [68] [69]) [70]
+(C:\WangPei\Writing\NAL-spec\Summary.tex
+Chapter 11.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <9> on input line 11.
+
+Overfull \hbox (22.46114pt too wide) detected at line 45
+[]
+ []
+
+[71
+
+
+
+] [72]
+Overfull \hbox (2.31387pt too wide) in paragraph at lines 409--410
+[]\OT1/cmr/m/n/10 When the sys-tem gets a new judg-ment (or goal),
+ []
+
+[73]
+Overfull \hbox (59.83052pt too wide) detected at line 482
+[]
+ []
+
+) [74] [75] [76] [77] [78] [79] [80] [81] [82] [83] [84]
+(C:\WangPei\Writing\NAL-spec\NAL-bbl.tex [85
+
+
+
+]
+Missing character: There is no – in font cmr9!
+) [86]
+(C:\WangPei\Writing\NAL-spec\NAL-Specification.aux
+(C:\WangPei\Writing\NAL-spec\Acknowledgment.aux)
+(C:\WangPei\Writing\NAL-spec\Introduction.aux)
+(C:\WangPei\Writing\NAL-spec\NAL-0.aux) (C:\WangPei\Writing\NAL-spec\NAL-1.aux)
+(C:\WangPei\Writing\NAL-spec\NAL-2.aux) (C:\WangPei\Writing\NAL-spec\NAL-3.aux)
+(C:\WangPei\Writing\NAL-spec\NAL-4.aux) (C:\WangPei\Writing\NAL-spec\NAL-5.aux)
+(C:\WangPei\Writing\NAL-spec\NAL-6.aux) (C:\WangPei\Writing\NAL-spec\NAL-7.aux)
+(C:\WangPei\Writing\NAL-spec\NAL-8.aux)
+(C:\WangPei\Writing\NAL-spec\Summary.aux)
+(C:\WangPei\Writing\NAL-spec\NAL-bbl.aux)) ) 
+Here is how much of TeX's memory you used:
+ 655 strings out of 495285
+ 10319 string characters out of 3179884
+ 139394 words of memory out of 3000000
+ 3784 multiletter control sequences out of 15000+200000
+ 22612 words of font info for 82 fonts, out of 3000000 for 9000
+ 14 hyphenation exceptions out of 8191
+ 23i,8n,23p,1252b,211s stack positions out of 5000i,500n,10000p,200000b,50000s
+<C:/Program Files (x86)/MiKTeX 2.8/
+fonts/type1/public/amsfonts/cm/cmbx10.pfb><C:/Program Files (x86)/MiKTeX 2.8/fo
+nts/type1/public/amsfonts/cm/cmbx12.pfb><C:/Program Files (x86)/MiKTeX 2.8/font
+s/type1/public/amsfonts/cm/cmbx9.pfb><C:/Program Files (x86)/MiKTeX 2.8/fonts/t
+ype1/public/amsfonts/cm/cmmi10.pfb><C:/Program Files (x86)/MiKTeX 2.8/fonts/typ
+e1/public/amsfonts/cm/cmmi6.pfb><C:/Program Files (x86)/MiKTeX 2.8/fonts/type1/
+public/amsfonts/cm/cmmi7.pfb><C:/Program Files (x86)/MiKTeX 2.8/fonts/type1/pub
+lic/amsfonts/cm/cmmi8.pfb><C:/Program Files (x86)/MiKTeX 2.8/fonts/type1/public
+/amsfonts/cm/cmmi9.pfb><C:/Program Files (x86)/MiKTeX 2.8/fonts/type1/public/am
+sfonts/cm/cmr10.pfb><C:/Program Files (x86)/MiKTeX 2.8/fonts/type1/public/amsfo
+nts/cm/cmr12.pfb><C:/Program Files (x86)/MiKTeX 2.8/fonts/type1/public/amsfonts
+/cm/cmr5.pfb><C:/Program Files (x86)/MiKTeX 2.8/fonts/type1/public/amsfonts/cm/
+cmr6.pfb><C:/Program Files (x86)/MiKTeX 2.8/fonts/type1/public/amsfonts/cm/cmr7
+.pfb><C:/Program Files (x86)/MiKTeX 2.8/fonts/type1/public/amsfonts/cm/cmr8.pfb
+><C:/Program Files (x86)/MiKTeX 2.8/fonts/type1/public/amsfonts/cm/cmr9.pfb><C:
+/Program Files (x86)/MiKTeX 2.8/fonts/type1/public/amsfonts/cm/cmsl10.pfb><C:/P
+rogram Files (x86)/MiKTeX 2.8/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Pro
+gram Files (x86)/MiKTeX 2.8/fonts/type1/public/amsfonts/cm/cmsy6.pfb><C:/Progra
+m Files (x86)/MiKTeX 2.8/fonts/type1/public/amsfonts/cm/cmsy7.pfb><C:/Program F
+iles (x86)/MiKTeX 2.8/fonts/type1/public/amsfonts/cm/cmsy8.pfb><C:/Program File
+s (x86)/MiKTeX 2.8/fonts/type1/public/amsfonts/cm/cmsy9.pfb><C:/Program Files (
+x86)/MiKTeX 2.8/fonts/type1/public/amsfonts/cm/cmti10.pfb><C:/Program Files (x8
+6)/MiKTeX 2.8/fonts/type1/public/amsfonts/cm/cmti12.pfb><C:/Program Files (x86)
+/MiKTeX 2.8/fonts/type1/public/amsfonts/cm/cmti8.pfb><C:/Program Files (x86)/Mi
+KTeX 2.8/fonts/type1/public/amsfonts/cm/cmti9.pfb><C:/Program Files (x86)/MiKTe
+X 2.8/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
+Output written on NAL-Specification.pdf (92 pages, 576295 bytes).
+PDF statistics:
+ 402 PDF objects out of 1000 (max. 8388607)
+ 0 named destinations out of 1000 (max. 500000)
+ 1 words of extra memory for PDF output out of 10000 (max. 10000000)
+

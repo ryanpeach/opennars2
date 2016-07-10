@@ -1,0 +1,130 @@
+
+\chapter{NAL-8: Procedural Inference}
+
+NAL-8 interprets certain events as operations of the system itself, and uses them to achieve goals.
+
+\section{Operations and goals}
+
+\begin{defi}
+An {\em operation} of a system is an event that the system can actualize. In Narsese, an operation is represented as an \emph{operator} (a special term whose name starts with `$\Uparrow$') followed by an \emph{argument list} (a sequence of terms), which can be empty. Within the system, operation ``\((\Uparrow\!\!op \; a_1 \cdots \, a_n)\)'' is treated as statement ``\((\times \; a_1 \cdots \, a_n) \rightarrow op\)'', where $op$ belongs to a special type of term, which has a procedural interpretation.
+\end{defi}
+
+Therefore operation is system dependent: the \emph{operations} of a system will be observed as \emph{events} by other systems. An \emph{operator} is a system-specific term connector. For a system implementing NAL-8, its list of operators remains constant, though not specified in Narsese. 
+ 
+While statements are \emph{declarative} knowledge and events are \emph{episodic} knowledge, operations are \emph{procedural} knowledge, in the sense that the meaning of an operation is not only revealed by how it is related to the other terms in Narsese (according to the system's experience), but also by what it \emph{does} to the ``body'' of the system, as well as to the environment. 
+
+An operation usually distinguishes input and output among its arguments. When an operation is described abstractly, its input arguments are typically independent variables, and its output are dependent variables. Such an operation corresponds to a function that maps certain input values into output values. Optionally, an operation may bring the system some Narsese sentences as feedback.
+
+Since the main purpose of operations is for the system to achieve various consequences, their meaning, or the system's beliefs on them, is usually represented as (temporal or not) \emph{implication} or \emph{equivalence} statements, which indicate the conditions, causes, and effects of an operation. Typically, it takes the following form:
+\[(condition, \, operation) \; /\!\!\!\Rightarrow \; consequence\]
+where $condition$ and $consequence$ are both events.  This form is common, because it is a simplified version of 
+\[condition \; /\!\!\!\Rightarrow \; (operation \; /\!\!\!\Rightarrow \; consequence)\]
+so the \emph{condition} is not really applied on the \emph{operation}, but on its relation with the \emph{consequence}.
+
+For an operation to be meaningful and useful for the system, it will have some consequence that is eventually \emph{observable}, that is, trigger certain input judgments, as the feedback of the operation, in the system's experience.
+
+As other statements, the truth-value of the above statement indicates the evidential support for the stated relationship. The system usually has multiple such statements for each operation. Under AIKR, in NAL the conditions and consequences of an operation are never exhaustively specified in each belief about it. Instead, each belief only records its (limited) experience on the relation between the operation and the \emph{stated} events. 
+
+Compound operations work like (object-level) programs, which organize primitive operations into hierarchical control structures. The basic control structures include
+\begin{description}
+	\item[Sequential execution,] formed by the \emph{sequential conjunction} operator on operations;
+	\item[Parallel execution,] formed by the \emph{parallel conjunction} operator on operations;
+	\item[Conditional execution,] formed by the \emph{implication} (or \emph{equivalence}) copula between events and operations;
+	\item[Repeated execution,] formed recursively by conditional execution.
+\end{description}
+These control structures give Narsese the capability of a general-purpose programming language. Furthermore, the \emph{equivalence} copula can be used to give a compound operation a simple name.
+
+Operations can make changes both within a system and in its outside environment, with consequences expressible as Narsese statements. However, not all activities in the system can be perceived and controlled in NAL in this way.
+
+\begin{defi}
+A \emph{goal} is a sentence containing an event the system is attempting to realize by carrying out operations.
+\end{defi}
+Given the inevitable uncertainty in the event, to ``realize it'' actually means ``to make it as close to absolute truth as possible.'' 
+
+NARS usually has multiple goals, and they may conflict with one another, in the sense that the achieving of a goal makes another one harder to be achieved. Therefore, the system must make decisions about whether to pursue various goals or whether to take various operations.
+
+\begin{defi}
+The \emph{desire-value} of an event measures the extent to which a desired state is implied by the event, that is, the desire-value of event $E$ is the truth-value of the implication statement \(E \Rightarrow D\), where $D$ is a virtual statement describing the desired state of the system, a summary of its current goals.
+\end{defi}
+Here $D$ is ``virtual'', in the sense that it is not a concrete statement in Narsese, but a conceptual one in the meta-language, used in the design of the system. By it, the derived-values of the events involved are reduced to truth-values, whose calculations have been specified by the truth-value functions. Here is the situation is like in NAL-5 where a ``virtual evidence'' is introduced so that the truth-value of a statement can be taken as the truth-value for the statement to be implied by the available evidence. In both situations, the evaluation of a statement is interpreted as an evaluation of it and another (virtual) statement, which is coherent with the semantic principle of NARS that the meaning of an item is revealed by its relations with other items, rather than being an intrinsic property of the item itself. Intuitively speaking, the truth-value of a statement evaluates its relation with the ``source'' (where it comes from), while the desire-value is about the ``destination'' (where it leads to).
+
+A desire-value is attached to every statement in the system, because it may become a goal in the future, if it is not already a goal.  This value shows the system's ``attitude'' about the situation in which the statement is true.\footnote{This desire value will eventually be attached to every term, to represent the system's ``feeling'' about it. If the term is not a statement, its desire value will be determined by the beliefs in which it appears.} The desire-value of a goal is always explicitly expressed, though the desire-values of other statements are often omitted unless they are relevant to a discussion.
+
+Now the questions in NAL can not only be about the truth-value of a statement, but also about its desire-value. To more clearly separate different types of sentences, in Narsese-8 a punctuation mark is added at the end of each sentence: `.' for judgment, `!' for goal, `?' for question (on truth-value), and `$@$' for quest, that is, question on desire-value. The new grammar rules introduced in NAL-8 are summarized in Table \ref{Narsese-8}.
+
+\begin{table}[htb]
+\[\begin{array}{|rrl|}
+\hline
+\langle sentence \rangle & ::= & \langle judgment \rangle \; | \; \langle goal \rangle \; | \;  \langle  question \rangle \\
+\langle judgment \rangle & ::= & \langle statement \rangle `.' \, [\langle tense \rangle] \langle truth \mbox{-} value \rangle \\
+\langle goal \rangle  & ::= & \langle  statement \rangle  `!' \, \langle  desire \mbox{-} value \rangle \\ \langle question \rangle & ::= & \langle statement \rangle `?' \, [\langle tense \rangle] \\ 
+                             &&  | \langle statement \rangle `@' \, [\langle tense \rangle] \\
+\langle statement \rangle & ::= & `(\Uparrow\!\!'\langle word \rangle \, \langle term \rangle ^* `)' \\
+\langle desire\mbox{-}value \rangle  & ::= & \langle truth\mbox{-}value \rangle  \\
+\hline
+\end{array} \]
+\caption{The New Grammar Rules of Narsese-8}
+\label{Narsese-8}
+\end{table}
+
+\section{Inference on operations and goals}
+
+Since operations and goals are events, the previously defined inference rules on events work on them, too. 
+
+Inference on an operation can derive new beliefs about its preconditions and postconditions. Furthermore, compound operations are selectively formed from useful combinations of operations, and become ``skills'' of the system that can be executed efficiently, without step-by-step deliberation.
+
+Inference on a goal also derives new beliefs about how it can be realized, as well as reveals its by-products and side-effects. Especially, for a given goal $G$, the inference engine can find a \emph{plan}, which is a compound operation $Op$ that achieves the goal (i.e., to have a high expectation value for ``\(Op \Rightarrow G\)'').  By executing the plan, and adjusting it when necessary, the internal or external environment is changed to turn the goal into reality. When repeatedly appearing compounds of operations are memorized, repeated planning is avoided, and the system learns a new skill.
+
+When a goal is an operation, it can be directly realized by executing the operator on the arguments. If a goal cannot be directly satisfied in this way, by backward inference it can increase the desire-values of certain events. For a given event, the desire-values coming from different goals are merged together using the revision rule, just like how truth-values from different evidential bases are merged.
+
+The \emph{decision-making} rule will turn candidate goals with high desire-value and plausibility into goals being actually pursued by the system. 
+
+\begin{defi}
+The plausibility of goal $G$ is the truth-value of implication statement ``\(\# \Rightarrow G\)'', that is, ``there is a way to achieve $G$.'' 
+\end{defi}
+
+\begin{description}
+  \item[The Decision-making Rule] A candidate goal $G$ is actually pursued by the system, when its expected desirability $p_G$ and expected plausibility $d_G$ satisfy condition \(p_G(d_G - 0.5) + 0.5 > t\), where $t$ is a threshold larger than 0.5. 
+\end{description}
+The above ``decision-making function'' has the same form as the expectation function, with desirability as frequency and plausibility as confidence.
+
+If a goal $G$ has been decided to be actively pursued, the system will also derive a question with the same content to check if the desired event has already happened. If that turns out to be the case, the goal will be directly satisfied by a judgment, and therefore its desire-value will be greatly reduced.
+
+
+\section{Sensorimotor interface}
+
+As a reasoning system, NARS communicates its environments in Narsese, a formally defined language.
+
+On the top of that, NAL-8 introduces an interface between NARS and an external system, a tool, or a ``body'', by allowing an out-going \emph{command} to be represented and processed as a NARS \emph{operation}. Here the only requirement is that the command can be put into the form of ``\((\Uparrow\!\!op \;\; a_1 \cdots \, a_n)\)'', with all the arguments represented as terms in NARS.
+
+In this way, NARS, as a general-purpose ``mind'', can be embedded within, or connected with, various host systems with different sensorimotor mechanisms, either in a physical world or in a virtual world (which also exists in a physical world, though is described abstractly). For a given host, a special interface module needs to be built, which registers all the relevant commands in the host that is exposed to the control of NARS, so that whenever NARS decides to execute an operation, the corresponding command is sent to the corresponding actuator in the host system.
+
+Similarly, the sensors in the host are also formalized as operators, invoked by Narsese questions, and the result of the operations will be received as new experience (input knowledge) to the system. Driving by questions derived both from goals and from other questions, the system's observation is not a merely passive process which accepts whatever comes from the environment, but an active process directed by the system's goal-achieving activities.
+
+NARS leaves the low-level sensorimotor management to the host system, which still contribute to the perception and action processes, by allowing operations defined on multiple levels of abstraction (with different granularity and scope), as well as using anticipations and goals to selectively process incoming information. With a sensorimotor mechanism connected to NARS, the effect of an operation can be anticipated, checked, and confirmed, and the feedback will provide information for various types of learning. 
+
+Though the integrated system (NARS plus host) as a whole can have experience with multiple modalities, the NARS part of the system remains amodal in design. On the other hand, the \emph{content} of the system's beliefs and concepts will depend on its ``body''. 
+
+\section{Self-monitoring and self-control}
+
+The sensorimotor mechanism described above can be expanded into the system itself. It means that a NARS implementation can be equipped with sensors and actuators that perceive and modify the internal state of the system itself. These sensors and actuators are invoked by commands issued in NARS, and their results are feedback to the system, represented as Narsese sentences.
+
+Consequently, such a NARS has both an ``external experience'' and an ``internal experience'', and the two are represented and processed in similar ways. Like its knowledge of the world, the system's knowledge of itself is also a summary of its experience, and restricted by its sensorimotor and information-processing capability. There is no new grammar and inference rules needed, but system-specific operations. 
+
+From the view power of NARS, the sensors and actuators can be roughly divided into two types, those that are mostly about its ``body'' and those that are mostly about its ``mind''. When NARS is implemented in a robot, there will be various sensors to monitor its energy level, damage of parts, etc., which do not change how the reasoning/learning process, but provide goals to be achieved and means to achieve them. Though these sensors work on the body of the system, they are not that different from the sensors that work on the outside environment. On the other hand, there are also sensors on the reasoning/learning process, which express information about the state of the system in a format (Narsese sentences) that can be processed by the system. These sensors are very different from the ``ordinary'' ones, since they directly produce conceptual level results, without another categorization process. Furthermore, their results can be self-referential. Similarly, there are ``physical'' actuators and ``mental'' actuators. The the latter are inevitably carried out by physical processes, they are known to the system only at an abstract level, without their physical details.
+
+Even though sensorimotor mechanism is system-specific, and optional to NARS, we can still expect a small common cognitive capabilities needed in most intelligent systems.
+\begin{itemize}
+	\item There should be sensors to measure certain indicators of system's overall status, such as how busy it is and how much its current goals have been achieved. This kind of information will be used by the control mechanism to adjust resource allocation, among other things.
+	\item There should be sensors and actuators to explicitly detect and adjust the inference process, by ``paying attention'' to certain concepts and sentences.
+	\item There should be sensors to report certain properties of specific data items. For example, the system may want to explicitly consider and change the truth-value or desire-value of a statement.
+	\item There should be sensors to remember the concept-level activities of the system.
+\end{itemize}
+
+Before such a self-control mechanism is implemented, the inference control in NARS is pure \emph{autonomic}. In each inference step, the task to be carried out and the belief to be used are selected according to several factors to achieve the highest overall efficiency, and this process is governed by algorithms that coded in the programming language of the system, and are beyond the reach of the inference rules. With the above self-control mechanism, however, the system can think about its own thinking process, and adjust it as allowed by its internal sensorimotor mechanism, according to its experience. This introduces \emph{voluntary} control (according to knowledge represented declaratively in Narsese) that supplement (though not replace) the autonomic control (according to knowledge represented procedurally in the programming language of NARS). In the future, NARS can be implemented in systems where the resources to be managed is not limited to processing time and storage space of information. For example, a robot should manage its own energy usage. This kind of task can also be carried out by special-purpose operations.
+
+Since the sensorimotor mechanism is only directly accessible to the system, and its effect cannot be fully expressed and duplicated via communication by other systems. Consequently, NARS will have \emph{consciousness}, that is, subjective experience that can only be partially communicated to and understood by other systems. Even to the system itself, since its ``inside-oriented'' and ``outside-oriented'' operations are separated from each other, and there is no one-to-one mapping between the two, two separate concept systems will be developed to describe its internal and external processes, and there will be a ``mind-body'' gap in between.
+
+\section*{References}
+
+\cite[Chapter 5]{wp:book1}, \cite{wp:unify,wp:agi}

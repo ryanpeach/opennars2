@@ -1,0 +1,288 @@
+
+\chapter{NAL-5: Statements as Terms}
+
+When a statement is treated as a term, there are \emph{statements on statements}, as well as inference on this kind of \emph{higher-order} statements. 
+
+\section{Inference: higher-order vs. first-order}
+
+The new grammar rules of Narsese-5 are listed in Table \ref{Narsese-5}. It includes ``higher-order statements'' (statements on statements), so that NAL-5 can carry out ``higher-order inference'' (inference on higher-order statements), while NAL-4 is ``first-order'' (where \emph{statement} and \emph{term} are distinct).
+
+\begin{table}[htb]
+\[\begin{array}{|rrl|}
+\hline
+\langle term \rangle & ::= & `(' \langle statement \rangle `)' \\
+\langle statement \rangle & ::= & \langle term \rangle \\ &&
+                  		 | \; `(\neg' \langle statement \rangle `)'\\ &&
+                  		 | \; `(\wedge' \langle statement \rangle \langle statement \rangle^+ `)' \\ &&
+                  		 | \; `(\vee' \langle statement \rangle \langle statement \rangle^+ `)' \\
+\langle copula \rangle & ::= & `\!\Rightarrow' | \; `\!\Leftrightarrow' \\
+\hline
+\end{array} \]
+\caption{The New Grammar Rules of Narsese-5}
+\label{Narsese-5}
+\end{table}
+
+In IL-5 and NAL-5, a statement can be treated as a term, and a term can also be used as a statement.  However, it does not mean that there is no difference between \emph{term} and \emph{statement}. In IL and NAL, a statement has both meaning and truth-value, while a non-statement term only has meaning, no truth-value.
+
+The ``propositional attitudes'', such as ``believe'' and ``know'', are represented in Narsese as relations between a ordinary term and a statement, so the corresponding statements are higher-order statements.
+
+Compound statements can be formed using statement connectors \emph{negation} (`$\neg$'), \emph{conjunction} (`$\wedge$'), and \emph{disjunction} (`$\vee$').
+
+The two copulas, \emph{implication} (`$\Rightarrow$') and \emph{equivalence} (`$\Leftrightarrow$'), are ``higher-order'', because they are defined between two statements.  In their binary form, `$\Rightarrow$' and `$\Leftrightarrow$' are different from `$\supset$' and `$\equiv$', though their intuitive meanings (``if'' and ``if-and-only-if'', respectively) are similar. The former two belong to the object language (Narsese), while the latter two belong to the meta-language of Narsese (propositional calculus).
+
+\begin{defi}
+If $S_1$ and $S_2$ are statements, ``\(S_1 \Rightarrow S_2\)'' is true if and only if in IL \(S_2\) can be derived from \(S_1\).
+\end{defi} 
+The derivation in the above definition can consists of any (finite) number of inference steps.
+
+\begin{theo}
+The \emph{implication} copula, `$\Rightarrow$', is a reflexive and transitive relation from one statement to another statement.    
+\end{theo}
+
+Since the above theorem of implication is parallel to the definition of inheritance in IL-1, higher-order inference in IL-5 can be defined as \emph{partially isomorphic} to first-order inference.  The correspondences are listed in Table \ref{Isomorphism}.
+
+\begin{table}[htb]
+\centering
+\begin{tabular}{|l|l|} \hline
+\textbf{First-Order IL} 			& \textbf{Higher-Order IL} \\
+\hline
+inheritance													& implication \\
+similarity													& equivalence \\
+subject									  					& antecedent	\\	
+predicate														& consequent	\\	
+extension														& sufficient condition	\\	
+intension														& necessary condition \\
+extensional intersection						& conjunction \\ 
+intensional intersection						& disjunction \\
+\hline \end{tabular} \\
+\caption{Isomorphism of First-Order and Higher-Order IL}
+\label{Isomorphism}
+\end{table}
+
+The definitions of the new notions in Table \ref{Isomorphism} are in the following.
+
+\begin{defi}
+An {\em implication statement} consists of two statements related by the implication copula. In implication statement ``\(A \Rightarrow C\)'', $A$ is the {\em antecedent}, and $C$ is the {\em consequent}.
+\end{defi}
+
+\begin{defi}
+Given idealized experience $K$ expressed in the formal language of IL-5, the {\em sufficient conditions} of a statement $T$ is the set of statements $T^S = \{x \, | \, x \in V_K \, \wedge \, x \Rightarrow T\}$; the {\em necessary conditions} of $T$ is the set of statements $T^N = \{x \, | \, x \in V_K \, \wedge \, T \Rightarrow x\}$.
+\end{defi}
+\begin{defi}
+For an implication statement ``\(A \Rightarrow C\)'', its {\em evidence} are statements in $A^S$ and $C^N$.  Among them, statements in \((A^S \cap C^S)\) and \((C^N \cap A^N)\) are {\em positive evidence}, while statements in \((A^S - C^S)\) and \((C^N - A^N)\) are {\em negative evidence}.
+\end{defi}
+
+\begin{defi}
+\emph{Equivalence} copula, `$\Leftrightarrow$', is defined by 
+\[(A \Leftrightarrow C) \equiv ((A \Rightarrow C) \wedge (C \Rightarrow A))\]
+\end{defi}
+
+The amounts of evidence and the truth-value for a higher-order statement are defined in the same way from evidence as for a first-order statement.
+
+\begin{defi}
+When $S_1$ and $S_2$ are different statements, their {\em conjunction}, \((S_1 \wedge S_2)\), is a compound statement defined by \[(\forall x) ((x \Rightarrow (S_1 \wedge S_2)) \equiv ((x \Rightarrow S_1) \wedge (x \Rightarrow S_2))).\]  Their {\em disjunction}, \((S_1 \vee S_2)\), is a compound statement defined by \[(\forall x) (((S_1 \vee S_2) \Rightarrow x) \equiv ((S_1 \Rightarrow x) \wedge (S_2 \Rightarrow x))).\]
+\end{defi}
+The above two statement connectors are symmetric, and can be extended to take more than two arguments.
+
+Because of this isomorphism between copulas, there are isomorphic inference rules in NAL-5 for the following rules defined previously (and each pair of rules uses the same truth-value function):
+\begin{itemize}
+	\item 
+The NAL-1 rules for deduction, abduction, induction, exemplification, and conversion.
+	\item 
+The NAL-2 rules for comparison, analogy, and resemblance. 
+	\item 
+The NAL-3 rules for the composition and decomposition of intersections.
+	\item
+The backward inference rules corresponding to the above forward inference rules.
+\end{itemize}
+
+The term connectors for (extensional/intensional) set, product, and (extensional/intensional) image are not involved in the isomorphism between first-order and higher-order terms.  They treat higher-order terms just like first-order terms, and there is no special rule added. Similarly, the revision rule and the choice rule work the same way on first-order and higher-order statements.
+
+Though \emph{implication} and \emph{equivalence} are isomorphic to \emph{inheritance} and \emph{similarity}, respectively, they are not the same. The higher-order copulas indicate the substitutability between statements in \emph{truth-value}, while the first-order copulas indicate the substitutability between terms in \emph{meaning}. They both specify the extent to which one item \emph{can be used as} another, though in different ways.
+
+
+\section{Implication as conditional statement}
+
+Another group of rules are introduced by the identity between an implication statement (\(S_1 \Rightarrow S_2\)) and an inference process (\(\{S_1\} \vdash S_2\)).
+
+By definition, in NAL a judgment ``\(S \, \langle f, \; c \rangle \)'' states that ``The degree of belief the system has on statement $S$, according to available evidence, is measured by \(\langle  f, \; c \rangle \)''.  Assume that the available evidence currently used on the evaluation of $S$ can be written as a compound statement $E$, then the same meaning can be represented by ``\(E \Rightarrow S \, \langle  f, \; c \rangle \)'', that is, ``The degree of belief the system has on statement `If $E$ is true, then $S$ is true' is measured by \(\langle  f, \; c \rangle \)''.  In this way, a statement ``$S$'' is equivalently translated into an implication statement ``\(E \Rightarrow S\)''.
+
+This translation is a conceptual one, not an actual one, since $E$ is not really a statement in Narsese. Even so, this conceptual translation can be used to justify certain inference rules.  The implicit condition $E$ can be added into the premises, so as to change the premise combinations into the ones for which we already have inference rules.  Finally, the implicit condition is dropped from the conclusion. Table \ref{Conditional-1} contains several rules obtained in this way (truth-values of the premises are omitted).
+
+\begin{table}[htb]
+\[\begin{array}{|c|c|c|c|} \hline
+\textbf{premises} & \textbf{add condition} & \textbf{conclusion} & \textbf{drop condition}\\
+\hline
+M \Rightarrow P, \; M			& M \Rightarrow P, \; E \Rightarrow M & E \Rightarrow P \, \langle F_{ded}\rangle  & P \, \langle F_{ded}\rangle  \\
+P \Rightarrow M, \; M			& P \Rightarrow M, \; E \Rightarrow M & E \Rightarrow P \, \langle F_{abd}\rangle  & P \, \langle F_{abd}\rangle  \\
+M \Leftrightarrow P, \; M	& M \Leftrightarrow P, \; E \Rightarrow M & E \Rightarrow P \, \langle F'_{ana}\rangle  & P \, \langle F'_{ana}\rangle  \\
+\hline \end{array}\]
+\caption{The Conditional Syllogistic Rules (1)}
+\label{Conditional-1}
+\end{table}
+
+Similarly, when the two premises can be seen as derived from the same evidence, the evidence can be used as the common virtual condition of the two, and some conclusions can be derived accordingly, as in Table \ref{NAL-5-Composition}.\footnote{NAL does not take two arbitrary judgments as premises in an inference step. Instead, the $P$ and $S$ in Table \ref{NAL-5-Composition} must be semantically related to each other in some way.  In the current implementation, the \emph{conjunction} statements are introduced only in NAL-6, while the \emph{implication} and \emph{equivalence} statements are introduced only in NAL-7. It is still unclear when the \emph{disjunction} statements should be introduced to get non-trivial results that cannot be produced in another way.}
+
+\begin{table}[htb]
+\[\begin{array}{|c|c|c|c|} \hline
+\textbf{premises} & \textbf{add condition} & \textbf{conclusion} & \textbf{drop condition}\\
+\hline
+P, \; S			& E \Rightarrow P, \; E \Rightarrow S & S \Rightarrow P \, \langle F_{ind}\rangle  & S \Rightarrow P \, \langle F_{ind}\rangle  \\
+P, \; S			& E \Rightarrow P, \; E \Rightarrow S & S \Leftrightarrow P \, \langle F_{com}\rangle  & S \Leftrightarrow P \, \langle F_{com}\rangle  \\
+P, \; S			& E \Rightarrow P, \; E \Rightarrow S & E \Rightarrow (P \wedge S) \, \langle F_{int}\rangle  & P \wedge S \, \langle F_{int}\rangle  \\
+P, \; S			& E \Rightarrow P, \; E \Rightarrow S & E \Rightarrow (P \vee S) \, \langle F_{uni}\rangle  & P \vee S \, \langle F_{uni}\rangle  \\
+\hline \end{array}\]
+\caption{The Conditional Syllogistic Rules (2)}
+\label{NAL-5-Composition}
+\end{table}
+For practical purpose, the two middle-columns in the above tables of conditional rules can be ignored, and the rules can be treated as directly go from the first column (as premises) to the last column (as conclusions). 
+
+All together, NAL has three groups of syllogistic rules (deduction, abduction, and induction), one defined on inheritance statements, one on implication statements, and one on a mixture of the two, though the same truth-value functions are used.
+
+\begin{theo}
+For any statements $S_1$, $S_2$, and $S_3$,
+\[(S_1 \Rightarrow (S_2 \Rightarrow S_3)) \equiv ((S_1 \wedge S_2) \Rightarrow S_3)\]
+\end{theo}
+that is, a conditional statement of a conditional statement is equivalent to a conditional statement with a conjunction of the conditions. 
+
+This equivalence give NAL the rules in Table \ref{Conditional-2}.
+
+\begin{table}[htb]
+\[\begin{array}{|r|r|r|l|} \hline
+J_1 & J_2 & J & F \\ 
+\hline
+(C \wedge M) \Rightarrow P & M & C \Rightarrow P & F_{ded} \\
+(C \wedge M) \Rightarrow P & C \Rightarrow P & M & F_{abd} \\
+C \Rightarrow P & M & (C \wedge M) \Rightarrow P & F_{ind} \\
+\hline \end{array}\]
+\caption{The Conditional Syllogistic Rules (3)}
+\label{Conditional-2}
+\end{table}
+
+The truth-values of the premises are omitted in the rules in Table \ref{Conditional-2}. As before, the induction rule is applied only when the two premises are based on the same evidence. These rules can be seen as generalizations of the corresponding rules in the previous two tables by adding a condition $C$ into $J_1$. Table \ref{Conditional-3} gives further extension of these rules by adding another condition $S$ into $J_2$.
+
+\begin{table}[htb]
+\[\begin{array}{|r|r|r|l|} \hline
+J_1 & J_2 & J & F \\
+\hline
+(C \wedge M) \Rightarrow P & S \Rightarrow M & (C \wedge S) \Rightarrow P & F_{ded} \\
+(C \wedge M) \Rightarrow P & (C \wedge S) \Rightarrow P & S \Rightarrow M & F_{abd} \\
+(C \wedge S) \Rightarrow P & S \Rightarrow M & (C \wedge M) \Rightarrow P & F_{ind} \\
+\hline \end{array}\]
+\caption{The Conditional Syllogistic Rules (4)}
+\label{Conditional-3}
+\end{table}
+
+In each group of the syllogistic rules, abduction and induction can be obtained from deduction by switching a (different) premise and the conclusion, so they are ``reversed deduction'' in different ways.
+
+In NAL, \emph{conjunction} and \emph{disjunction} are not defined by truth table. With the help of the isomorphism and the implicit condition technique, the following theorem can be proved. 
+\begin{theo}
+\[\begin{array}{rcl}
+(S_1 \wedge S_2) & \supset & S_1 \\
+S_1 & \supset & (S_1 \vee S_2) \\
+\end{array} \]
+\end{theo}
+
+
+\section{Negation}
+
+Since the negation connector in NAL-5 takes one argument, it is not directly isomorphic to the (extensional/intensional) difference connectors defined in NAL-3.  Instead, it is defined directly from evidence.
+\begin{defi}
+If $S$ is a statement, its {\em negation}, \((\neg \, S)\), is a compound statement, and its truth-value is obtained by switching the positive and negative evidence of $S$.
+\end{defi}
+Intuitively, the negation of a statement $S$ can either means ``It is not the case as $S$'', or ``It is the opposite case of $S$''. In a binary logic (like IL), these two interpretations coincide, but it is not the case in a multi-valued logic. In NAL the latter interpretation is used.
+
+The definition leads to the negation rule defined in Table \ref{Negation}.
+
+\begin{table}[htb]
+\[\begin{array}{|r|} \hline
+\{S \langle f_0, \, c_0\rangle \} \vdash (\neg \, S) \langle F_{neg}\rangle  \\
+\hline \end{array}\]
+\caption{The Negation Rule}
+\label{Negation}
+\end{table}
+
+The truth-value function is in Table \ref{Negation-Function}.
+
+\begin{table}[htb]
+\[\begin{array}{|r|r|lcl|} \hline
+\mbox{\textbf{Negation}} & \mbox{evidence version:}    & w^+ & = & w^-_0 \\
+								         &					                   & w^- & = & w^+_0 \\
+                 F_{neg} & \mbox{truth-value version:} & f & = & 1 - f_0\\
+								         &					                   & c & = & c_0\\
+\hline \end{array}\]
+\caption{The Truth-value Function of the Negation Rule}
+\label{Negation-Function}
+\end{table}
+
+\begin{theo}
+\((\neg (\neg \, S)) \equiv S\)
+\end{theo}
+
+\begin{theo}
+When the truth-values of statements $S_1$ and $S_2$ are determined independently, and they decide the truth-values of the related compound statements, then De Morgan's laws hold, that is,
+\[\neg(S_1 \wedge S_2) \equiv (\neg S_1) \vee (\neg S_2) \;\mbox{ and }\;
+\neg(S_1 \vee S_2) \equiv (\neg S_1) \wedge (\neg S_2)\]
+\end{theo}
+
+\begin{theo}
+\[\begin{array}{rcl}
+(S_1 \wedge (\neg (S_1 \wedge S_2))) & \supset & (\neg S_2) \\
+((\neg S_1) \wedge (S_1 \vee S_2)) & \supset & S_2 \\
+\end{array} \]
+\end{theo}
+
+\begin{theo}
+\((S_1 \Leftrightarrow S_2) \equiv ((\neg S_1) \Leftrightarrow (\neg S_2))\)
+\end{theo}
+
+By definition, the evidence of \((\neg(S_1 \Rightarrow S_2))\) is obtained by switching the positive and negative evidence of \((S_1 \Rightarrow S_2)\), which is the same as the evidence of \((S_1 \Rightarrow (\neg S_2))\). The same is true for the \emph{equivalence} copula.
+
+\begin{theo}
+\[\begin{array}{ccc}
+(\neg(S_1 \Rightarrow S_2)) & \equiv & (S_1 \Rightarrow (\neg S_2)) \\
+(\neg(S_1 \Leftrightarrow S_2)) & \equiv & (S_1 \Leftrightarrow (\neg S_2)) \\
+\end{array}\]
+\end{theo}
+
+When the truth-value of ``\(S_1 \Rightarrow S_2\)'' is determined by the induction rule in Table \ref{NAL-5-Composition} from the observations of the truth-values of $S_1$ and $S_2$, an observation provides positive evidence if both $S_1$ and $S_2$ are true, negative evidence if $S_1$ is true and $S_2$ is false, and no evidence if $S_1$ is false. It follows that ``\(S_1 \Rightarrow S_2\)'' and ``\((\neg S_2) \Rightarrow (\neg S_1)\)'' have the same negative evidence, but completely distinct positive evidence.  This leads to the \emph{contraposition rule} defined in Table \ref{Contraposition}.
+
+\begin{table}[htb]
+\[\begin{array}{|c|}
+\hline
+\{S_1 \Rightarrow S_2 \langle  f_0, c_0 \rangle \} \vdash (\neg S_2) \Rightarrow (\neg S_1) \langle F_{cnt}\rangle  \\
+\hline
+\end{array}\]
+\caption{The Contraposition Rule}
+\label{Contraposition}
+\end{table}
+
+In contraposition, though the negative evidence of the premise is taken to be negative evidence of the conclusion, they do not have the same amount, since the former is only taken as indirect evidence for the latter in NAL. This situation is similar to the situation of conversion, defined in NAL-1.  The truth-value function of contraposition is given in Table \ref{Contraposition-Function}.
+
+\begin{table}[htb]
+\[\begin{array}{|r|r|lcl|} \hline
+\mbox{\textbf{Contraposition}} & \mbox{evidence version:}    & w^+ & = & 0 \\
+								         &					                   & w^- & = & and(not(f_0), c_0) \\
+                 F_{cnt} & \mbox{truth-value version:} & f & = & 0 \\
+								         &					                   & c & = & \frac{(1 - f_0) c_0}{(1- f_0) c_0 + k} \\
+\hline \end{array}\]
+\caption{The Truth-value Function of the Contraposition Rule}
+\label{Contraposition-Function}
+\end{table}
+
+
+\section{Analytical truths of IL applied in NAL}
+
+The analytical truths in IL have been introduced by the definitions and theorems, as propositions in the meta-languages of Narsese. Given the definition of the \emph{implication} and \emph{equivalence} copulas in IL, `$\Rightarrow$' and `$\Leftrightarrow$', in the current context they are exchangeable with the \emph{implication} and \emph{equivalence} connectives in propositional logic, `$\supset$' and `$\equiv$', respectively, though they are not defined in the same way.
+
+Though binary IL truths correspond to NAL judgments with truth-value \(\langle 1, \, 1\rangle\), such a judgment can only appear in the meta-theoretical discussions about NAL, not as a belief actually stored in the system, given AIKR. Even so, there are meta-rules that allow the IL definitions and theorems to be used in NAL inference.
+
+\begin{theo}
+An IL analytical truth $S$ can be used as a judgment ``\(S \langle 1, \, r\rangle\)'' by a NAL inference rule as an implicit premise, to derive an empirical conclusion from another empirical premise. The parameter \emph{r} is a ``reliance factor'' in [0, 1].
+\end{theo}
+
+The reliance factor is necessary, because many analytical truths are introduced to define the analytical (literal) meaning of compound terms. Though these definitions remain true in IL, in NAL the meaning of a compound term also depends on the system's empirical knowledge about it, which can be more or less from the related analytical definitions. Consequently, the analytical truths are not absolutely reliable when applied under AIKR, even though they still contribute to the meaning of the terms involved.\footnote{In the current implementation, $r = 1$ for inference rules that do not introduce new terms not in the premise, or rules where the theorems involved are equivalence statements. On the other hand, $r \leq 1$ for rules where the the theorems involved are implication statements. Furthermore, in the latter case, the implication statements are used for deduction only.}
+
+\section*{References}
+
+\cite[Chapter 5]{wp:book1}, \cite{wp:abd,wp:unify}

@@ -59,7 +59,10 @@
         statement))
     :else statement))
 
-(defn sort-commutative [conclusions]
+(defn sort-commutative
+  "provide an order for the commutative ops, so that <a <-> b> and <b <-> a> will both be <b <-> a>,
+  this is needed because they need to end up in the same concept!"
+  [conclusions]
   (if (coll? conclusions)
     (let [f (first conclusions)]
       (if (commutative-ops f)
@@ -69,14 +72,17 @@
 
 ;https://gist.github.com/TonyLo1/a3f8e05458c5e90c2e72
 (defn union
+  "the union set operation for extensional and intensional sets"
   ([c1 c2] (sort-by hash (set (concat c1 c2))))
   ([op c1 c2] (vec (conj (union c1 c2) op))))
 
 (defn diff
+  "the difference set operation for extensional and intensional sets"
   ([c1 c2] (into '() (set/difference (set c1) (set c2))))
   ([op c1 c2] (vec (conj (diff c1 c2) op))))
 
 (defn reduce-ext-inter
+  "Reductions for extensional intersection."
   [st]
   (m/match
     st
@@ -89,6 +95,7 @@
     :else st))
 
 (defn reduce-int-inter
+  "Reductions for intensional intersection"
   [st]
   (m/match st
            ['| t] t
@@ -100,30 +107,35 @@
            :else st))
 
 (defn reduce-int-dif
+  "Reductions for intensional difference"
   [st]
   (m/match st
            [_ ['int-set & l1] ['int-set & l2]] (diff 'int-set l1 l2)
            :else st))
 
 (defn reduce-ext-dif
+  "Reductions for extensional difference"
   [st]
   (m/match st
            [_ ['ext-set & l1] ['ext-set & l2]] (diff 'ext-set l1 l2)
            :else st))
 
 (defn reduce-image
+  "Reductions for images"
   [st]
   (m/match st
            [_ ['* t1 t2] t3] (if (and (= t2 t3) (not= t1 t2)) t1 st)
            :else st))
 
 (defn reduce-neg
+  "Reductions for negation"
   [st]
   (m/match st
            ['-- ['-- t]] t
            :else st))
 
 (defn reduce-or
+  "Reductions for or"
   [st]
   (m/match st
            ['|| t] t
@@ -134,6 +146,7 @@
            :else st))
 
 (defn reduce-and
+  "Reductions for and"
   [st]
   (m/match st
            ['conj t] t

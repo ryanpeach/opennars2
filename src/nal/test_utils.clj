@@ -7,6 +7,7 @@
 
 (def truth-tolerance 0.005)
 (defn truth-equal?
+  "Checks whether the truth values are equal with allowing up to truth-tolerance of difference in each component."
   ([s1 s2]
    (and (truth-equal? first s1 s2)
         (truth-equal? last s1 s2)))

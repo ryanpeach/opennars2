@@ -27,53 +27,80 @@
    :total-evidence total-evidence }))                                        ;not used by deriver, just by anticipations
 
 ;--------------------------------------------
-(defn conversion [_ p1]
+(defn conversion
+  "<a href=\"NAL-Specification.pdf#page=90\" style=\"text-decoration:none\">Truth formula</a>"
+  [_ p1]
   (when-let [[f c] p1] [1 (w2c (and f c))]))
 
-(defn negation [[^double f ^double c] _] [(- 1 f) c])
+(defn negation
+  "<a href=\"NAL-Specification.pdf#page=90\" style=\"text-decoration:none\">Truth formula</a>"
+  [[^double f ^double c] _] [(- 1 f) c])
 
-(defn contraposition [[^double f ^double c]  [^double f2 ^double c2]]
+(defn contraposition
+  "<a href=\"NAL-Specification.pdf#page=90\" style=\"text-decoration:none\"Truth formula</a>"
+  [[^double f ^double c]  [^double f2 ^double c2]]
   [0 (w2c (and (- 1 f) c))])
 
-(defn revision [[^double f1 ^double c1] [^double f2 ^double c2]]
+(defn revision
+  "<a href=\"NAL-Specification.pdf#page=90\" style=\"text-decoration:none\"Truth formula</a>"
+  [[^double f1 ^double c1] [^double f2 ^double c2]]
   (let [w1 (c2w c1)
         w2 (c2w c2)
         w (+ w1 w2)]
     [(/ (+ (* w1 f1) (* w2 f2)) w) (w2c w)]))
 
-(defn deduction [[^double f1 ^double c1] [^double f2 ^double c2]]
+(defn deduction
+  "<a href=\"NAL-Specification.pdf#page=90\" style=\"text-decoration:none\"Truth formula</a>"
+  [[^double f1 ^double c1] [^double f2 ^double c2]]
   (let [f (t-and f1 f2)]
     [f (t-and f c1 c2)]))
 
 (defn a-deduction [[^double f1 ^double c1] c2] [f1 (t-and f1 c1 c2)])
 
-(defn analogy [[^double f1 ^double c1] [^double f2 ^double c2]]
+(defn analogy
+  "<a href=\"NAL-Specification.pdf#page=90\" style=\"text-decoration:none\"Truth formula</a>"
+  [[^double f1 ^double c1] [^double f2 ^double c2]]
   [(t-and f1 f2) (t-and c1 c2 f2)])
 
 (defn desire-strong [a b]
   (analogy a b))
 
-(defn resemblance [[^double f1 ^double c1] [^double f2 ^double c2]]
+(defn resemblance
+  "<a href=\"NAL-Specification.pdf#page=90\" style=\"text-decoration:none\"Truth formula</a>"
+  [[^double f1 ^double c1] [^double f2 ^double c2]]
   [(t-and f1 f2) (t-and c1 c2 (t-or f1 f2))])
 
-(defn abduction [[^double f1 ^double c1] [^double f2 ^double c2]]
+(defn abduction
+  "<a href=\"NAL-Specification.pdf#page=90\" style=\"text-decoration:none\"Truth formula</a>"
+  [[^double f1 ^double c1] [^double f2 ^double c2]]
   [f1 (w2c (t-and f2 c1 c2))])
 
-(defn induction [p1 p2] (abduction p2 p1))
+(defn induction
+  "<a href=\"NAL-Specification.pdf#page=90\" style=\"text-decoration:none\"Truth formula</a>"
+  [p1 p2]
+  (abduction p2 p1))
 
-(defn exemplification [[^double f1 ^double c1] [^double f2 ^double c2]]
+(defn exemplification
+  "<a href=\"NAL-Specification.pdf#page=90\" style=\"text-decoration:none\"Truth formula</a>"
+  [[^double f1 ^double c1] [^double f2 ^double c2]]
   [1 (w2c (t-and f1 f2 c1 c2))])
 
-(defn comparison [[^double f1 ^double c1] [^double f2 ^double c2]]
+(defn comparison
+  "<a href=\"NAL-Specification.pdf#page=90\" style=\"text-decoration:none\"Truth formula</a>"
+  [[^double f1 ^double c1] [^double f2 ^double c2]]
   (let [f0 (t-or f1 f2)
         f (if (zero? f0) 0 (/ (t-and f1 f2) f0))
         c (w2c (t-and f0 c1 c2))]
     [f c]))
 
-(defn union [[^double f1 ^double c1] [^double f2 ^double c2]]
+(defn union
+  "<a href=\"NAL-Specification.pdf#page=90\" style=\"text-decoration:none\"Truth formula</a>"
+  [[^double f1 ^double c1] [^double f2 ^double c2]]
   [(t-or f1 f2) (t-and c1 c2)])
 
-(defn intersection [[^double f1 ^double c1] [^double f2 ^double c2]]
+(defn intersection
+  "<a href=\"NAL-Specification.pdf#page=90\" style=\"text-decoration:none\"Truth formula</a>"
+  [[^double f1 ^double c1] [^double f2 ^double c2]]
   [(t-and f1 f2) (t-and c1 c2)])
 
 (defn anonymous-analogy [[^double f1 ^double c1] p2] (analogy p2 [f1 (w2c c1)]))
@@ -134,7 +161,10 @@
     (let [[^double f ^double c] (deduction p2 [1 d/belief-confidence])]
       [(- 1 f) c])))
 
-(defn belief-negation [_ p2] (when p2 (negation p2 nil)))
+(defn belief-negation
+  "<a href=\"NAL-Specification.pdf#page=90\" style=\"text-decoration:none\"Truth formula</a>"
+  [_ p2]
+  (when p2 (negation p2 nil)))
 
 (defn desire-weak [[f1 c1] [f2 c2]]
   [(t-and f1 f2) (t-and c1 c2 f2 (w2c 1.0))])

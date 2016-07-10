@@ -1,0 +1,489 @@
+
+\chapter{Summary}
+
+\section{Narsese grammar and semantics}
+
+The complete grammar rules of Narsese are listed in Table \ref{Narsese-Grammar}.
+
+\begin{table}[hbt]
+\small
+\centering
+\[\begin{array}{|rcl|} \hline
+\langle  sentence \rangle  & ::= & \langle  judgment \rangle  | \langle  question \rangle  | \langle  goal \rangle  \\
+\langle judgment \rangle & ::= & \langle statement \rangle `.' \, [\langle tense \rangle] \langle truth \mbox{-} value \rangle \\
+\langle question \rangle & ::= & \langle statement \rangle `?' \, [\langle tense \rangle] \\ 
+\langle  goal \rangle  & ::= & \langle  statement \rangle  `!' \, \langle  desire \mbox{-} value \rangle \\
+\langle  statement \rangle  & ::= & `('\langle term \rangle \langle copula \rangle \langle term \rangle `)' \; | \langle  term \rangle  \\ &&
+                       | \; `(\neg' \langle statement \rangle `)'\\ &&
+                  		 | \; `(\wedge' \langle statement \rangle \langle statement \rangle^+ `)' \\ &&
+                  		 | \; `(\vee' \langle statement \rangle \langle statement \rangle^+ `)' \\ &&
+                  		 | \; `(\;,'\; \langle statement \rangle \langle statement \rangle^+ `)' \\ &&
+                  		 | \; `(\;;'\; \langle statement \rangle \langle statement \rangle^+ `)' \\ &&
+                  		 | \; `(\Uparrow\!\!'\langle word \rangle \, \langle term \rangle^* `)' \\ 
+\langle copula \rangle & ::= & `\rightarrow' | `\leftrightarrow' | `\Rightarrow' | `\Leftrightarrow'
+                     | \;`/\!\!\!\Rightarrow'\; | \;`\backslash\!\!\!\Rightarrow'\; | \;`|\!\!\!\Rightarrow'\;
+                     | \;`/\!\!\!\Leftrightarrow' | \;`|\!\!\!\Leftrightarrow'\\
+\langle tense \rangle & ::= & `/\!\!\!\Rightarrow' \; | \; `\backslash\!\!\!\Rightarrow' \; | \; `|\!\!\!\Rightarrow' \\
+\langle term \rangle & ::= & \langle word \rangle | \langle  variable \rangle | \langle statement \rangle \\ &&
+                     | \; `\{' \langle term \rangle ^+ `\}' \; | \; `[' \langle term \rangle ^+ `]' \\ &&
+                     | \; `(\cap' \langle term \rangle \langle term \rangle ^+ `)' \\ &&
+                     | \; `(\cup' \langle term \rangle \langle term \rangle ^+ `)' \\ &&
+                     | \; `(-' \langle term \rangle \langle term \rangle `)' \\ &&
+                     | \; `(\ominus' \langle term \rangle \langle term \rangle `)' \\ &&
+                     | \; `(\times' \langle term \rangle \langle term \rangle ^+ `)' \\ &&
+                     | \; `(\bot' \langle term \rangle \langle term \rangle ^* `\diamond' \langle term \rangle ^* `)' \\ &&
+                     | \; `(\top' \langle term \rangle \langle term \rangle ^* `\diamond' \langle term \rangle ^* `)' \\ 
+\langle variable \rangle & ::= & \langle independent \mbox{-} variable \rangle \\ &&
+                     | \langle dependent \mbox{-} variable \rangle \\ &&
+                     | \langle query \mbox{-} variable \rangle \\
+\langle independent \mbox{-} variable \rangle & ::= & `\#'\!\langle word \rangle  \\
+\langle dependent \mbox{-} variable \rangle  & ::= & `\#' \, [ \langle word \rangle `('\langle independent \mbox{-} variable \rangle ^* `)' ] \\
+\langle query \mbox{-} variable \rangle & ::= & `?' \, [ \langle word \rangle ] \\
+\langle truth \mbox{-} value \rangle  & : & \mbox{a pair of real number in } [0, 1] \times(0, 1) \\
+\langle desire \mbox{-} value \rangle  & : & \mbox{the same as} \langle  truth \mbox{-} value \rangle  \\
+\langle word \rangle  & : & \mbox{a string in a given alphabet} \\			
+\hline \end{array} \]
+\caption{The Complete Grammar of Narsese}
+\label{Narsese-Grammar}
+\end{table}
+
+Additional notes about the Narsese grammar:
+\begin{itemize}
+	\item 
+Confidence values 0 and 1 are used in the meta-language of Narsese only, and cannot appear in actual sentences in the system.
+  \item
+In the communication between the system and its environment, a truth-value can be replaced by amounts of evidence or frequency interval.
+  \item
+In the communication between the system and its environment, copulas ``$\circ\!\!\rightarrow$'', ``$\rightarrow\!\!\circ$'', and ``$\circ\!\!\rightarrow\!\!\circ$'' are also valid.
+	\item 
+Most prefix operators in compound term and compound statement can also be used in the infix form.
+\end{itemize}
+
+The symbols used in Narsese grammar are listed in Table \ref{Narsese-Symbols}.
+
+\begin{table}[hbt]
+\small
+\centering
+\[\begin{array}{|r|c|c|l|} \hline
+\textbf{type} 	& \textbf{symbol} 	& \textbf{layer}		& \textbf{name} \\
+\hline
+\mbox{sentence punctuation} 
+& .    & \mbox{NAL-1} & \mbox{judgment} \\
+& ?    & \mbox{NAL-1} & \mbox{question} \\
+& !    & \mbox{NAL-8} & \mbox{goal} \\
+\hline
+\mbox{copula} 
+& \rightarrow & \mbox{NAL-1} & \mbox{inheritance} \\
+& \leftrightarrow & \mbox{NAL-2} & \mbox{similarity} \\
+& \circ\!\!\rightarrow & \mbox{NAL-2} & \mbox{instance} \\
+& \rightarrow\!\!\circ & \mbox{NAL-2} & \mbox{property} \\
+& \circ\!\!\rightarrow\!\!\circ & \mbox{NAL-2} & \mbox{instance-property} \\
+& \Rightarrow & \mbox{NAL-5} & \mbox{implication} \\
+& \Leftrightarrow & \mbox{NAL-5} & \mbox{equivalence} \\
+& /\!\!\!\Rightarrow & \mbox{NAL-7} & \mbox{predictive implication} \\
+& \backslash\!\!\!\Rightarrow & \mbox{NAL-7} & \mbox{retrospective implication} \\
+& |\!\!\!\Rightarrow & \mbox{NAL-7} & \mbox{concurrent implication} \\
+& /\!\!\!\Leftrightarrow & \mbox{NAL-7} & \mbox{predictive equivalence} \\
+& |\!\!\!\Leftrightarrow & \mbox{NAL-7} & \mbox{concurrent equivalence} \\
+\hline
+\mbox{term operator} 
+& \{  \} & \mbox{NAL-2} & \mbox{extensional set} \\
+& \mbox{[ ]}  & \mbox{NAL-2} & \mbox{intensional set} \\
+& \cap & \mbox{NAL-3} & \mbox{extensional intersection} \\ 
+& \cup & \mbox{NAL-3} & \mbox{intensional intersection} \\ 
+& - & \mbox{NAL-3} & \mbox{extensional difference} \\ 
+& \ominus & \mbox{NAL-3} & \mbox{intensional difference} \\ 
+& \times & \mbox{NAL-4} & \mbox{product} \\
+& \bot & \mbox{NAL-4} & \mbox{extensional image} \\ 
+& \top & \mbox{NAL-4} & \mbox{intensional image} \\
+& \diamond & \mbox{NAL-4} & \mbox{image place-holder} \\
+\hline 
+\mbox{statement operator} 
+& \neg & \mbox{NAL-5} & \mbox{negation} \\ 
+& \wedge  & \mbox{NAL-5} & \mbox{conjunction} \\
+& \vee & \mbox{NAL-5} & \mbox{disjunction} \\
+& , & \mbox{NAL-7} & \mbox{sequential conjunction} \\
+& ; & \mbox{NAL-7} & \mbox{parallel conjunction} \\
+\hline
+\mbox{term prefix} 
+& \# & \mbox{NAL-6} & \mbox{variable} \\
+& ? & \mbox{NAL-6} & \mbox{query} \\
+& \Uparrow & \mbox{NAL-8} & \mbox{command} \\ 
+\hline \end{array} \]
+\caption{The Symbols in Narsese Grammar}
+\label{Narsese-Symbols}
+\end{table}
+
+
+\section{NAL Inference Rules}
+
+The inference rules of NAL are summarized into several categories, according to their syntactic features.
+
+\textbf{(A) Two-premise inference rules:} each of these rules takes two premises $J_1$ and $J_2$, and derive a conclusion $J$, with a truth-value calculated from the truth-values of the premises by a function $F$.
+\begin{description}
+	\item[(A.1) First-order syllogistic rules,] in Table \ref{First-Order-Syllogism}, are defined on copulas \emph{inheritance} and \emph{similarity}.
+
+\begin{table}[htb]
+\[\begin{array}{|c||c|c|c|} \hline
+J_2 \, \backslash \, J_1 & M \rightarrow P & P \rightarrow M & M \leftrightarrow P \\
+\hline \hline
+                & S \rightarrow P \langle F_{ded}\rangle  & S \rightarrow P \langle F_{abd}\rangle  & S \rightarrow P \langle F'_{ana}\rangle  \\
+S \rightarrow M & P \rightarrow S \langle F'_{exe}\rangle  & P \rightarrow S \langle F'_{abd}\rangle  &  \\
+                & & S \leftrightarrow P \langle F'_{com}\rangle  &  \\
+\hline
+                & S \rightarrow P \langle F_{ind}\rangle  & S \rightarrow P \langle F_{exe}\rangle  & \\
+M \rightarrow S & P \rightarrow S \langle F'_{ind}\rangle  & P \rightarrow S \langle F'_{ded}\rangle  & P \rightarrow S \langle F'_{ana}\rangle  \\
+                & S \leftrightarrow P \langle F_{com}\rangle  &  &  \\
+\hline
+                    & S \rightarrow P \langle F_{ana}\rangle  &  &  \\
+S \leftrightarrow M &  & P \rightarrow S \langle F_{ana}\rangle  &  \\
+                    &  &  & S \leftrightarrow P \langle F_{res}\rangle  \\
+\hline \end{array}\]
+\caption{The First-Order Syllogistic Rules}
+\label{First-Order-Syllogism}
+\end{table}
+
+  \item[(A.2) Higher-order syllogistic rules,]  in Table \ref{Higher-Order-Syllogism}, are defined on copulas \emph{implication} and \emph{equivalence}.
+
+\begin{table}[htb]
+\[\begin{array}{|c||c|c|c|} \hline
+J_2 \, \backslash \, J_1 & M \Rightarrow P & P \Rightarrow M & M \Leftrightarrow P \\
+\hline \hline
+                & S \Rightarrow P \langle F_{ded}\rangle  & S \Rightarrow P \langle F_{abd}\rangle  & S \Rightarrow P \langle F'_{ana}\rangle  \\
+S \Rightarrow M & P \Rightarrow S \langle F'_{exe}\rangle  & P \Rightarrow S \langle F'_{abd}\rangle  &  \\
+                & & S \Leftrightarrow P \langle F'_{com}\rangle  &  \\
+\hline
+                & S \Rightarrow P \langle F_{ind}\rangle  & S \Rightarrow P \langle F_{exe}\rangle  & \\
+M \Rightarrow S & P \Rightarrow S \langle F'_{ind}\rangle  & P \Rightarrow S \langle F'_{ded}\rangle  & P \Rightarrow S \langle F'_{ana}\rangle  \\
+                & S \Leftrightarrow P \langle F_{com}\rangle  &  &  \\
+\hline
+                    & S \Rightarrow P \langle F_{ana}\rangle  &  &  \\
+S \Leftrightarrow M &  & P \Rightarrow S \langle F_{ana}\rangle  &  \\
+                    &  &  & S \Leftrightarrow P \langle F_{res}\rangle  \\
+\hline \end{array}\]
+\caption{The Higher-Order Syllogistic Rules}
+\label{Higher-Order-Syllogism}
+\end{table}
+
+  \item[(A.3) Conditional syllogistic rules,]  in Table \ref{Conditional-Syllogism}, are based on the nature of conditional statements. 
+
+\begin{table}[htb]
+\[\begin{array}{|r|r|r|l|} \hline
+J_1 & J_2 & J & F \\
+\hline \hline
+S & S \Leftrightarrow P & P & F_{ana} \\
+S & P	& S \Leftrightarrow P & F_{com} \\
+\hline
+M \Rightarrow P & M & P & F_{ded} \\
+P \Rightarrow M & M & P & F_{abd} \\
+P & M	& M \Rightarrow P & F_{ind} \\
+\hline
+(C \wedge M) \Rightarrow P & M & C \Rightarrow P & F_{ded} \\
+(C \wedge M) \Rightarrow P & C \Rightarrow P & M & F_{abd} \\
+C \Rightarrow P & M & (C \wedge M) \Rightarrow P & F_{ind} \\
+\hline
+(C \wedge M) \Rightarrow P & S \Rightarrow M & (C \wedge S) \Rightarrow P & F_{ded} \\
+(C \wedge M) \Rightarrow P & (C \wedge S) \Rightarrow P & S \Rightarrow M & F_{abd} \\
+(C \wedge S) \Rightarrow P & S \Rightarrow M & (C \wedge M) \Rightarrow P & F_{ind} \\
+\hline \end{array}\]
+\caption{The Conditional Syllogistic Rules}
+\label{Conditional-Syllogism}
+\end{table}
+
+  \item[(A.4) Composition rules,] in Table \ref{Composition-Rules}, introduce new compounds into the conclusion.
+
+\begin{table}[htb]
+\[\begin{array}{|r|r|r|l|} \hline
+J_1 & J_2 & J & F \\
+\hline \hline
+M \rightarrow T_1 & M \rightarrow T_2 & M \rightarrow (T_1 \cap T_2) & F_{int} \\
+                  &                   & M \rightarrow (T_1 \cup T_2) & F_{uni} \\
+                  &                   & M \rightarrow (T_1 - T_2) & F_{dif} \\
+                  &                   & M \rightarrow (T_2 - T_1) & F'_{dif} \\
+\hline
+T_1 \rightarrow M & T_2 \rightarrow M & (T_1 \cup T_2) \rightarrow M & F_{int} \\
+                  &                   & (T_1 \cap T_2) \rightarrow M & F_{uni} \\
+                  &                   & (T_1 \ominus T_2) \rightarrow M & F_{dif} \\
+                  &                   & (T_2 \ominus T_1) \rightarrow M & F'_{dif} \\
+\hline
+M \Rightarrow T_1 & M \Rightarrow T_2 & M \Rightarrow (T_1 \wedge T_2) & F_{int} \\
+                  &                   & M \Rightarrow (T_1 \vee T_2) & F_{uni} \\
+\hline
+T_1 \Rightarrow M & T_2 \Rightarrow M & (T_1 \vee T_2) \Rightarrow M & F_{int} \\
+                  &                   & (T_1 \wedge T_2) \Rightarrow M & F_{uni} \\
+\hline
+T_1 & T_2 & T_1 \wedge T_2 & F_{int} \\
+    &     & T_1 \vee T_2 & F_{uni} \\
+\hline
+\end{array}\]
+\caption{The Composition Rules}
+\label{Composition-Rules}
+\end{table}
+
+  \item[(A.5) Decomposition rules,] in Table \ref{Decomposition}, are the opposite operation of the composition rules.  Each decomposition rule comes from a high-level theorem of the form \((st_1 \wedge st_2) \supset st_3\), where $st_1$ is a statement about a compound, $st_2$ is a statement about a component of the compound, while $st_3$ is the statement about the other component. As a two-premise inference rule, in the first step the truth-values of $st_1$ and $st_2$ are used to calculate the truth-value of \((st_1 \wedge st_2)\) (using $F_{int}$), then the resulting truth-value is used by an Implication Rule (to be defined in the following) to decide the truth-value of $st_3$. 
+
+\begin{table}[htb]
+\[\begin{array}{|c|c|c|} \hline
+ st_1 & st_2 & st_3 \\
+\hline \hline
+\neg (M \rightarrow (T_1 \cap T_2)) & M \rightarrow T_1 & \neg (M \rightarrow T_2) \\
+M \rightarrow (T_1 \cup T_2) & \neg (M \rightarrow T_1) & M \rightarrow T_2 \\
+\neg (M \rightarrow (T_1 - T_2)) & M \rightarrow T_1 & M \rightarrow T_2 \\
+\neg (M \rightarrow (T_2 - T_1)) & \neg (M \rightarrow T_1) & \neg (M \rightarrow T_2) \\
+\hline
+\neg ((T_1 \cup T_2) \rightarrow M) & T_1 \rightarrow M & \neg (T_2 \rightarrow M) \\
+(T_1 \cap T_2) \rightarrow M & \neg(T_1 \rightarrow M) & T_2 \rightarrow M \\
+\neg ((T_1 \ominus T_2) \rightarrow M) & T_1 \rightarrow M & T_2 \rightarrow M \\
+\neg ((T_2 \ominus T_1) \rightarrow M) & \neg (T_1 \rightarrow M) & \neg (T_2 \rightarrow M) \\
+\hline
+\neg (S_1 \wedge S_2) & S_1 & \neg S_2 \\
+S_1 \vee S_2 & \neg S_1 & S_2 \\
+\hline \end{array}\]
+\caption{The Decomposition Rules}
+\label{Decomposition}
+\end{table}
+
+\end{description}
+
+\textbf{(B) One-premise inference rules:} each of these rules takes one premise $J_0$, and derive a conclusion $J$, with a truth-value calculated from the truth-value of the premise by a function $F$.
+
+\begin{description}
+	\item[(B.1) Conversion rules,] in Table \ref{Conversion-Rules}, are rules only need to consider the evidence provided by the premise.
+
+\begin{table}[htb]
+\[\begin{array}{|r|l|l|} \hline
+ J_0 & J & F \\
+\hline \hline
+ S & \neg S & F_{neg} \\
+\hline
+ S \rightarrow P & P \rightarrow S & F_{cnv} \\
+\hline
+ S \Rightarrow P & P \Rightarrow S & F_{cnv} \\
+ S \Rightarrow P & (\neg P) \Rightarrow (\neg S) & F_{cnt} \\
+\hline
+\end{array}\]
+\caption{The Conversion Rules}
+\label{Conversion-Rules}
+\end{table}
+
+  \item[(B.2) Equivalence rules,] in Table \ref{Equivalence-Theorems}, come from theorems of the form ``\(statement_1 \equiv statement_2\)''. Each of them can be used in inference as equivalence statement ``\(statement_1 \Leftrightarrow statement_2 \langle 1, r\rangle \)''.
+
+\begin{table}[htb]
+\[\begin{array}{|r|l|} \hline
+statement_1 & statement_2 \\
+\hline \hline
+S \leftrightarrow P & (S \rightarrow P) \wedge (P \rightarrow S) \\
+S \Leftrightarrow P & (S \Rightarrow P) \wedge (P \Rightarrow S) \\
+\hline
+S \leftrightarrow P & \{S\} \leftrightarrow \{P\} \\
+S \leftrightarrow P & [S] \leftrightarrow [P] \\
+S \rightarrow \{P\} & S \leftrightarrow \{P\} \\
+\mbox{[}S\mbox{]} \rightarrow P & [S] \leftrightarrow P \\
+\hline
+(S_1 \times S_2) \rightarrow (P_1 \times P_2) & (S_1 \rightarrow P_1) \wedge (S_2 \rightarrow P_2) \\
+(S_1 \times S_2) \leftrightarrow (P_1 \times P_2) & (S_1 \leftrightarrow P_1) \wedge (S_2 \leftrightarrow P_2) \\
+\hline
+S \rightarrow P & (M \times S) \rightarrow (M \times P) \\
+S \rightarrow P & (S \times M) \rightarrow (P \times M) \\
+S \leftrightarrow P & (M \times S) \leftrightarrow (M \times P) \\
+S \leftrightarrow P & (S \times M) \leftrightarrow (P \times M) \\
+\hline
+(\times \; T_1 \; T_2) \rightarrow R & T_1 \rightarrow (\bot \; R \; \diamond \; T_2) \\
+(\times \; T_1 \; T_2) \rightarrow R & T_2 \rightarrow (\bot \; R \; T_1 \; \diamond) \\
+R \rightarrow (\times \; T_1 \; T_2) & (\top \; R \; \diamond \; T_2) \rightarrow T_1 \\
+R \rightarrow (\times \; T_1 \; T_2) & (\top \; R \; T_1 \; \diamond) \rightarrow T_2 \\
+\hline
+\neg(S_1 \wedge S_2) & (\neg S_1) \vee (\neg S_2) \\
+\neg(S_1 \vee S_2) & (\neg S_1) \wedge (\neg S_2) \\
+\hline
+S_1 \Leftrightarrow S_2 & (\neg S_1) \Leftrightarrow (\neg S_2) \\
+\neg(S_1 \Rightarrow S_2) & S_1 \Rightarrow (\neg S_2) \\
+\neg(S_1 \Leftrightarrow S_2) & S_1 \Leftrightarrow (\neg S_2) \\
+\hline \end{array}\]
+\caption{The Equivalence Theorems}
+\label{Equivalence-Theorems}
+\end{table}
+
+  \item[(B.3) Term reduction rules,] in Table \ref{Reduction-Theorems}, come from theorems of the form ``\(term_1 \leftrightarrow term_2\)''. Each of them can be used in inference to reduce term $term_1$ into a simpler term $term_2$, and turns a premise into a conclusion with the same truth-value.
+
+\begin{table}[htb]
+\[\begin{array}{|r|l|} \hline
+term_1 & term_2 \\
+\hline \hline
+\neg (\neg T) & T \\
+\hline
+(\cup \; \{T_1\} \; \cdots \; \{T_n\}) & \{T_1, \; \cdots , \; T_n\} \\
+(\cap \; [T_1] \; \cdots \; [T_n]) & [T_1, \; \cdots , \; T_n] \\
+(\{T_1, \; \cdots , \; T_n\} - \{T_n\}) & \{T_1, \; \cdots , \; T_{n-1}\} \\
+([T_1, \; \cdots , \; T_n] \ominus [T_n]) & [T_1, \; \cdots , \; T_{n-1}] \\
+\hline
+((T_1 \times T_2) \, \bot \, T_2) & T_1 \\
+((T_1 \times T_2) \, \top \, T_2) & T_1 \\
+\hline
+S_1 \Rightarrow (S_2 \Rightarrow S_3) & (S_1 \wedge S_2) \Rightarrow S_3 \\
+\hline \end{array}\]
+\caption{The Reduction Theorems}
+\label{Reduction-Theorems}
+\end{table}
+
+  \item[(B.4) Implication rules,] in Table \ref{Implication-Theorems}, come from theorems in the form of ``\(statement_1 \supset statement_2\)''. Each of them can be used in inference as implication statement ``\(statement_1 \Rightarrow statement_2 \langle 1, r\rangle \)''.
+
+\begin{table}[htb]
+\[\begin{array}{|r|l|} \hline
+statement_1 & statement_2 \\
+\hline \hline
+S \leftrightarrow P & S \rightarrow P\\
+S \Leftrightarrow P & S \Rightarrow P\\
+\hline
+S_1 \wedge S_2 & S_1 \\
+S_1 & S_1 \vee S_2 \\
+\hline
+S \rightarrow P & (S \cup M) \rightarrow (P \cup M) \\
+S \rightarrow P & (S \cap M) \rightarrow (P \cap M) \\
+S \leftrightarrow P & (S \cup M) \leftrightarrow (P \cup M) \\
+S \leftrightarrow P & (S \cap M) \leftrightarrow (P \cap M) \\
+S \Rightarrow P & (S \vee M) \Rightarrow (P \vee M) \\
+S \Rightarrow P & (S \wedge M) \Rightarrow (P \wedge M) \\
+S \Leftrightarrow P & (S \vee M) \Leftrightarrow (P \vee M) \\
+S \Leftrightarrow P & (S \wedge M) \Leftrightarrow (P \wedge M) \\
+\hline
+S \rightarrow P & (S - M) \rightarrow (P - M) \\
+S \rightarrow P & (M - P) \rightarrow (M - S) \\
+S \rightarrow P & (S \ominus M) \rightarrow (P \ominus M) \\
+S \rightarrow P & (M \ominus P) \rightarrow (M \ominus S) \\
+S \leftrightarrow P & (S - M) \leftrightarrow (P - M) \\
+S \leftrightarrow P & (M - P) \leftrightarrow (M - S) \\
+S \leftrightarrow P & (S \ominus M) \leftrightarrow (P \ominus M) \\
+S \leftrightarrow P & (M \ominus P) \leftrightarrow (M \ominus S) \\
+\hline
+M \rightarrow (T_1 - T_2) & \neg(M \rightarrow T_2) \\
+(T_1 \ominus T_2) \rightarrow M & \neg(T_2 \rightarrow M) \\
+\hline
+S \rightarrow P & (S \; \bot \; M) \rightarrow (P \; \bot \; M)   \\
+S \rightarrow P & (S \; \top \; M) \rightarrow (P \; \top \; M)   \\
+S \rightarrow P & (M \; \bot \; P) \rightarrow (M \; \bot \; S)   \\
+S \rightarrow P & (M \; \top \; P) \rightarrow (M \; \top \; S)   \\
+\hline \end{array}\]
+\caption{The Implication Theorems}
+\label{Implication-Theorems}
+\end{table}
+
+  \item[(B.5) Inheritance rules,] in Table \ref{Inheritance-Theorems}, come from theorems in the form of ``\(term_1 \rightarrow term_2\)''. Each of them can be used as two implications ``\((X \rightarrow term_1) \supset (X \rightarrow term_2)\)'' and ``\((term_2 \rightarrow X) \supset (term_1 \rightarrow X)\)'', by the above Implication Rules.
+
+\begin{table}[htb]
+\[\begin{array}{|r|l|} \hline
+term_1 & term_2 \\
+\hline \hline
+(T_1 \cap T_2) & T_1 \\
+T_1 & (T_1 \cup T_2) \\
+(T_1 - T_2) & T_1 \\
+T_1 & (T_1 \ominus T_2) \\
+\hline
+((R \, \bot \, T) \times T) & R \\
+R & ((R \, \top \, T) \times T) \\ 
+\hline
+\end{array}\]
+\caption{The Inheritance Theorems}
+\label{Inheritance-Theorems}
+\end{table}
+
+\end{description}
+
+\textbf{(C) Meta-level inference rules:} Each of these rules specifies how to use the other rules defined above for additional usages.\footnote{Beside the following meta-rules, it may be possible to summarize some other rules into meta-rules. For instance, the rules in \ref{Conditional-2}, \ref{Conditional-3}, and \ref{Multiple-Variable} probably should be replaced by the following meta-rules:
+\[\mbox{If } \{P_1, P_2\} \vdash C \langle F_n\rangle , \mbox{ then } \{(A \Rightarrow P_1), P_2\} \vdash (A \Rightarrow C) \langle F_n\rangle \]
+\[\mbox{If } \{P_1, P_2\} \vdash C \langle F_n\rangle , \mbox{ then } \{(A \wedge P_1), P_2\} \vdash (A \wedge C) \langle F_n\rangle \]
+}
+\begin{description}
+	\item[(C.1) Question derivation.] A question $Q$ and a judgment $J$ produce a derived question $Q'$, if and only if the answer to $Q'$, call it $J'$, can be used with $J$ to derive an answer to $Q$ by a two-premise inference rule; a question $Q$ by itself produces a derived question $Q'$, if and only if the answer to $Q'$, call it $J'$, can be used to derive an answer to $Q$ by a one-premise inference rule.
+
+  \item[(C.2) Goal derivation.] A goal $G$ and a judgment $J$ produce a derived goal $G'$, if and only if the solution to $G'$, call it $J'$, can be used with $J$ to derive a solution to $G$ by a two-premise inference rule; a question $G$ by itself produces a derived goal $G'$, if and only if the solution to $G'$, call it $J'$, can be used to derive a solution to $G$ by a one-premise inference rule. In both cases, the desire-value of $G'$ is derived as the truth-value of \(G' \Rightarrow D\) from the desire-value of $G$, as the truth-value of \(G \Rightarrow D\), as well as the truth-value of $J$ (if it is involved).
+
+  \item[(C.3) Variable substitution.] All occurrences of an independent variable term in a statement can be substituted by another term (constant or variable); all occurrences of constant in a statement can be substituted by a dependent variable term (constant or variable). The reverse cases of substitution are limited to Table \ref{Variable-Introduction-Ind} and \ref{Variable-Elimination-Dep}. A query variable in a question can be substituted by a constant term in a judgment.
+
+  \item[(C.4) Temporal attributes.] Temporal inference is carried out by processing the logical factor and the temporal factor in the premises in parallel. The former is based on the inference rules, and the latter on the properties of the two basic temporal relations. When both factors can be decided, they are combined in the conclusion, otherwise no conclusion is derived.
+
+\end{description}
+
+\textbf{(D) Direct-processing rules:} Each of these rules directly processes a new inference task, based on the information local to the content of the task.
+\begin{description}
+	\item[(D.1) Revision/update.] When the system gets a new judgment (or goal), it is used with an existing judgment (or goal) by the \emph{revision} rule, under the conditions that (1) the two have the same content (top-level statement), (2) the content does not contain dependent variable term, and (3) the two have distinct evidential bases. The conclusion has the same content, but a higher confidence value. When the statement is an event, and the new judgment is significantly different from the old one, the operation is \emph{update}, and the old belief is adding a past tense, and the new one becomes the current belief.\footnote{There are situations where \emph{revision} and \emph{update} are both applicable. The system will either to both or use additional information to select between the two interpretations of the situation.}
+  \item[(D.2) Choice.] A judgment provides an answer to a question, and a solution to a goal, with the same content. When there are multiple candidate answers or solutions, the one with high \emph{expectation} and low \emph{complexity} is chosen if the question contains query variables,\footnote{When resource restriction is taken into consideration, the syntactic \emph{complexity} of the candidates should also be taken into account, together with the expectation value of the candidate, and simpler answers should be preferred. In the current implementation, the choice rule compare two candidates by their \emph{expectation/complexity} ratio.} otherwise the one with the highest \emph{confidence} value is chosen.
+  \item[(D.3) Decision.] A candidate goal $G$ is actually pursued by the system, when its expected desirability $p_G$ and expected plausibility $d_G$ satisfy condition \(p_G(d_G - 1/2) + 1/2 > t\), where $t$ is a threshold larger than 1/2. When the goal is an operation, it is executed.
+\end{description}
+
+\section{NAL Truth-value Functions}
+
+All truth-value functions are summarized in Table \ref{NAL-Functions}, in their simplest form. Different types of uncertainty measurements are mixed in the functions, and their relations are given in Table \ref{Uncertainty}.
+
+The functions are clustered into groups, according to the syntactic feature of the rules using them. The functions used in the syllogistic rules are divided into \emph{strong} functions and \emph{weak} functions. In a rule using a strong function, the confidence of the conclusion has an upper bound 1, and the rule remains valid in its binary form; in a rule using a weak function, the confidence of the conclusion has an upper bound 1/(1+$k$) (since $w$ has an upper bound 1), and the rule is invalid in its binary form. A NAL inference rule with a strong truth-value function will be a valid inference rule in IL if when the truth-values are omitted (so the premises and conclusion become binary), which is not the case for the rules with weak truth-value functions.
+
+\begin{table}[hbt]
+\small
+\centering
+\[\begin{array}{|r|c|l|lll|} \hline
+
+\hline
+\textbf{type} 	& \textbf{inference} 	& \textbf{name}		&&& \textbf{function} \\
+\hline
+\mbox{same-statement}
+& \mbox{revision} & F_{rev} 
+& w^+ & = & w^+_1 + w^+_2 \\ &&
+& w^- & = & w^-_1 + w^-_2 \\
+\hline
+\mbox{single-premise}
+& \mbox{negation} & F_{neg} 
+& w^+ & = & w^-_0 \\ &&
+& w^- & = & w^+_0 \\
+& \mbox{conversion} & F_{cnv} 
+& w^+ & = & and(f_0, c_0) \\ &&
+& w^- & = & 0 \\
+& \mbox{contraposition} & F_{cnt}
+& w^+ & = & 0 \\ &&
+& w^- & = & and((not(f_0), c_0) \\
+\hline
+\mbox{strong syllogism}
+& \mbox{deduction} & F_{ded} 
+& f & = & and(f_1, f_2) \\ &&
+& c & = & and(f_1, f_2, c_1, c_2) \\
+& \mbox{analogy} & F_{ana} 
+& f & = & and(f_1, f_2) \\ &&
+& c & = & and(f_2, c_1, c_2) \\
+& \mbox{resemblance} & F_{res} 
+& f & = & and(f_1, f_2) \\ &&
+& c & = & and(or(f_1, f_2), c_1, c_2) \\
+\hline
+\mbox{weak syllogism}
+& \mbox{abduction} & F_{abd} 
+& w^+ & = & and(f_1, f_2, c_1, c_2) \\ &&
+& w & = & and(f_1, c_1, c_2) \\ 
+& \mbox{induction} & F_{ind} 
+& w^+ & = & and(f_1, f_2, c_1, c_2) \\ &&
+& w & = & and(f_2, c_1, c_2) \\ 
+& \mbox{exemplification} & F_{exe} 
+& w^+ & = & and(f_1, f_2, c_1, c_2) \\ &&
+& w & = & and(f_1, f_2, c_1, c_2) \\ 
+& \mbox{comparison} & F_{com} 
+& w^+ & = & and(f_1, f_2, c_1, c_2) \\ &&
+& w & = & and(or(f_1, f_2), c_1, c_2) \\
+\hline
+\mbox{term composition}
+& \mbox{intersection} & F_{int}
+& f & = & and(f_1, f_2) \\ &&
+& c & = & or(and(not(f_1), c_1), and(not(f_2), c_2)) \\ 
+&&&&& + \; and(f_1, c_1, f_2, c_2) \\
+& \mbox{union} & F_{uni} 
+& f & = & or(f_1, f_2) \\ &&
+& c & = & or(and(f_1, c_1), and(f_2, c_2))\\
+&&&&& + \; and(not(f_1), c_1, not(f_2), c_2) \\
+& \mbox{difference} & F_{dif}
+& f & = & and(f_1, not(f_2)) \\ &&
+& c & = & or(and(not(f_1), c_1), and(f_2, c_2))\\
+&&&&& + \; and(f_1, c_1, not(f_2), c_2) \\
+\hline \end{array} \]
+\caption{The Truth-Value Functions of NAL}
+\label{NAL-Functions}
+\end{table}
+
+\section*{References}
+
+\cite{wp:book1}, \cite{wp:phd,wp:roadmap}

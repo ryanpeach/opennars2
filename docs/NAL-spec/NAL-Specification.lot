@@ -1,0 +1,64 @@
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {2.1}{\ignorespaces The Grammar Rules of IL-1}}{6}
+\contentsline {table}{\numberline {2.2}{\ignorespaces The Inference Rule of IL-1}}{9}
+\contentsline {table}{\numberline {2.3}{\ignorespaces The Matching Rule of IL-1}}{10}
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {3.1}{\ignorespaces The Mappings Among Measurements of Uncertainty}}{14}
+\contentsline {table}{\numberline {3.2}{\ignorespaces The Grammar of Narsese-1}}{15}
+\contentsline {table}{\numberline {3.3}{\ignorespaces The Basic Syllogistic Rules}}{18}
+\contentsline {table}{\numberline {3.4}{\ignorespaces The Truth-value Functions of the Basic Syllogistic Rules}}{18}
+\contentsline {table}{\numberline {3.5}{\ignorespaces The Conversion Rules of NAL-1}}{19}
+\contentsline {table}{\numberline {3.6}{\ignorespaces The Truth-value Function of the Conversion Rule}}{19}
+\contentsline {table}{\numberline {3.7}{\ignorespaces The Revision Rule}}{20}
+\contentsline {table}{\numberline {3.8}{\ignorespaces The Truth-value Function of the Revision Rule}}{20}
+\contentsline {table}{\numberline {3.9}{\ignorespaces The Expectation Function}}{20}
+\contentsline {table}{\numberline {3.10}{\ignorespaces The Choice Rule}}{21}
+\contentsline {table}{\numberline {3.11}{\ignorespaces The Backward Basic Syllogistic Rules}}{22}
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {4.1}{\ignorespaces The Similarity-related Syllogistic Rules}}{24}
+\contentsline {table}{\numberline {4.2}{\ignorespaces The Truth-value Functions of the Similarity-related Rules}}{25}
+\contentsline {table}{\numberline {4.3}{\ignorespaces The New Grammar Rules of Narsese-2}}{28}
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {5.1}{\ignorespaces The New Grammar Rules of Narsese-3}}{33}
+\contentsline {table}{\numberline {5.2}{\ignorespaces The Composition Rules of NAL-3}}{33}
+\contentsline {table}{\numberline {5.3}{\ignorespaces The Truth-value Functions of the Composition Rules}}{34}
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {6.1}{\ignorespaces The New Grammar Rules of Narsese-4}}{37}
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {7.1}{\ignorespaces The New Grammar Rules of Narsese-5}}{39}
+\contentsline {table}{\numberline {7.2}{\ignorespaces Isomorphism of First-Order and Higher-Order IL}}{40}
+\contentsline {table}{\numberline {7.3}{\ignorespaces The Conditional Syllogistic Rules (1)}}{42}
+\contentsline {table}{\numberline {7.4}{\ignorespaces The Conditional Syllogistic Rules (2)}}{43}
+\contentsline {table}{\numberline {7.5}{\ignorespaces The Conditional Syllogistic Rules (3)}}{44}
+\contentsline {table}{\numberline {7.6}{\ignorespaces The Conditional Syllogistic Rules (4)}}{44}
+\contentsline {table}{\numberline {7.7}{\ignorespaces The Negation Rule}}{45}
+\contentsline {table}{\numberline {7.8}{\ignorespaces The Truth-value Function of the Negation Rule}}{45}
+\contentsline {table}{\numberline {7.9}{\ignorespaces The Contraposition Rule}}{46}
+\contentsline {table}{\numberline {7.10}{\ignorespaces The Truth-value Function of the Contraposition Rule}}{46}
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {8.1}{\ignorespaces The New Grammar Rules of Narsese-6}}{49}
+\contentsline {table}{\numberline {8.2}{\ignorespaces Sample Independent-Variable Elimination Rules}}{51}
+\contentsline {table}{\numberline {8.3}{\ignorespaces Sample Independent-Variable Introduction Rules}}{52}
+\contentsline {table}{\numberline {8.4}{\ignorespaces Sample Dependent-Variable Introduction Rule}}{52}
+\contentsline {table}{\numberline {8.5}{\ignorespaces Sample Dependent-Variable Elimination Rule}}{52}
+\contentsline {table}{\numberline {8.6}{\ignorespaces Sample Multi-Variable Introduction Rules}}{53}
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {9.1}{\ignorespaces The New Grammar Rules of Narsese-7}}{59}
+\contentsline {table}{\numberline {9.2}{\ignorespaces Sample Temporal Inference Rule}}{61}
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {10.1}{\ignorespaces The New Grammar Rules of Narsese-8}}{66}
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {11.1}{\ignorespaces The Complete Grammar of Narsese}}{76}
+\contentsline {table}{\numberline {11.2}{\ignorespaces The Symbols in Narsese Grammar}}{77}
+\contentsline {table}{\numberline {11.3}{\ignorespaces The First-Order Syllogistic Rules}}{78}
+\contentsline {table}{\numberline {11.4}{\ignorespaces The Higher-Order Syllogistic Rules}}{78}
+\contentsline {table}{\numberline {11.5}{\ignorespaces The Conditional Syllogistic Rules}}{79}
+\contentsline {table}{\numberline {11.6}{\ignorespaces The Composition Rules}}{79}
+\contentsline {table}{\numberline {11.7}{\ignorespaces The Decomposition Rules}}{80}
+\contentsline {table}{\numberline {11.8}{\ignorespaces The Conversion Rules}}{80}
+\contentsline {table}{\numberline {11.9}{\ignorespaces The Equivalence Theorems}}{81}
+\contentsline {table}{\numberline {11.10}{\ignorespaces The Reduction Theorems}}{81}
+\contentsline {table}{\numberline {11.11}{\ignorespaces The Implication Theorems}}{82}
+\contentsline {table}{\numberline {11.12}{\ignorespaces The Inheritance Theorems}}{83}
+\contentsline {table}{\numberline {11.13}{\ignorespaces The Truth-Value Functions of NAL}}{84}

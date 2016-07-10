@@ -1,0 +1,148 @@
+
+\chapter{NAL-6: Inference with Variable Terms}
+
+\section{Variable terms}
+
+\begin{defi}
+A \emph{query variable} is named by a word (or a number) preceded by `?', and can only appear in a question; an \emph{independent variable} or \emph{dependent variable} is named by a word (or a number) preceded by `\#', and can appear in any type of sentence. The name of a dependent variable also contains a list of independent variables, and the list can be empty.
+\end{defi}
+Therefore, in NAL variable terms are distinguished from non-variable terms in syntax, and so are different types of variable. All the types of variables in NAL are summarized in Table \ref{Narsese-6}.
+
+\begin{table}[htb]
+\[\begin{array}{|rrl|}
+\hline
+\langle term \rangle  & ::= & \langle variable \rangle  \\
+\langle variable \rangle  & ::= & \langle independent\mbox{-}variable \rangle \\ &&
+                  		 | \; \langle dependent\mbox{-}variable \rangle \\ &&
+                  		 | \; \langle query\mbox{-}variable \rangle \\
+\langle independent\mbox{-}variable \rangle  & ::= & `\#'\!\langle word \rangle \\
+\langle dependent\mbox{-}variable \rangle  & ::= & `\#'[\langle  word \rangle `('\langle  independent\mbox{-}variable \rangle^*`)'] \\
+\langle query\mbox{-}variable \rangle  & ::= & `?'[\langle word \rangle] \\
+\hline
+\end{array} \]
+\caption{The New Grammar Rules of Narsese-6}
+\label{Narsese-6}
+\end{table}
+
+\begin{defi}
+The \emph{scope} of a variable is the smallest statement that contains all occurrences of the variable.
+\end{defi}
+In a sentence with multiple variables, each of them uses a different name, therefore its scope does not need to be explicitly specified.  The scope of a variable can be embedded in that of another variable. 
+
+\begin{defi}
+The meaning of a variable term is determined locally by its relations with the other terms within its scope. 
+\end{defi}
+On the contrary, a non-variable term is \emph{constant}, in the sense that at any given moment, its occurrences in the whole system have the same meaning, determined by its (empirical and analytical) relations with the other term \emph{in the whole system}. The name of a variable term is unique in a sentence, while the name of a constant term is unique in a system.
+
+\begin{defi}
+For a judgment containing variable terms in it, its truth-value is defined by the truth-values of the statements obtained by replacing the variable terms by constant terms satisfying the meanings of the variables. Especially, an \emph{independent variable} can be replaced by \emph{any} constant satisfying the condition, and a \emph{dependent variable} can be replaced by \emph{a single} constant satisfying the condition. A dependent variable may depend on some independent variables when picking the constant it replaces.
+\end{defi}
+In IL and NAL, an independent variable is used to describe the property of a group of terms, typically in the extension or intension of a term; a dependent variable is used to describe the property of a unspecified term, which may depend on some independent variables. As a result, an independent variable normally appears in both sides of an implication or equivalence copula, as extension or intension of two terms. A dependent variable normally appear in two components of a conjunction, also as extension or intension of two terms. Therefore, the following are the simplest statements with variable terms:
+\[\begin{array}{rcl}
+(\#x \rightarrow S) \Rightarrow (\#x \rightarrow P) \; & \; &
+(\#x() \rightarrow S) \wedge (\#x() \rightarrow P) \\
+(S \rightarrow \#x) \Rightarrow (P \rightarrow \#x) \; & \; &
+(S \rightarrow \#x()) \wedge (P \rightarrow \#x()) \\
+\end{array}\]
+In this way, an independent variable is used to indicate the inclusion of the extension (or intension) of one term in that of another; a dependent variable is used to indicate the overlap of the extensions (or intensions) of two terms.
+
+\begin{defi}
+A variable is \emph{open} in a compound term if its scope goes beyond the compound, otherwise it is \emph{closed} in the compound term. A compound term is a variable if it contains open variables.
+\end{defi}
+
+The IL-6 definition of query variable is an extension of the query variable implicitly introduced in IL-1 as forms of questions in ``\(S \rightarrow ?\)'' and ``\(? \rightarrow P\)''. With the new definition, there can be multiple query variables in a question, and a query variable can appear in other positions other than top-level subject or predicate. Even so, the rule of its processing remains the same, that is, all occurrences of a query variable can be substituted by the same constant term.
+
+Both a dependent variable and a query variable can be \emph{anonymous}, without a name, so each occurrence of it is taken to be a different term. An anonymous dependent variable does not have to appear in two components of a conjunction.
+
+
+\section{Variable elimination and introduction}
+
+\begin{defi}
+For given terms $R$, $s$, $t$, a \emph{substitution} $R\{s/t\}$ produces a new term by replacing all occurrences of $s$ by $t$ in $R$, which is usually a compound term.
+\end{defi}
+
+\begin{theo}
+If a true statement $S$ contains independent variable $\#v$, then the statement $S\{\#v/t\}$ is true for any (constant or variable) term $t$.
+\end{theo}
+
+\begin{theo}
+If a true statement $S$ contains a (constant or variable) term $t$, and does not contain dependent variable $\#v()$, then the statement $S\{t/\#v()\}$ is true.
+\end{theo}
+
+Some independent-variable elimination rules are given in Table \ref{Variable-Elimination-Ind}, and each of them can be seen as carrying a substitution $\{\#x/M\}$, followed by an inference defined previously. A complete list of such rules include almost all the two-premise rules with a common term, where ``a common term'' now is replaced by ``two terms that can be instantiated by the same constant''.
+
+\begin{table}[htb]
+\[\begin{array}{|rcl|}
+\hline
+\{(\#x \rightarrow S) \Rightarrow (\#x \rightarrow P) , \; M \rightarrow S \} & \vdash & M \rightarrow P \; \langle F_{ded}\rangle  \\
+\{(\#x \rightarrow S) \Rightarrow (\#x \rightarrow P) , \; M \rightarrow P \} & \vdash & M \rightarrow S \; \langle F_{abd}\rangle  \\
+\{(\#x \rightarrow S) \Leftrightarrow (\#x \rightarrow P) , \; M \rightarrow S \} & \vdash & M \rightarrow P \; \langle F'_{ana}\rangle  \\
+\hline
+\end{array}\]
+\caption{Sample Independent-Variable Elimination Rules}
+\label{Variable-Elimination-Ind}
+\end{table}
+
+The reverse of \emph{independent-variable elimination} is \emph{independent-variable introduction}, as given in Table \ref{Variable-Introduction-Ind}. These rules are justified in the same way as the rules in NAL-1 and NAL-2, except that here the ``extensional inheritance'' and ``intensional inheritance'' between $S$ and $P$ are separated, due to the using of an independent variable. 
+
+\begin{table}[htb]
+\[\begin{array}{|rcl|}
+\hline
+\{M \rightarrow P , \; M \rightarrow S \} & \vdash & (\#x \rightarrow S) \Rightarrow (\#x \rightarrow P) \; \langle F_{ind}\rangle  \\
+\{M \rightarrow P , \; M \rightarrow S \} & \vdash & (\#x \rightarrow S) \Leftrightarrow (\#x \rightarrow P) \; \langle F_{com}\rangle  \\
+\hline
+\end{array}\]
+\caption{Sample Independent-Variable Introduction Rules}
+\label{Variable-Introduction-Ind}
+\end{table}
+
+The rule in Table \ref{Variable-Introduction-Dep} introduces a dependent variable into conjunction, which can be seen as the conjunction-composition rule defined in Table \ref{NAL-5-Composition} followed by a substitution $\{M/\#x()\}$. 
+
+\begin{table}[htb]
+\[\begin{array}{|rcl|}
+\hline
+\{M \rightarrow P , \; M \rightarrow S \} & \vdash & (\#x() \rightarrow P) \wedge (\#x() \rightarrow S) \; \langle F_{int}\rangle \\
+\hline
+\end{array}\]
+\caption{Sample Dependent-Variable Introduction Rule}
+\label{Variable-Introduction-Dep}
+\end{table}
+
+The reverse of the rule in Table \ref{Variable-Introduction-Dep} can be seen as a special type of unification to match a dependent variable with a constant, as given in Table \ref{Variable-Elimination-Dep}. Conceptually, the inference is a comparison followed by an analogy. First, in ``\((\#x() \rightarrow P) \wedge (\#x() \rightarrow S)\)'' the anonymous term provides evidence for a similarity statement ``\(P \leftrightarrow S\)'', then the latter is used with ``\(M \rightarrow S\)'' by the analogy rule to derive ``\(M \rightarrow P\)''. Therefore, the truth-value function $F^w_{ana}$ is just the analogy function $F_{ana}$, except that the confidence of the second premise is taken to be the weight of confidence of the corresponding similarity statement.
+
+\begin{table}[htb]
+\[\begin{array}{|rcl|}
+\hline
+\{M \rightarrow S, \; (\#x() \rightarrow P) \wedge (\#x() \rightarrow S)\} & \vdash & M \rightarrow P \; \langle F^w_{ana}\rangle \\
+\hline
+\end{array}\]
+\caption{Sample Dependent-Variable Elimination Rule}
+\label{Variable-Elimination-Dep}
+\end{table}
+
+The rules in Table \ref{Variable-Introduction-Dep} and Table \ref{Variable-Elimination-Dep} are only about the extensions of $S$ and $P$. Similarly, there are rules that only process the intensions of the terms involved. As required before, in NAL a dependent variable is only introduced into a conjunction, and an independent variable into both sides of an implication or equivalence. 
+
+Variables can be introduced into statements where other variables exist. When an independent variable is introduced, the existing dependent variables become its function. The rules for multiple variables in Table \ref{Multiple-Variable} can be extended to handle more than two variables.
+
+\begin{table}[htb]
+\[\begin{array}{|l|} \hline
+\;\;\;\{(\#x \rightarrow P) \Rightarrow (M \rightarrow (\bot \; R  \; \#x \; \diamond)), \; M \rightarrow S\} \\ \vdash ((\#y \rightarrow S) \wedge (\#x \rightarrow P)) \Rightarrow (\#y \rightarrow (\bot \; R  \; \#x \; \diamond)) \; \langle F_{ind}\rangle  \\
+\hline
+\;\;\;\{(\#x \rightarrow P) \Rightarrow (M \rightarrow (\bot \; R  \; \#x \; \diamond)), \; M \rightarrow S\} \\ \vdash (\#y() \rightarrow S) \wedge ((\#x \rightarrow P) \Rightarrow (\#y() \rightarrow (\bot \; R  \; \#x \; \diamond))) \; \langle F_{int}\rangle  \\
+\hline
+\;\;\;\{(\#x() \rightarrow P) \wedge (M \rightarrow (\bot \; R  \; \#x() \; \diamond)), \; M \rightarrow S\} \\ \vdash ((\#y \rightarrow S) \Rightarrow ((\#x(\#y) \rightarrow P) \wedge (\#y \rightarrow (\bot \; R  \; \#x(\#y) \; \diamond))) \; \langle F_{ind}\rangle  \\
+\hline
+\;\;\;\{(\#x() \rightarrow P) \wedge (M \rightarrow (\bot \; R  \; \#x() \; \diamond)), \; M \rightarrow S\} \\ \vdash (\#y() \rightarrow S) \wedge (\#x() \rightarrow P) \wedge (\#y() \rightarrow (\bot \; R  \; \#x() \; \diamond)) \; \langle F_{int}\rangle  \\
+\hline \end{array} \]
+\caption{Sample Multi-Variable Introduction Rules}
+\label{Multiple-Variable}
+\end{table}
+
+The revision rule is also extended to unify independent variables. For example, statements
+\((\#x \rightarrow S) \Rightarrow (\#x \rightarrow P)\) and
+\((\#y \rightarrow S) \Rightarrow (\#y \rightarrow P)\) can be merged together. On the other hand, this rule cannot be applied on two judgments containing \(((\#x() \rightarrow S) \wedge (\#x() \rightarrow P))\), since the dependent variables in them do not necessarily correspond to the same (constant) term, even though they share the same name.
+
+
+\section*{References}
+
+\cite[Chapter 5]{wp:book1}

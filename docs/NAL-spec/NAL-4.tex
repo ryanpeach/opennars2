@@ -1,0 +1,113 @@
+\chapter{NAL-4: Products, Relations, and Images}
+
+NAL-4 has the capability of representing and processing arbitrary relations among terms that cannot be treated by the copulas.
+
+\section{Products and relations}
+
+Intuitively, a ``product'' is a compound term consisting of a sequence of components.
+\begin{defi}
+For two terms $T_1$ and $T_2$, their {\em product} \((T_1 \times T_2)\) is a compound term defined by 
+\[((S_1 \times S_2) \rightarrow (P_1 \times P_2)) \equiv ((S_1 \rightarrow P_1) \wedge (S_2 \rightarrow P_2)).\]
+\end{defi}
+This definition can be extended to allow more than two components in a product.  The product connector allows duplicate components.  The order of components matters. The prefix format can be used for products.
+
+\begin{theo}
+\[(S \rightarrow P) \equiv
+  ((M \times S) \rightarrow (M \times P)) \equiv
+  ((S \times M) \rightarrow (P \times M))\]
+\[(S \leftrightarrow P) \equiv
+  ((M \times S) \leftrightarrow (M \times P)) \equiv
+  ((S \times M) \leftrightarrow (P \times M))\]
+\end{theo}
+\begin{theo}
+\[((S_1 \times S_2) \leftrightarrow (P_1 \times P_2)) \equiv
+((S_1 \leftrightarrow P_1) \wedge (S_2 \leftrightarrow P_2))\]
+\end{theo}
+
+As a special case of the definition of product, when the terms involved are products with common components, the system can ``concatenate'' them into longer products with more than two components:
+\begin{theo}
+\[\begin{array}{c}
+(((\times, S_1, S_2) \leftrightarrow (\times, P_1, P_2)) \wedge ((\times, S_1, S_3) \leftrightarrow (\times, P_1, P_3))) 
+\\ \equiv ((\times, S_1, S_2, S_3) \leftrightarrow (\times, P_1, P_2, P_3))
+\end{array}\]
+\end{theo}
+
+\begin{theo}
+\[\{(x \times y) \, | \, x \in T_1^E, y \in T_2^E\} \subseteq
+(T_1 \times T_2)^E\]
+\[\{(x \times y) \, | \, x \in T_1^I, y \in T_2^I\} \subseteq
+(T_1 \times T_2)^I\]
+\end{theo}
+The `$\subseteq$' cannot be replaced by `$=$' in the above theorem, because $(T_1 \times T_2)^E$ and $(T_1 \times T_2)^I$ may contain other terms that are not products.
+
+\begin{defi}
+A {\em relation} is a term $R$ such that there is a product $(T_1 \times T_2)$ satisfying ``\((T_1 \times T_2) \rightarrow R\)'' or ``\(R \rightarrow (T_1 \times T_2)\)''.
+\end{defi}
+Since ``\((T_1 \times T_2) \rightarrow (T_1 \times T_2)\)'', a product is a relation, though a relation is not necessarily a product. In NAL, a relation can be an atomic term.
+
+Though in the meta-language of NAL, a copula (\emph{inheritance} or \emph{similarity}) is a ``relation'' as defined set theory, it is not a \emph{relation} in Narsese, as defined above. A copula has a fixed meaning provided in the meta-language of NAL, while a relation has an experience-grounded meaning, as other terms in Narsese.
+
+
+\section{Images}
+
+\begin{defi}
+For a relation $R$ and a product $(\times \; T_1 \; T_2)$, the {\em extensional image} operator, `$\bot$', and {\em intensional image} operator, `$\top$', of the relation on the product are defined as the following, respectively:
+\[((\times \; T_1 \; T_2) \rightarrow R) \equiv
+    (T_1 \rightarrow (\bot \; R \; \diamond \; T_2)) \equiv
+    (T_2 \rightarrow (\bot \; R \; T_1 \; \diamond))\]
+\[(R \rightarrow (\times \; T_1 \; T_2)) \equiv
+    ((\top \; R \; \diamond \; T_2) \rightarrow T_1) \equiv
+    ((\top \; R \; T_1 \; \diamond) \rightarrow T_2)\]
+where `$\diamond$' is a special symbol indicating the location of $T_1$ or $T_2$ in the product, and it can appear in any place, except the first (which is the relation), in the component list.  When it appears at the second place, the image can also be written in infix format as \((R \, \bot \, T_2)\) or \((R \, \top \, T_2)\).
+\end{defi}
+
+The above definition can be extended to include products with more than two components, where the image can only be written in the prefix format.
+
+In general, \((R \, \bot \, T)\) and \((R \, \top \, T)\) are different, but there are situations where they are the same.
+\begin{theo}
+\[T_1 \leftrightarrow ((T_1 \times T_2) \, \bot \, T_2)\]
+\[T_1 \leftrightarrow ((T_1 \times T_2) \, \top \, T_2)\]
+\end{theo}
+
+\begin{theo}
+\[((R \, \bot \, T) \times T) \rightarrow R\]
+\[R \rightarrow ((R \, \top \, T) \times T)\] 
+\end{theo}
+The `$\rightarrow$' in the above theorem cannot be replaced by the `$\leftrightarrow$'.
+
+\begin{theo}
+\[\begin{array}{rcl}
+S \rightarrow P
+ & \supset & (S \; \bot \; M) \rightarrow (P \; \bot \; M)   \\
+S \rightarrow P
+ & \supset & (S \; \top \; M) \rightarrow (P \; \top \; M)   \\
+S \rightarrow P
+ & \supset & (M \; \bot \; P) \rightarrow (M \; \bot \; S)   \\
+S \rightarrow P
+ & \supset & (M \; \top \; P) \rightarrow (M \; \top \; S)   \\
+\end{array} \]
+\end{theo}
+
+\section{Grammar and inference rules}
+
+In summary, NAL-4 introduces the new grammar rules in Table \ref{Narsese-4}.
+
+\begin{table}[htb]
+\[\begin{array}{|rrl|}
+\hline
+\langle term \rangle & ::= & `(\times' \langle term \rangle \langle term \rangle ^+ `)' \\ &&
+                     | \; `(\bot' \langle term \rangle \langle term \rangle ^* `\diamond' \langle term \rangle^* `)' \\ &&
+                     | \; `(\top' \langle term \rangle \langle term \rangle ^* `\diamond' \langle term \rangle^* `)' \\
+\hline
+\end{array} \]
+\caption{The New Grammar Rules of Narsese-4}
+\label{Narsese-4}
+\end{table}
+
+There is no new inference rule directly defined in NAL-4, except the equivalence and implication propositions in the definitions and theorems, which will be turned into inference rules later.
+
+
+\section*{References}
+
+\cite[Chapter 4]{wp:book1}, \cite{wp:unify,wp:agi}
+

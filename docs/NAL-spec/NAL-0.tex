@@ -1,0 +1,162 @@
+\chapter{IL-1: Inheritance Logic}
+
+NAL is \emph{described} using several meta-theories, though cannot be \emph{reduced} into any of them, that is, results in NAL and results in any of its meta-theories are distinct, though there are partial overlaps and intuitive similarity here or there. The meta-theories include set theory, formal language theory, first-order predicate logic, and inheritance logic (also known as NAL-0). Since only the last one is not well known, it is specified here.
+
+\emph{Inheritance Logic}, or \emph{IL}, is an \emph{idealized version} of NAL, in the sense that it is similar to NAL in language, semantics, and inference rule, though it assumes sufficient knowledge and resources. Therefore it is not a ``non-axiomatic'' logic, but a tool used when building such a logic. For each layer \emph{n} (\(1 \le n \le 8\)), the corresponding IL-\emph{n} will be defined first, then the effect of insufficient knowledge and resources is introduced, to turn IL-\emph{n} into NAL-\emph{n}. This chapter defines IL-1, the simplest inheritance logic.
+
+
+\section{Language: term and inheritance}
+
+IL-1, like all members of the IL-NAL family, is a ``term logic''. This type of logic is characterized by its usage of \emph{categorical} sentences and \emph{syllogistic} inference rules.  Therefore, it is also known as ``categorical logic'' or ``syllogistic logic''.
+
+\begin{defi}
+The basic form of a {\em term} is a {\em word}, a string of letters in a finite alphabet.
+\end{defi}
+There is no additional requirement on the alphabet. In this document the alphabet is that of English, plus digits 0 to 9 and a few special signs, such as hyphen (`-').
+
+\begin{defi}
+The {\em inheritance copula}, `$\rightarrow$', is a binary relation from one term to another term, and defined by \emph{being reflexive and transitive}.
+\end{defi}
+There is no additional requirement associated with the inheritance copula beside the above definition.
+
+\begin{defi}
+The basic form of a {\em statement} is an \emph{inheritance statement}, ``\(S \rightarrow P\)'', where $S$ is the {\em subject term}, and $P$ is the {\em predicate term}.
+\end{defi}
+
+The ``subject-copula-predicate'' form of statement is what traditionally called \emph{categorical sentences}.
+
+\begin{defi}
+IL-1 is defined on a formal language whose sentences are inheritance statements.
+\end{defi}
+
+The above definitions are summarized in Table \ref{IL-1-Grammar}, using a variant of the Backus-Naur Form (BNF).
+\begin{table}[htb]
+\[\begin{array}{|rcl|}
+\hline
+\langle sentence \rangle & ::= & \langle statement \rangle \\
+\langle statement \rangle & ::= & \langle term \rangle \langle copula \rangle \langle term \rangle  \\
+\langle copula \rangle & ::= & `\!\rightarrow' \\
+\langle term \rangle & ::= & \langle word \rangle \\
+\langle word \rangle & : & \mbox{a string in a given alphabet} \\
+\hline
+\end{array}\]
+\caption{The Grammar Rules of IL-1}
+\label{IL-1-Grammar}
+\end{table}
+
+When embedded in expressions, ``\(S \rightarrow P\)'' is often written as ``\((S \rightarrow P)\)'' to avoid misunderstanding.
+
+The above formal language is used in IL-1 both for internal representation and external communication.
+ 
+\section{Semantics: truth and meaning}
+
+Intuitively, ``\(S \rightarrow P\)'' states that $S$ is a {\em specialization} of $P$, and $P$ is a {\em generalization} of $S$.  It roughly corresponds to ``$S$ is a kind of $P$'' in English.
+
+\begin{defi}
+A sentence in IL has a binary truth-value, as a proposition in propositional logic.
+\end{defi}
+
+The following theorems directly follow from the definitions.
+
+\begin{theo}
+For any term $X$, statement ``\(X \rightarrow X\)'' is true.
+\end{theo}
+
+\begin{theo}
+For any term $X$, $Y$, and $Z$,
+\[((X \rightarrow Y) \wedge (Y \rightarrow Z)) \subset (X \rightarrow Z)\]
+\end{theo}
+In this theorem, IL sentences are treated as propositions, and ``$\wedge$'' and ``$\subset$'' are the ``conjunction'' and ``implication'' connectives in propositional logic, respectively.
+
+The inheritance relation is neither symmetric nor anti-symmetric.  That is, for different $X$ and $Y$, given ``\(X \rightarrow Y\)'' alone, the truth-value of ``\(Y \rightarrow X\)'' cannot be determined.
+
+The initial knowledge of the system, obtained from the environment, is defined as its ``experience.''
+\begin{defi}
+For a system implementing IL-1, its {\em experience}, $K$, is a non-empty and finite set of sentences in IL. In each sentence in $K$, the subject term and the predicate term are different.
+\end{defi}
+$K$ can be also represented as a (directed and unweighted) graph, with terms as vertices and statements as edges.
+
+\begin{defi}
+Given experience $K$, the system's {\em beliefs}, $K^*$, is the transitive closure of $K$, excluding sentences whose subject and predicate are the same term.
+\end{defi}
+Therefore, $K^*$ is also a non-empty and finite set of sentences in IL-1, which includes $K$, as well as the sentences derived from $K$ according to the transitivity of the inheritance relation. In systems implementing IL or NAL, the words ``belief'' and ``knowledge'' are usually treated as exchangeable with each other. Therefore, $K^*$ can also be called the \emph{knowledge base} of the system.
+
+\begin{defi}
+Given experience $K$, the \emph{truth-value} of a statement is true if it is in $K^*$, or in the form of \(X \rightarrow X\), otherwise it is false.
+\end{defi}
+
+Therefore there are two types of truth in IL-1: {\em empirical} and {\em literal} (or call them \emph{synthetic} and \emph{analytic}, respectively).  The former is ``true according to experience,'' and the latter is ``true by definition.'' Truth in these two categories have no overlap.  
+
+In IL-1, all analytic truths are \emph{positive}, in the form of ``\(X \rightarrow X\)''.  Synthetic truths may be either positive (on what is \emph{true}) or negative (on what is \emph{false}). In IL-1, negative knowledge are implicitly represented: they are not sentences in IL-1, but propositions in its meta-language. The amount of positive knowledge (i.e., number of beliefs in $K^*$) increases monotonically with the increase of the experience $K$, but that is not the case for negative knowledge, which is implicitly defined by the former as ``statements that not known to be true'' (the Closed-World Assumption).
+
+For a term $T$ that does not appear in $K$, all statements having $T$ in them are false, except ``\(T \rightarrow T\)''. 
+
+\begin{defi}
+Given experience $K$, let the set of all terms appearing in $K$ to be the {\em vocabulary} of the system, $V_K$.  Then, the {\em extension} of a term $T$ is the set of terms $T^E = \{x \, | \, (x \in V_K) \, \wedge \, (x \rightarrow T)\}$.  The {\em intension} of $T$ is the set of terms $T^I = \{x \, | \, (x \in V_K) \, \wedge \, (T \rightarrow x)\}$.
+\end{defi}
+Obviously, both $T^E$ and $T^I$ are determined with respect to $K$, so they can also be written as $T^E_K$ and $T^I_K$.  In the following, the simpler notions are used, with the experience $K$ implicitly assumed.
+
+Since ``extension'' and ``intension'' are defined in a symmetric way in IL, for any result about one of them, there is a dual result about the other.  Each belief of the system reveals part of the intension for the subject term and part of the extension for the predicate term.
+
+\begin{theo}
+For any term $T \in V_K$, \(T \in (T^E \cap T^I)\).  If $T$ is not in $V_K$, \(T^E = T^I = \{\}\), though ``\(T \rightarrow T\)'' is still true.
+\end{theo}
+
+\begin{defi}
+Given experience $K$, the {\em meaning} of a term $T$ consists of its extension and intension.
+\end{defi}
+Therefore, the meaning of a term is its relation with other terms, according to the experience of the system.  A term $T$ is ``meaningless'' to the system, if \(T^E = T^I = \{\}\) (that is, it has never got into the experience of the system), otherwise it is ``meaningful''. The larger the extension and intension of a term are, the ``richer'' its meaning is.
+
+\begin{theo}
+If both $S$ and $P$ are in $V_K$, then 
+\((S \rightarrow P) \equiv (S^E \subseteq P^E) \equiv (P^I \subseteq S^I)\).
+\end{theo}
+Here ``$\equiv$'' is the ``if and only if'' connective in propositional logic. 
+
+If ``\(S \rightarrow P\)'' is false, it means that the inheritance is incomplete --- either (\(S^E - P^E\)) or (\(P^I - S^I\)) is not empty.  However, it does not mean that $S$ and $P$ share no extension or intension.
+
+\begin{theo}
+\((S^E = P^E) \equiv (S^I = P^I).\)
+\end{theo}
+This means that in IL-1 the extension and intension of a term are mutually determined. Consequently, one of the two uniquely determines the meaning of a term.
+
+Consequently, IL-1 gets an ``experience-grounded semantics'', since the truth-values of its statements and the meanings of its terms are determined by the experience of the system, except in trivial cases (analytical truths and meaningless terms). No ontological assumption is made about the outside world. To the system, the world is nothing but what the experience reveals.
+
+\section{Inference: deriving and matching}
+
+IL-1 has a single inference rule that derives new knowledge from experience, justified by the transitivity of the inheritance relation. This rule is \emph{syllogistic}, in the sense that it takes two premises, $B_1$ and $B_2$, that share a term $M$, and derives a conclusion between the other two terms $S$ and $P$. It is shown in Table \ref{IL-1-derive}.
+
+\begin{table}[htb]
+\[\begin{array}{|c||c|c|} \hline
+B_2 \; \backslash \; B_1  & M \rightarrow P & P \rightarrow M \\
+\hline \hline
+S \rightarrow M & S \rightarrow P  &   \\
+\hline
+M \rightarrow S &  & P \rightarrow S \\
+\hline \end{array}\]
+\caption{The Inference Rule of IL-1}
+\label{IL-1-derive}
+\end{table}
+
+\begin{defi}
+For different terms $S$ and $P$, a {\em question} that can be answered by an IL-based system has one of the following three forms: (1) \(S \rightarrow P ?\), (2) \(S \rightarrow\; ?\), and (3) \(? \rightarrow P\).  The `?' in the last two is a ``query variable'' to be instantiated. A belief \(S \rightarrow P\) is an answer to any of the three.  If no such an answer can be found in $K^*$, ``NO'' is answered.
+\end{defi}
+The first form of question asks for an \emph{evaluation} of a given statement, while the other two ask for a \emph{selection} of a term with a given relation with another term.  If there are more than one answers to (2) and (3), they are equally good. Literal truth ``\(X \rightarrow X\)'' is a trivial answer to such a question, so it is not allowed.
+
+The matching rule is shown in Table \ref{IL-1-match}, with $Q$ for question and $B$ for matching belief.
+
+\begin{table}[htb]
+\[\begin{array}{|c||c|c|c|} \hline
+B \; \backslash \; Q  & S \rightarrow P ? & S \rightarrow\; ? & ? \rightarrow P \\
+\hline \hline
+S \rightarrow P & S \rightarrow P & S \rightarrow P & S \rightarrow P \\
+\hline \end{array}\]
+\caption{The Matching Rule of IL-1}
+\label{IL-1-match}
+\end{table}
+
+Similar to negative knowledge, in IL-1 questions are not represented as sentences in object language, but in the meta-language only. IL-1 does not accept question ``What is not $T$?''.
+
+\section*{References}
+
+\cite[Chapter 3]{wp:book1}, \cite{wp:nal2,wp:phd}

@@ -8,7 +8,9 @@
   [content]
   (and (sequential? content) (= (first content) :interval)))
 
-(defn operation? [st]
+(defn operation?
+  "Checks whether st is an operation, namely a term of form <(*,{SELF},arg) --> op_name>"
+  [st]
   (if (and (coll? st)
            (= (first st) '-->)
            (coll? (second st))
@@ -20,12 +22,16 @@
            (clojure.string/starts-with? (name op) "op_")))
     false))
 
-(defn negation-of-operation? [st]
+(defn negation-of-operation?
+  "Checks whether st is the negation of an operation"
+  [st]
   (and (coll? st)
        (= (first st) '--)
        (operation? (second st))))
 
-(defn variable? [t]
+(defn variable?
+  "Checks whether it is a variable symbol"
+  [t]
   (and (coll? t) (or (= (first t) 'ind-var)
                      (= (first t) 'dep-var)
                      (= (first t) 'qu-var))))
@@ -103,7 +109,9 @@
              (= (first (f st)) :interval))
     (second (f st))))
 
-(defn interval-reduction [s]                                   ;TODO move to sentence utils?
+(defn interval-reduction
+  "Reductions for intervals/sequences"
+  [s]                                   ;TODO move to sentence utils?
   ;there are certain equivalence transformations only being valid in ''NAL7i (NAL7+Intervals)
   ;''and which indicate how intervals have to be treated as occurrence time modulators.
   ;These are:
@@ -161,7 +169,9 @@
 (defn str-is-integer [s]
   (every? #(Character/isDigit %) s))
 
-(defn interval-atom-to-interval [t]
+(defn interval-atom-to-interval
+  "Change the interval atom to an interval"
+  [t]
   (let [pot-ival (name t)
         num (apply str (rest pot-ival))]
     (if (and (= \i (first pot-ival))
@@ -230,28 +240,11 @@
                          (normalize-variables x m)))))
      st)))
 
-(defn precondition-operation-consequent-statement [task] ;(doseq [op ['pred-impl '</>]])
-  (let [precondition-op-forms ['[pred-impl [seq-conj [seq-conj ?precondition ?interval1 ?operation] ?interval2] ?goal]
-
-                               #_'[pred-impl [conj ?precondition [seq-conj ?operation ?interval]] ?goal]
-                               #_'[pred-impl [conj [seq-conj ?operation ?interval] ?precondition] ?goal]
-                               #_'[pred-impl [conj ?operation [seq-conj ?precondition ?interval]] ?goal]
-                               #_'[pred-impl [conj [seq-conj ?precondition ?interval] ?operation] ?goal]
-                               #_'[pred-impl [seq-conj ?precondition ?interval1 [seq-conj ?operation ?interval]] ?goal]
-                               #_'[pred-impl [seq-conj [seq-conj ?operation ?interval] ?interval1 ?precondition] ?goal]
-                               #_'[pred-impl [seq-conj ?operation ?interval1 [seq-conj ?precondition ?interval]] ?goal]
-                               #_'[pred-impl [seq-conj [seq-conj ?precondition ?interval] ?interval1 ?operation] ?goal]
-                               #_'[pred-impl [seq-conj ?precondition ?interval1 ?operation ?interval2] ?goal]
-
-                               #_'[</> [conj ?precondition [seq-conj ?operation ?interval]] ?goal]
-                               #_'[</> [conj [seq-conj ?operation ?interval] ?precondition] ?goal]
-                               #_'[</> [conj ?operation [seq-conj ?precondition ?interval]] ?goal]
-                               #_'[</> [conj [seq-conj ?precondition ?interval] ?operation] ?goal]
-                               #_'[</> [seq-conj ?precondition ?interval1 [seq-conj ?operation ?interval]] ?goal]
-                               #_'[</> [seq-conj [seq-conj ?operation ?interval] ?interval1 ?precondition] ?goal]
-                               #_'[</> [seq-conj ?operation ?interval1 [seq-conj ?precondition ?interval]] ?goal]
-                               #_'[</> [seq-conj [seq-conj ?precondition ?interval] ?interval1 ?operation] ?goal]
-                               #_'[</> [seq-conj ?precondition ?interval1 ?operation ?interval2] ?goal]]
+(defn precondition-operation-consequent-statement
+  "checks whether the statement of task is a it is a type of ((&/,precondition,operation) =/> consequent) statement,
+  also returning the unification map used for the unification between the form and the statement."
+  [task] ;(doseq [op ['pred-impl '</>]])
+  (let [precondition-op-forms ['[pred-impl [seq-conj [seq-conj ?precondition ?interval1 ?operation] ?interval2] ?goal]]
 
         additional-condition (fn [z] (and (not= (second z) nil)
                                           (operation? ((second z) '?operation))

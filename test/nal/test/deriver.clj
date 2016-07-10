@@ -95,24 +95,24 @@
 (deftest setDefinition
   (is (derived "<{Tweety} --> {Birdie}>."
                "{Tweety}."
-               ["<{Birdie} <-> {Tweety}>. %1.0;0.9%"])))    ;y
+               ["<{Birdie} <-> {Tweety}>. %1.0;0.81%"])))    ;y
 
 (deftest setDefinition2
   (is (derived "<[smart] --> [bright]>."
                "[smart]."
-               ["<[smart] <-> [bright]>. %1.0;0.9%"])))     ;y
+               ["<[smart] <-> [bright]>. %1.0;0.81%"])))     ;y
 
 (deftest setDefinition3
   (is (derived "<{Birdie} <-> {Tweety}>."
                "{Birdie}."
-               ["<Birdie <-> Tweety>. %1.0;0.9%"
-                "<{Tweety} --> {Birdie}>. %1.0;0.9%"])))    ;y
+               ["<Birdie <-> Tweety>. %1.0;0.81%"
+                "<{Tweety} --> {Birdie}>. %1.0;0.81%"])))    ;y
 
 (deftest setDefinition4
   (is (derived "<[bright] <-> [smart]>."
                "[bright]."
-               ["<bright <-> smart>. %1.0;0.9%"
-                "<[bright] --> [smart]>. %1.0;0.9%"])))     ;y
+               ["<bright <-> smart>. %1.0;0.81%"
+                "<[bright] --> [smart]>. %1.0;0.81%"])))     ;y
 
 (deftest structureTransformation
   (is (derived "<{Birdie} <-> {Tweety}>?"
@@ -253,42 +253,42 @@
 (deftest structural_transformation1
   (is (derived "<(acid,base) --> reaction>. %1.0;0.9%"
                "acid."
-               ["<acid --> (/,reaction,_,base)>. %1.0;0.9%"]))) ;y
+               ["<acid --> (/,reaction,_,base)>. %1.0;0.81%"]))) ;y
 
 (deftest structural_transformation1_2
   (is (derived "<(acid,base) --> reaction>. %1.0;0.9%"
                "base."
-               ["<base --> (/,reaction,acid,_)>. %1.0;0.9%"]))) ;y
+               ["<base --> (/,reaction,acid,_)>. %1.0;0.81%"]))) ;y
 
 (deftest structural_transformation2
   (is (derived "<acid --> (/,reaction,_,base)>. %1.0;0.9%"
                "reaction."
-               ["<(acid,base) --> reaction>. %1.0;0.9%"]))) ;y
+               ["<(acid,base) --> reaction>. %1.0;0.81%"]))) ;y
 
 (deftest structural_transformation3
   (is (derived "<base --> (/,reaction,acid,_)>. %1.0;0.9%"
                "reaction."
-               ["<(acid,base) --> reaction>. %1.0;0.9%"]))) ;y
+               ["<(acid,base) --> reaction>. %1.0;0.81%"]))) ;y
 
 (deftest structural_transformation4
   (is (derived "<neutralization --> (acid,base)>. %1.0;0.9%"
                "acid."
-               ["<(\\,neutralization,_,base) --> acid>. %1.0;0.9%"]))) ;y
+               ["<(\\,neutralization,_,base) --> acid>. %1.0;0.81%"]))) ;y
 
 (deftest structural_transformation4_2
   (is (derived "<neutralization --> (acid,base)>. %1.0;0.9%"
                "base."
-               ["<(\\,neutralization,acid,_) --> base>. %1.0;0.9%"]))) ;y
+               ["<(\\,neutralization,acid,_) --> base>. %1.0;0.81%"]))) ;y
 
 (deftest structural_transformation5
   (is (derived "<(\\,neutralization,_,base) --> acid>. %1.0;0.9%"
                "neutralization."
-               ["<neutralization --> (acid,base)>. %1.0;0.9%"]))) ;y
+               ["<neutralization --> (acid,base)>. %1.0;0.81%"]))) ;y
 
 (deftest structural_transformation6
   (is (derived "<(\\,neutralization,acid,_) --> base>. %1.0;0.9%"
                "neutralization."
-               ["<neutralization --> (acid,base)>. %1.0;0.9%"]))) ;y
+               ["<neutralization --> (acid,base)>. %1.0;0.81%"]))) ;y
 
 (deftest composition_on_both_sides_of_a_statement
   (is (derived "<(bird,plant) --> ?x>?"

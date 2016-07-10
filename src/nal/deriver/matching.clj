@@ -220,20 +220,25 @@
        (keep (partial aliases->conditins syms))
        (filter not-empty)))
 
-(defn commutative? [st]
+(defn commutative?
+  "whether the statement is a commutative <-> &&, || etc. statement"
+  [st]
   (and (coll? st) (some commutative-ops st)))
 
 (defn check-commutative [conclusion]
+  "generate commutativity check"
   (if (commutative? conclusion)
     `(sort-commutative ~(sort-commutative conclusion))
     conclusion))
 
 (defn check-reduction [conclusion]
+  "generating code for the reduction of the conclusion"
   (walk conclusion
         (and (coll? :el) (reducible-ops (first :el)) (<= 2 (count :el)))
         `(~(reducible-ops (first :el)) ~:el)))
 
 (defn find-shift-precondition
+  "find the occurrence time shift preconditions :shift-occurrence-backward and :shift-occurrence-forward"
   [preconditions]
   (first
     (filter

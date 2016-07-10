@@ -1,0 +1,335 @@
+\chapter{NAL-1: Evidential Inference}
+
+NAL-1 turns IL-1 into a non-axiomatic logic, under the Assumption of Insufficient Knowledge and Resources (AIKR).
+
+\section{Evidence and uncertainty}
+
+As shown by Theorem 4, a \emph{perfect} inheritance is equivalent to a \emph{complete} subset relation between the extension or intension of the two terms. It is natural to extend a \emph{complete} subset relation into a \emph{partial} subset relation, and, by the above equivalence, it also extends a \emph{perfect} inheritance into an \emph{imperfect} inheritance.
+
+Furthermore, since the subset relation can be seen as a summary of a set of inheritance statements, an inheritance statement can also be seen as a summary of inheritance statements. Based on this observation, ``evidence'' of an inheritance statement is introduced.
+
+\begin{defi}
+For an inheritance statement ``\(S \rightarrow P\)'', its {\em evidence} are terms in \(S^E\) and \(P^I\).  Among them, terms in \((S^E \cap P^E)\) and \((P^I \cap S^I)\) are {\em positive evidence}, and terms in \((S^E - P^E)\) and \((P^I - S^I)\) are {\em negative evidence}.
+\end{defi}
+Here `$\cap$' and `$-$' are the \emph{intersection} and \emph{difference} of sets, respectively, as defined in set theory.
+
+Evidence is defined in this way, because as far as a term in positive evidence is concerned, the inheritance statement is correct; as far as a term in negative evidence is concerned, the inheritance statement is incorrect.
+
+Since according to the previous definition, terms in the extension or intension of a given term are equally weighted, the amount of evidence can be simply measured by the size of the corresponding set.
+\begin{defi}
+For ``\(S \rightarrow P\)'', the amount of positive, negative, and total evidence is, respectively,
+\[\begin{array}{lcl}
+w^+ & = & |S^E \cap P^E| + |P^I \cap S^I| \\
+w^- & = & |S^E - P^E| + |P^I - S^I| \\
+w & = & w^+ + w^- \\
+& = & |S^E| + |P^I|
+\end{array}\]
+\end{defi}
+
+When comparing competing beliefs and deriving new conclusions, {\em relative} measurements are usually preferred over {\em absolute} measurements, because the evidence of a premise normally cannot be directly used as evidence for the conclusion. Also, it is often more convenient for the measurements to take values from a finite range, while the amount of evidence has no upper bound. 
+
+\begin{defi}
+The truth-value of a statement consists of a pair of real numbers in [0, 1].  One of the two is called {\em frequency}, defined as \(f = w^+ / w\); the other is called {\em confidence}, defined as \(c = w / (w + k)\), where $k$ is the ``evidential horizon'' of the system, a positive constant.
+\end{defi}
+Informally speaking, frequency is the proportion of positive evidence among all evidence; confidence is the proportion of current available evidence among available evidence in the near future, after the coming of new evidence of amount $k$. This \emph{evidential horizon} $k$ is a ``personality parameter'' of the system, in the sense that in different NAL-based systems, it can take different values, and in general it is hard (if possible) to say what value is the best. 
+
+In this two-factor truth-value, the frequency factor indicates the ratio between positive and negative evidence, and the confidence factor indicates the ratio between current and future evidence. Since it is impossible to consider infinite future, the evidential horizon $k$ is introduced to restrict ``future'' into a constant ``near future''. Since what matters is the \emph{relative} confidence of beliefs, they should be measured against the same evidential horizon, though the exact distance to the horizon (the $k$ value) is not always important.
+
+The above definition implies that in a truth-value, the frequency factor and the confidence factor are \emph{independent} of each other, in the sense that given the value of one, the value of the other is not determined, or even bounded.
+
+The frequency value will be restricted in an interval within the evidential horizon, until the coming evidence reaching amount $k$.
+\begin{defi}
+The \emph{frequency interval} of a statement \([l, u]\) contains its frequency value from the current moment to the moment when the new evidence has amount $k$. The {\em lower frequency} $l$ is $w^+/(w+k)$, and the {\em upper frequency} $u$ is $(w^++k)/(w+k)$. 
+\end{defi}
+The frequency of a statement does not necessarily converge to a limit. Even if it does, the limit is not necessarily in the frequency interval at every previous moment.
+
+\begin{defi}
+The {\em ignorance} of a statement is measured by the {\em width} of the frequency interval, i.e., \(i = u - l\).
+\end{defi}
+
+\begin{theo}
+For a statement, its \emph{confidence} and \emph{ignorance} are complement to each other, that is, \(c + i = 1\).
+\end{theo}
+
+The interval representation of uncertainty provides a mapping between the ``accurate representation'' and the ``inaccurate representation'' of uncertainty, because ``inaccuracy'' corresponds to willingness to change a value within a certain range.  If in a situation there are only $N$ words that can be used to specify the uncertainty of a statement, and all numerical values are equally possible, the most informative way to communicate is to evenly divide the [0, 1] interval into $N$ section: [0, 1/N], [1/N, 2/N], ..., [(N-1)/N, 1], and to use a label for each section. A special situation of this is to use a single number, with its accuracy, to carry out both frequency and confidence information. 
+
+In summary, NAL uses three functionally equivalent representations for the uncertainty (or degree of belief) of a statement: 
+\begin{description}
+\item[Amounts of evidence:]
+\{$w^+$, $w$\}, where \(0 \leq w^+ \leq w\), or using \(w^- = w - w^+\) to replace one of the two;
+\item[Truth value:]
+\(\langle  f, \, c \rangle \), where both $f$ and $c$ are real numbers in $[0, \, 1]$, and are independent of each other;
+\item[Frequency interval:]
+\([l, \, u]\), where \(0 \leq l \leq u \leq 1\), or using $i = u - l$ to replace one of the two.
+\end{description}
+
+Among all possible values of the measurements, there are two extreme cases that only appear in the meta-language, and a normal case that actually happen in Narsese:
+\begin{description}
+\item[Null evidence:]
+This is indicated by $w = 0$, $c = 0$, or $i = 1$. It means the system knows nothing at all about the statement, so does not need to be actually represented in the system.
+\item[Full evidence:]
+This is indicated by \(w = \infty\), \(c = 1\), or \(i = 0\). It means the system already knows everything about the statement, which cannot occur in a non-axiomatic logic.
+\item[Normal evidence:]
+This is indicated by \(0 < w\), \(0 < c < 1\), or \(0 < i < 1\). It means the statement is supported by finite amount of evidence, which is the normal case for every belief in NAL.
+\end{description}
+Though the extreme cases never appear in actual beliefs of the system, they can be discussed in the meta-language of NAL, as limit cases of the actual beliefs, and therefore play important roles in system design. 
+
+This is why IL can be considered as an idealized version of NAL, while still being a meta-logic of it.  The beliefs of IL is supported by ``full positive evidence'', and therefore having \emph{binary} truth-value. On the contrary, in NAL each belief may have both \emph{positive} and \emph{negative} evidence, and the impact of \emph{future} evidence must be considered, too. Therefore, the truth-value \emph{true} of IL can be mapped into truth-value \(\langle 1, 1 \rangle\) of NAL, since the former assumes that there is neither negative evidence nor future evidence.
+
+For the normal case, formulas for inter-conversion among the three forms are displayed in Table \ref{Uncertainty}.
+
+\begin{table}[htb]
+\[\begin{array}{|c||l|l|l|} \hline
+\mbox{to} \; \backslash \; \mbox{from} & \; \{w^+, \, w\} & \; \langle \! f, \, c \!\rangle 
+& \; [ \, l, \, u \, ] \; (\mbox{and} \; i) \\
+\hline \hline
+\{w^+, \, w\} & & w^+ = kfc /(1-c) & w^+ = k \, l/i     \\
+              & & w = kc /(1-c)    & w = k(1-i)/i \\
+\hline
+\langle \!f, \, c\!\rangle    & f = w^+ / w        & & f = l / (1-i) \\
+            & c = w / (w+k)         & & c = 1-i           \\
+\hline
+[l, \, u]   & l = w^+ / (w+k)       & l = fc                  & \\
+            & u = (w^++k) / (w+k)     & u = 1 - c (1-f)         & \\
+\hline
+\end{array}\]
+\caption{The Mappings Among Measurements of Uncertainty}
+\label{Uncertainty}
+\end{table}
+
+\section{Grammar and semantics}
+
+The grammar of Narsese-1, the language used in NAL-1, is that of IL-1, except that a binary ``statement'' plus its truth-value becomes a multi-valued ``judgment''. Also, ``question'' is included in the object-level of the language, as a statement without truth-value, and may contain variable to be instantiated.
+
+\begin{table}[htb]
+\[\begin{array}{|rcl|}
+\hline
+\langle sentence \rangle & ::= & \langle judgment \rangle \; | \; \langle question \rangle  \\
+\langle judgment \rangle & ::= & \langle statement \rangle \langle truth \mbox{-} value \rangle  \\
+\langle question \rangle & ::= & \langle statement \rangle \; | \; `?' \, \langle  copula \rangle \langle term \rangle 
+                         | \langle  term \rangle  \langle  copula \rangle \, `?' \\
+\langle statement \rangle  & ::= & \langle  term \rangle  \langle  copula \rangle  \langle  term \rangle   \\
+\langle copula \rangle  & ::= & `\!\rightarrow' \\
+\langle term \rangle  & ::= & \langle word \rangle  \\
+\langle truth \mbox{-} value \rangle & : & \mbox{a pair of real number in} \; [0, 1] \times(0, 1) \\
+\langle word \rangle  & : & \mbox{a string in a given alphabet} \\
+\hline
+\end{array} \]
+\caption{The Grammar of Narsese-1}
+\label{Narsese-1}
+\end{table}
+
+The truth-value of each judgment is defined by a chunk of evidence represented by IL-1 sentences. In communications between the system and its environment, the other two types of uncertainty representation can also be used in place of the truth-value of a judgment, though within the system they will be translated to (from) truth-value. 
+
+Similarly, the definition of ``meaning'' in NAL-1 also comes from that in IL-1.
+\begin{defi} 
+A judgment ``\(S \rightarrow P \; \langle f, \, c\rangle \)'' indicates that $S$ is in the extension of $P$ and that $P$ is in the intension of $S$, with the truth-value of the judgment specifying their grades of membership.
+\end{defi}
+Consequently, the extension and intension of a term in NAL-1 are no longer ordinary sets with well-defined boundaries (as in IL-1), but sets with (two-dimensional) grades of membership.
+
+\begin{defi} 
+The actual \emph{experience} of a system implementing NAL-1 is a stream of Narsese-1 sentences. The experience defined in IL-1 is renamed \emph{idealized experience} in NAL-1.
+\end{defi}
+What differs \emph{idealized} experience from \emph{actual} experience is:
+\begin{enumerate}
+	\item The former contains \emph{true} statements only, while the latter contains questions and \emph{multi-valued} judgments,
+	\item The former is a \emph{set} (without internal order or duplicated elements), while the latter is a \emph{stream} (where order matters, and duplicate elements are possible).
+\end{enumerate}
+
+Since NAL-1 works under AIKR, the transitive closure of its (actual) experience is not defined. The system may not have the resources to exhaust all possible conclusions derivable from given experience, nor can it be assumed that the conclusions will converge to a stable set of beliefs, since new experience comes constantly, and consists of sentences with unrestricted content.
+
+\begin{defi} 
+The \emph{evidential base} of a truth-value is the set of sentences in the experience from which the truth-value is derived.
+\end{defi}
+Therefore, the evidential base of an input sentence (in the experience of the system) is a set containing itself, while the evidential base of a derived conclusion is the union of the evidential bases of the premises. If the same sentence appears multiple times in experience, each occurrence corresponds to a separate evidential base.  
+
+In the actual implementation of NAL, the evidential base of a truth-value is represented by a ``stamp'' containing sequential numbers of input sentences, with a maximum length. To calculate the union of two evidential bases, the two stamps are interwoven, and the overflow part is ignored. The system decides if two truth-values are based on overlapping evidence by checking if their stamps contain any common element, which may fail to recognize overlapping evidence for beliefs derived from many input sentences, which, though not desired, is inevitable for a system with AIKR.
+
+
+\section{Forward inference}
+
+As a syllogistic logic, a typical forward inference rule in NAL takes two judgments as premise, and derives a judgment as conclusion, with a truth-value function to calculate the truth-value of the conclusion from those of the premises. That is, it looks like
+\[\{premise_1 \langle  f_1, \, c_1 \rangle , \; premise_2 \langle  f_2, \, c_2 \rangle \} \vdash conclusion \langle  f, \, c \rangle \]
+where \(\langle  f, \, c \rangle \) is calculated by a truth-value function from \(\langle  f_1, \, c_1 \rangle \) and \(\langle  f_2, \, c_2 \rangle \). Alternatively, the rule can be put into a table where each row and column corresponds to a premise, as in IL-1.
+
+In NAL-1, all the premises and conclusions are inheritance statements, and the two premises share at least one common term. Furthermore, to avoid circular inference, the premises cannot have common stamp elements.
+
+Because the two premises share at least one term, their contents are semantically related to each other. NAL never infers on two arbitrary premises and only considers their truth-values in deriving a conclusion.
+
+For a pair of judgments that do share at least one common term, their structures and the position of the shared term determine the content of the conclusion, as well as the truth-value function.
+
+A truth-value function is usually designed (with a few exceptions) by treating the related measurements in [0, 1] as extended Boolean values, by the following procedure:
+\begin{enumerate}
+	\item
+According to the experience-grounded semantics, decide the uncertainty values of the conclusion for each combination of the values in the premises, when all of them are binary values 0 or 1. 
+	\item 
+Represent each value in the conclusion as a Boolean function of the values in the premises, using Boolean operators  ``{\em and}'', ``{\em or}'', and ``{\em not}''. Among the Boolean functions satisfying the given condition, the function selected usually is the simplest, and with an intuitive justification.
+	\item 
+Assuming variables \(x_1, ..., x_n\) are \emph{mutually independent} (i.e., the value of one cannot be bounded by the value of the others), the Boolean operators are extended from \{0, 1\} to [0, 1]:
+\begin{defi}
+\[\begin{array}{rcl}
+not(x_i) & = & 1 - x_i \\
+and(x_1, ..., x_n) & = & x_1 \times ... \times x_n \\
+or(x_1, ..., x_n) & = & 1 - (1 - x_1) \times ... \times (1 - x_n) \\
+\end{array}\]
+\end{defi}
+When the operators are applied in truth-value functions, the independence requirement is satisfied when the two premises have distinct evidential bases, since the two factors in a truth-value (frequency and confidence) are already independent of each other in this sense.
+  \item
+Rewrite the uncertainty functions as truth-value functions if they are not in that form, using the mappings between truth-values and other uncertainty measurements in Table \ref{Uncertainty}.
+\end{enumerate}
+
+In term logics, when two judgments share exactly one common term, they can be used as premises in an inference rule that derives an inheritance relation between the other two (unshared) terms.  When the copula is directed, like \emph{inheritance}, there are four possible combinations of premises and conclusions, as listed in Table \ref{NAL-1-Syllogisms}. For each combination of premises, there are two conclusions, corresponding to the two directions of inheritance between the two terms that only appear on one premise. The involved inference type include \emph{deduction}, \emph{abduction}, \emph{induction}, and \emph{exemplification}.
+
+\begin{table}[htb]
+\[\begin{array}{|c||c|c|} \hline
+J_2 \; \backslash \; J_1
+        & M \rightarrow P \; \langle f_1, \, c_1\rangle       & P \rightarrow M \; \langle f_1, \, c_1\rangle \\
+\hline \hline
+S \rightarrow M \; \langle f_2, \, c_2\rangle  & S \rightarrow P \; <F_{ded}>  & S \rightarrow P \; <F_{abd}>  \\
+                                     & P \rightarrow S \; <F'_{exe}>  & P \rightarrow S \; <F'_{abd}>  \\
+\hline
+M \rightarrow S \; \langle f_2, \, c_2\rangle  & S \rightarrow P \; <F_{ind}>  & S \rightarrow P \; <F_{exe}>  \\
+                                     & P \rightarrow S \; <F'_{ind}>  & P \rightarrow S \; <F'_{ded}>  \\
+\hline \end{array}\]
+\caption{The Basic Syllogistic Rules}
+\label{NAL-1-Syllogisms}
+\end{table}
+
+In the table, $F_{nnn}$ indicates the truth-value function that calculates the truth-value of the conclusion, and $F'_{nnn}$ is $F_{nnn}$ with the order of the premises switched. The associated truth-value functions are given in Table \ref{NAL-1-Syllogisms-Functions}, together with the type of inference. The function $F_{ded}$ is derived from the transitivity of the inheritance relation, while the other three are derived from the definition of evidence. 
+\begin{table}[htb]
+\[\begin{array}{|r|r|lcl|} \hline
+\mbox{\textbf{Deduction}} & \mbox{Boolean version:}     & f & = & and(f_1, f_2) \\
+								 &					                   & c & = & and(f_1, c_1, f_2, c_2) \\
+         F_{ded} & \mbox{truth-value version:} & f & = & f_1 \times f_2 \\
+								 &				                     & c & = & f_1 \times c_1 \times f_2 \times c_2 \\
+\hline
+\mbox{\textbf{Abduction}} & \mbox{Boolean version:}   & w^+ & = & and(f_1, c_1, f_2, c_2) \\
+								 &					                          & w^- & = & and(f_1, c_1, not(f_2), c_2) \\
+         F_{abd} & \mbox{truth-value version:} & f & = & f_2 \\
+								 &					                   & c & = & \frac{f_1 \times c_1 \times c_2}{f_1 \times c_1 \times c_2 + k}\\
+\hline
+\mbox{\textbf{Induction}} & \mbox{Boolean version:}   & w^+ & = & and(f_1, c_1, f_2, c_2) \\
+								 &					                          & w^- & = & and(not(f_1), c_1, f_2, c_2) \\
+         F_{ind} & \mbox{truth-value version:} & f & = & f_1 \\
+								 &					                   & c & = & \frac{c_1 \times f_2 \times c_2}{c_1 \times f_2 \times c_2 + k}\\
+\hline
+\mbox{\textbf{Exemplification}} & \mbox{Boolean version:}   & w^+ & = & and(f_1, c_1, f_2, c_2) \\
+								 &					                                & w^- & = & 0 \\
+         F_{exe} & \mbox{truth-value version:} & f & = & 1 \\
+								 &					                   & c & = & \frac{f_1 \times c_1 \times f_2 \times c_2}{f_1 \times c_1 \times f_2 \times c_2 + k}\\
+\hline \end{array}\]
+\caption{The Truth-value Functions of the Basic Syllogistic Rules}
+\label{NAL-1-Syllogisms-Functions}
+\end{table}
+
+In term logics, ``conversion'' is an inference from a single premise to a conclusion by interchanging the subject and predicate terms of the premise.  The conversion rule in NAL is defined in Table \ref{NAL-1-Conversion}.
+\begin{table}[htb]
+\[\begin{array}{|c|}
+\hline
+\{P \rightarrow S \; \langle f_0, \, c_0\rangle \} \vdash S \rightarrow P \; \langle F_{cnv}\rangle \\
+\hline
+\end{array}\]
+\caption{The Conversion Rules of NAL-1}
+\label{NAL-1-Conversion}
+\end{table}
+
+By definition, statements ``\(S \rightarrow P\)'' and ``\(P \rightarrow S\)'' have the same positive evidence, but distinct negative evidence. However, in conversion inference directly letting \(w^+ = w^+_0\) and \(w^- = 0\) lead to the undesired result that ``\(P \rightarrow S \; \langle 1, \, 1\rangle \)'' derives ``\(S \rightarrow P \; \langle 1, \, 1\rangle \)''.  Instead, in NAL inference rules evidence for a premise should not be taken as evidence of the same amount for the conclusion (except in a few special rules to be introduced later).  A proper truth-value function for the conversion rule can be obtained by treating the conclusion as derived by abduction from premises ``\(P \rightarrow S \langle  f_0, \, c_0 \rangle \)'' and ``\(S \rightarrow S \langle 1, \, 1 \rangle \)'', or by induction from premises ``\(P \rightarrow P \langle 1, \, 1\rangle \)'' and ``\(P \rightarrow S \langle f_0, \, c_0 \rangle \)''. Both of them lead to the function in Table \ref{NAL-1-Conversion-Function}, which also means that in conversion the premise only provides positive evidence (with the amount of \(f_0 \times c_0\)) to the conclusion.
+\begin{table}[htb]
+\[\begin{array}{|r|r|lcl|} \hline
+\mbox{\textbf{Conversion}} & \mbox{Boolean version:}     & w^+ & = & and(f_0, c_0) \\
+								           &					                   & w^- & = & 0 \\
+                   F_{cnv} & \mbox{truth-value version:} & f & = & 1 \\
+								           &					                   & c & = & \frac{f_0 \times c_0}{f_0 \times c_0 + k}\\
+\hline \end{array}\]
+\caption{The Truth-value Function of the Conversion Rule}
+\label{NAL-1-Conversion-Function}
+\end{table}
+
+
+\section{Revision and choice}
+
+In NAL, {\em revision}, given in Table \ref{revision}, indicates the inference step in which evidence from different sources for the same statement is accumulated. It is applicable when the two premises contains the same statement, and their stamps contain no common element. The two premises are still kept as valid beliefs after the revision.
+
+\begin{table}[htb]
+\[\begin{array}{|c||c|} \hline
+J_2 \; \backslash \; J_1  & S \langle f_1, \, c_1\rangle  \\
+\hline \hline
+S \langle f_2, \, c_2\rangle  & S \langle F_{rev}\rangle \\
+\hline \end{array}\]
+\caption{The Revision Rule}
+\label{revision}
+\end{table}
+
+It is the only two-premise rule in NAL where the evidence of the premises can be directly taken, with the same type and amount, as the evidence of the conclusion (because they all contain the same statement). Therefore, the truth-value function, given in Table \ref{NAL-1-Revision-Functions}, is not designed according to the general procedure introduced previously, but comes directly from the additivity of the amount of evidence.
+
+\begin{table}[htb]
+\[\begin{array}{|r|r|lcl|} \hline
+\mbox{\textbf{Revision}} & \mbox{evidence version:} & w^+ & = & w^+_1 + w^+_2 \\
+								           &					                 & w & = & w_1 + w_2 \\
+                   F_{rev} & \mbox{truth-value version:} & f & = & \frac{f_1c_1(1-c_2)+f_2c_2(1-c_1)}{c_1(1-c_2)+c_2(1-c_1)} \\
+								           &					                   & c & = & \frac{c_1(1-c_2)+c_2(1-c_1)}{c_1(1-c_2)+c_2(1-c_1)+(1-c_1)(1-c_2)}\\
+\hline \end{array}\]
+\caption{The Truth-value Function of the Revision Rule}
+\label{NAL-1-Revision-Functions}
+\end{table}
+
+As in IL-1, judgment ``\(S \rightarrow P \langle f, \, c\rangle \)'' provides a \emph{candidate answer} to evaluative question ``\(S \rightarrow P ?\)'', as well as to selective questions ``\(S \rightarrow\; ?\)'' and ``\(? \rightarrow P\)''. However, unlike the situation of IL-1, in NAL-1 all candidates are not equally good. The \emph{choice rule} of NAL chooses the better answer between two candidates.
+
+For an \emph{evaluative question} ``\(S \rightarrow P ?\)'', both candidate answers contain the same statement ``\(S \rightarrow P\)'', though have different truth-values. Between them, the better one is the one with a higher \emph{confidence} value. This is the case because an adaptive system prefers an evaluation supported by more evidence.
+
+For a \emph{selective question} ``\(S \rightarrow\; ?\)'' or ``\(? \rightarrow P\)'', the two candidate answers usually suggest different instantiations $T_1$ and $T_2$ for the query variable in the question. Between them, the better one is the one with a higher \emph{expectation} value, which is a prediction of the frequency for the statement to be confirmed in the near future. This prediction is based on the past frequency, but more \emph{conservative}, by taking the confidence factor into account. The expectation function is given in Table \ref{NAL-1-Expectation-Function}.
+
+\begin{table}[htb]
+\[\begin{array}{|r|r|lcl|} \hline
+\mbox{\textbf{Expectation}} & \mbox{frequency-interval version:} & e & = & (l + u) / 2 \\
+								            &	\mbox{evidence-amount version:}    & e & = & (w^+ + k/2) / (w + k) \\
+                   F_{exp}  & \mbox{truth-value version:}        & e & = & c(f - 1/2) + 1/2 \\
+\hline \end{array}\]
+\caption{The Expectation Function}
+\label{NAL-1-Expectation-Function}
+\end{table}
+
+In summary, the choice rule is formally defined in Table \ref{choice}, where $S_1 \, \langle f_1, \, c_1\rangle $ and $S_2 \, \langle f_2, \, c_2\rangle $ are two competing answers to a question, and $S \, \langle F_{cho} \rangle$ is the chosen one. When $S_1$ and $S_2$ are the same statement, the one with a higher confidence value is chosen, otherwise the one with a higher expectation value is chosen. It is also a special rule because no new conclusion is derived.
+
+\begin{table}[htb]
+\[\begin{array}{|c||c|} \hline
+J_2 \, \backslash \, J_1 & S_1 \, \langle f_1, \, c_1\rangle  \\
+\hline \hline
+S_2 \, \langle f_2, \, c_2\rangle  & S \, \langle F_{cho}\rangle \\
+\hline \end{array}\]
+\caption{The Choice Rule}
+\label{choice}
+\end{table}
+
+
+\section{Backward inference}
+
+\emph{Backward inference} happens when a judgment and a question are taken as premises, and a \emph{derived question} is produced as result. The question derivation rules are specified by the following general principle, or \emph{meta-rule}, using the other (forward inference) rules defined previously. 
+\begin{description}
+	\item[Question derivation:] A question $Q$ and a judgment $J$ will give rise to a new question $Q'$ if and only if an answer for $Q$ can be derived from $J$ and an answer for $Q'$, by a forward inference rule. 
+\end{description}
+
+Therefore, if a question cannot be properly answered by the choice rule, backward inference is used to recursively ``reduce'' the question into derived questions, until all of them have direct answers. Then these answers, together with the judgments involved in the previous backward inference, will derive an answer to the original question by forward inference.
+
+In NAL-1, all backward inference rules are obtained by turning the forward syllogistic rules in Table \ref{NAL-1-Syllogisms} in a reverse direction, and the corresponding backward-inference rules are in Table \ref{NAL-1-Backward}, where $P$ can be a query variable (marked by `?').
+
+\begin{table}[htb]
+\[\begin{array}{|c||c|c|} \hline
+J \; \backslash \; Q
+        & M \rightarrow P       & P \rightarrow M \\
+\hline \hline
+S \rightarrow M \langle f, \, c\rangle  & S \rightarrow P   & S \rightarrow P \\
+                              & P \rightarrow S   & P \rightarrow S \\
+\hline
+M \rightarrow S \langle f, \, c\rangle  & S \rightarrow P   & S \rightarrow P \\
+                              & P \rightarrow S   & P \rightarrow S \\
+\hline \end{array}\]
+\caption{The Backward Basic Syllogistic Rules}
+\label{NAL-1-Backward}
+\end{table}
+
+This table turns out to be identical to Table \ref{NAL-1-Syllogisms}, if the truth-value functions  and the question/judgment difference are ignored.
+
+\section*{References}
+
+\cite[Chapter 3]{wp:book1}, \cite{wp:nal2,wp:ref2,wp:bias2,wp:fuzzy2,wp:syllogism,wp:higher2,wp:bayes3,wp:seman2,wp:formal-evidence}

@@ -1,0 +1,41 @@
+
+\chapter{Introduction}
+
+This document provides a complete and up-to-date specification of \emph{Non-Axiomatic Logic} (\emph{NAL}).
+
+\section{NAL and NARS}
+
+NAL is the logic part of \emph{NARS} (\emph{Non-Axiomatic Reasoning System}).
+
+NARS is an AI project aims at a general-purpose thinking machine.
+
+NARS is designed according to the theory that \emph{intelligence is the ability for a system to adapt to its environment while working with insufficient knowledge and resources} \cite{wp:phd,wp:book1}.
+
+NARS is developed in the framework of reasoning system. The logic part of NARS is NAL, a formal logic, consisting of a formal language \emph{Narsese} and a set of formal inference rules, plus a semantics. The control part of NARS mainly consists of a memory mechanism and an inference control mechanism. 
+
+NARS is an attempt to provide a normative model of \emph{general intelligence}, rather than a descriptive model of \emph{human intelligence}, though the latter is a special case of the former, therefore these two types of model are similar in various (though not all) aspects.
+
+As a \emph{normative} model, NAL starts from some basic principles, then derives a concrete design for what a system \emph{should} do to adapt when its knowledge and resources are insufficient with respect to its tasks.
+
+\section{Structure of NAL}
+
+NAL is established in multiple layers, each of which extends the logic by adding new grammar and inference rules, with proper addition of the semantics. Consequently, each layer has a higher expressive and inferential power than the previous ones, so as to give the corresponding NARS a higher level of intelligence.
+
+In the current design, there are 8 layers. Consequently, each of the logic is named as NAL-\emph{n}, and the corresponding formal language is named Narsese-\emph{n}, with \emph{n} being a number between 1 and 8.
+
+This document starts at the meta-language of NAL. Using it, NAL-1 to NAL-8 are introduced one by one, with formal and semi-formal specifications of its addition in language, semantics, and inference rules. 
+
+\section{Specifying NAL}
+
+This specification only explains what NAL is and does, rather than why it is designed in this way, what kind of overall functionality is produced, or how it differs from other systems. For those contents, references are provided by citing previous publications on NARS. All the NARS publications referred, except the book \cite{wp:book1}, are available online at the project website \texttt{http://sites.google.com/site/narswang/}. 
+
+This document is under constant revision. As an up-to-date description of an on-going research project, this specification of NAL is not identical to the previous publications on NAL in all details. Wherever such a difference occurs, this document should be considered as representing the current opinion of the author.
+
+This document does not address the control part of NARS, which is described in \cite[Chapter 6]{wp:book1}, as well as \cite{wp:reso2,wp:reso3,wp:CBC}. Currently NARS is an open-source project, hosted at \\
+\texttt{http://code.google.com/p/open-nars/}.
+
+There are still some open issues in the design of NAL. In the document, they are introduced in the footnotes.\footnote{Even after all the known issues are resolved, whether NAL is ``complete'' depends on a new notion of \emph{completeness}, because the traditional notion cannot be applied to non-axiomatic logics. The new notion should be based on a formal definition of adaptive system, whose interaction with the environment is described as streams of sentences in a formal language. In that situation, NAL will be considered as ``complete'' if (1) Narsese is shown to be powerful enough to describe all possible interactions between a system and its environment, and (2) NAL inference rules are shown to be powerful enough to describe all possible adaptive behaviors of a system.}
+
+\section*{References}
+
+\cite[Chapter 2]{wp:book1}, \cite{wp:phd,wp:roadmap}

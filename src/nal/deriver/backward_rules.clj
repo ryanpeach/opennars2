@@ -9,14 +9,17 @@
   (some #{:allow-backward} (:post (first conclusions))))
 
 (defn has-prefix? [prefix cond]
+  "check for example for prefix t in :t/deduction as used by the inference rules"
   (when (keyword? cond)
     (s/starts-with? (str cond) prefix)))
 
 (defn not-equal? [cond]
+  "check for not-equal sign"
   (when (coll? cond)
     (= :!= (first cond))))
 
 (defn check-not-equal [pre conclusion]
+  "put not equal sign together with its arguments so that it can be executed"
   (if (some not-equal? pre)
     (let [pre (remove not-equal? pre)]
       (if (and (coll? conclusion) (= 3 (count conclusion)))

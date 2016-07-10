@@ -3,7 +3,9 @@
     [nal.deriver.truth :refer [w2c frequency confidence]]))
 
 ;temporally project task to ref task (note: this is only for event tasks!!)"
-(defn project-to [target-time t cur-time]
+(defn project-to
+  "projects the task t to the target-time given the current time cur-time."
+  [target-time t cur-time]
   (when (= :eternal (:occurrence t))
     (println "ERROR: Project called on eternal task!!"))
   (let [source-time (:occurrence t)
@@ -21,7 +23,9 @@
        :occurrence target-time))))
 
 ;eternalize an event task to a task of eternal occurrence time
-(defn eternalize [t]
+(defn eternalize
+  "Eternalizes the task t"
+  [t]
   (when (= (:occurrence t) :eternal)
     (println "error: eternalization on eternal task"))
   (if (or (= (:task-type t) :belief) (= (:task-type t) :goal))
@@ -30,7 +34,9 @@
     (assoc t :occurrence :eternal)))
 
 ;temporally projecting/eternalizing a task to ref time
-(defn project-eternalize-to [target-time t cur-time]
+(defn project-eternalize-to
+  "Task t is projected or eternalized to target-time dependent on the occurrence type of target-time."
+  [target-time t cur-time]
   (if (= nil t)
     nil
     (let [source-time (:occurrence t)

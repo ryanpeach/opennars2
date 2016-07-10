@@ -2,13 +2,17 @@
   (:require [clojure.set :as set]))
 
 ;todo performance
-(defn difference [[op & set1] [_ & set2]]
+(defn difference
+  "Set difference precondition operation application code"
+  [[op & set1] [_ & set2]]
   (into [op] (sort-by hash (set/difference (set set1) (set set2)))))
 
 (defn union [[op & set1] [_ & set2]]
+  "Set union precondition operation application code"
   (into [op] (sort-by hash (set/union (set set1) (set set2)))))
 
 (defn intersection [[op & set1] [_ & set2]]
+  "Set intersection precondition operation application code"
   (into [op] (sort-by hash (set/intersection (set set1) (set set2)))))
 
 (def f-map {:difference   difference
