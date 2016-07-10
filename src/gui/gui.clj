@@ -22,6 +22,7 @@
                                                       (cast! (whereis :sentence-parser) [:narsese-string-msg (str (input "Add Narsese" :to-string :name) "\n")]))
              :backcolor backcolor}
 
+
             #_{:name :resume :px 450 :py -525 :onclick (fn [state]
                                                       (start-timers))
              :backcolor backcolor}

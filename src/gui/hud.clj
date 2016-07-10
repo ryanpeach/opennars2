@@ -34,56 +34,63 @@
     (set-fast-speed)
     (set-slow-speed)))
 
-(def nodes [{:name :pop-up :px 700 :py 0 :onclick (fn [state]
+(def nodes [{:name :pop-up :px 710 :py 0 :onclick (fn [state]
                                                        (cast! (whereis :sentence-parser) [:narsese-string-msg (str (input "Add Narsese" :to-string :name) "\n")]))
              :backcolor backcolor}
-            {:name :paste :px 750 :py 0 :onclick (fn [state]
+            {:name :paste :px 760 :py 0 :custom-w 40 :onclick (fn [state]
                                                       (input-str (slurp-clipboard)))
              :backcolor backcolor}
 
-            {:name :resume :px 0 :py 0 :onclick (fn [state]
-                                                       (start-timers))
+            {:name :> :px 0 :py 0 :onclick (fn [state]
+                                                  (stop-timers)
+                                                  (start-timers))
              :displaysize 10
              :backcolor backcolor}
-            {:name :pause :px 50 :py 0 :custom-w 40 :onclick (fn [state]
+            {:name :|| :px 50 :py 0 :custom-w 25 :onclick (fn [state]
                                                      (stop-timers))
              :backcolor backcolor}
-            {:name :step :custom-w 35 :px 90 :py 0 :onclick (fn [state]
+            {:name :>| :custom-w 25 :px 75 :py 0 :onclick (fn [state]
                                                                (cast! (whereis :concept-selector) [:inference-tick-msg])
                                                                (cast! (whereis :task-creator) [:system-time-tick-msg])
                                                                (cast! (whereis :derived-load-reducer) [:system-time-tick-msg])
                                                                (cast! (whereis :forgettor) [:system-time-tick-msg]))
              :backcolor backcolor}
-            {:name :off :custom-w 25 :px 125 :py 0 :onclick (fn [state]
-                                                    (shutdown))
-             :backcolor backcolor}
-            {:name :start :px 150 :py 0 :onclick (fn [state]
-                                                      (run))
+            {:name :reset :custom-w 35 :px 150 :py 0 :onclick (fn [state]
+                                                              (shutdown)
+                                                              (run))
              :backcolor backcolor}
 
-            {:name :color :px 200 :py 0 :onclick (fn [state]
+            {:name :save :custom-w 35 :px 185 :py 0 :onclick (fn [state]
+                                                               (cast! (whereis :concept-manager) [:persist-state-msg []]))
+             :backcolor backcolor}
+
+            {:name :load :custom-w 35 :px 220 :py 0 :onclick (fn [state]
+                                                               (cast! (whereis :concept-manager) [:load-state-msg []]))
+             :backcolor backcolor}
+
+            {:name :color :custom-w 30 :px 275 :py 0 :onclick (fn [state]
                                                        (reset! invert-colors (not @invert-colors)))
              :backcolor backcolor}
-            {:name :speed :px 250 :py 0 :onclick (fn [state]
+            {:name :speed :px 100 :py 0 :onclick (fn [state]
                                                    (swap-speed))
              :displaysize 10
              :backcolor backcolor}
-            {:name :+prioTh. :px 300 :py 0 :onclick (fn [state]
+            {:name :+prioTh. :px 305 :py 0 :onclick (fn [state]
                                                       (reset! prio-threshold (+ @prio-threshold 0.1)))
              :displaysize 10
              :backcolor backcolor}
-            {:name :-prioTh. :px 350 :py 0 :onclick (fn [state]
+            {:name :-prioTh. :px 355 :py 0 :onclick (fn [state]
                                                             (reset! prio-threshold (- @prio-threshold 0.1)))
              :backcolor backcolor}
-            {:name :details :px 400 :py 0 :onclick (fn [state]
+            {:name :details :custom-w 40 :px 405 :py 0 :onclick (fn [state]
                                                             (reset! link-labels (not @link-labels)))
              :backcolor backcolor}
 
-            {:name :send :px 650 :py 0 :onclick (fn [state]
+            {:name :send :px 660 :py 0 :onclick (fn [state]
                                                      (input-str (deref inputstr))
                                                      (swap! inputstr (fn [st] ""))) :backcolor backcolor}
 
-            {:name :input :px 450 :custom-w 200 :py 0 :backcolor backcolor :displaysize 10}
+            {:name :input :px 460 :custom-w 200 :py 0 :backcolor backcolor :displaysize 10}
             ])
 
 (def hud [nodes [] hud-width hud-height])
