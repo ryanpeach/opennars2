@@ -124,12 +124,10 @@
                                                    " "
                                                    (task-to-narsese task)))))
 
-(def max-qu-track 50)
-(def last-qu-answers (atom []))
-
 (defn get-solution-id [task]
   [(:statement task) (:task-type task) (:occurrence task) (:truth task)])
 
+(def max-qu-track 50)
 (defn potentially-ouput-question-solution [task-id task solution]
   (let [solution-id (get-solution-id solution)]
     (when (not (some #{[task-id solution-id]} @last-qu-answers))

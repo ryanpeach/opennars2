@@ -171,11 +171,24 @@
                       (qu-var-transform x))))
     term))
 
+(defn placeholder-transform [term]
+  (if (coll? term)
+    (apply vector (for [x term]
+                    (placeholder-transform x))))
+  (if (= term '_)
+    '_IMAGE_PLACEHOLDER_
+    term))                                  ;TODO
+
 (defn valid-answer-unifier [unifier]
   (not (some #{'dep-var} (flatten (vals unifier)))))
 
 (defn question-unifies [question solution]
-  (let [unifier (unify (qu-var-transform question) solution)]
-    (when (and unifier
-               (valid-answer-unifier unifier))
-      true)))
+  (try (let [unifier (unify (placeholder-transform (qu-var-transform question)) (placeholder-transform solution))]
+     (when (and unifier
+                (valid-answer-unifier unifier))
+       true))
+       (catch Exception ex (println (str "question unification issue with question "
+                                         question
+                                         "\nanswer:"
+                                         solution
+                                         "\n" ex) ))))

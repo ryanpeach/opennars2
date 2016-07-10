@@ -1,7 +1,5 @@
 <(*,robert,likes,cats) --> SENTENCE>.
 <likes --> VERB>.
-<(&&,<$2 --> VERB>,<($1,$2,$3) --> SENTENCE>) ==> <((/,REPRESENT,$1,_),(/,REPRESENT,$3,_)) --> (/,REPRESENT,$2,_)>>.
+<(&&,<$2 --> VERB>,<($1,$2,$3) --> SENTENCE>) <=> <((/,REPRESENT,$1,_),(/,REPRESENT,$3,_)) --> (/,REPRESENT,$2,_)>>.
 <((/,REPRESENT,robert,_),?what) --> (/,REPRESENT,likes,_)>?
 
-
-<((/,REPRESENT,robert,_),(/,REPRESENT,pizza,_)) --> (/,REPRESENT,likes,_)>.

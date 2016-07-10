@@ -21,7 +21,8 @@
     [narjure.narsese :refer [parse2]]
     [taoensso.timbre :refer [info set-level!]]
     [narjure.bag :as b]
-    [narjure.defaults :refer :all])
+    [narjure.defaults :refer :all]
+    [narjure.debug-util ])
   (:refer-clojure :exclude [promise await])
   (:import (ch.qos.logback.classic Level)
            (org.slf4j LoggerFactory)
@@ -95,6 +96,8 @@
 
 (defn run []
 
+  (info "reset question filter")
+  (reset! last-qu-answers [])
   (info "Resetting concepts bagss:")
   (reset! c-bag (b/default-bag max-concepts))
   (info "c-bag count: " (b/count-elements @c-bag))

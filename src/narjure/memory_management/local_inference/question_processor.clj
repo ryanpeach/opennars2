@@ -14,11 +14,9 @@
   (:refer-clojure :exclude [promise await]))
 
 (defn process-question [state question]
-  (println "A_0")
   (let [beliefs (filter #(and (= (:task-type %) :belief)
                               (question-unifies (:statement question) (:statement %)))
                         (get-tasks state))]
-    (println "A")
     ;filter beliefs matching concept content
     ;project to task time
     ;select best ranked

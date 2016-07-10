@@ -27,3 +27,5 @@
        (:strongest-belief-about-now ((:elements-map @c-bag) concept-term)))) @nars-time))
 
 (def answer-handlers (atom []))
+
+(def last-qu-answers (atom []))

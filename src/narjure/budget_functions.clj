@@ -60,9 +60,9 @@
   [task derived-task]
   (when (< (:sc derived-task) max-term-complexity)
     (let [priority (first (:budget task))
-         durability 0.5
+         durability (/ (second (:budget task)) (Math/sqrt (:sc derived-task)))
          truth-quality (if (:truth derived-task) (truth-to-quality (:truth derived-task))
-                                                 (w2c 1.0))
+                                                 0.0 #_(w2c 1.0))
          complexity (:sc derived-task)
          rescale-factor 0.8 ;should probably not above input belief quality!
          quality (* truth-quality
