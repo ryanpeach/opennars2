@@ -229,7 +229,11 @@
                                                                                                                         :occurrence (if (= (:occurrence task) :eternal)
                                                                                                                                       :eternal
                                                                                                                                       (- (:occurrence task) @nars-time))
-                                                                                                                        :quality (nth (:budget task) 2))))
+                                                                                                                        :quality (nth (:budget task) 2)
+                                                                                                                        :solution (when (:solution task)
+                                                                                                                                    {:statement (:statement (:solution task))
+                                                                                                                                     :truth (:truth (:solution task))
+                                                                                                                                     :occurrence (:occurrence (:solution task))}))))
                                                                                                       (bagfilter task-filter (:priority-index (@lense-taskbags id)))))))) 20000)))
                                                   ""))       ;"\n" @lense-termlinks
                             :px            px

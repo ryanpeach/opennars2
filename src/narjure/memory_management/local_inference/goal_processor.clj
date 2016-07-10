@@ -279,4 +279,9 @@
             (when-not (= nil operation)                   ;todo change to - when operation
                 #_(println (str (:truth operation) (expectation (:truth operation))))
                 ;(println (str  "goal: " operation))
-                (cast! (whereis :operator-executor) [:operator-execution-msg operation])))))))
+                (when-not (:execution-evidence @state)
+                  (set-state! (assoc @state :execution-evidence '())))
+                (when (some (fn [z] (not (some #{z} (:execution-evidence @state)))) (:evidence operation))
+                  (cast! (whereis :operator-executor) [:operator-execution-msg operation])
+                  (set-state! (assoc @state :execution-evidence (take 50 (concat (:evidence operation) (:execution-evidence @state)))))
+                  )))))))
