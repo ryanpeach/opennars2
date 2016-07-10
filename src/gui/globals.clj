@@ -6,6 +6,6 @@
 (def invert-colors (atom true))
 (def prio-threshold (atom 0.0))
 (def link-labels (atom false))
-(def concept-filter (atom "_DELETE_ME_"))
+(def concept-filter (atom ""))
 (def inputstr (atom ""))
 (def speed (atom "slow"))
