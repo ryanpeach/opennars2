@@ -65,6 +65,8 @@
              :backcolor backcolor}
 
             {:name :load :custom-w 35 :px 220 :py 0 :onclick (fn [state]
+                                                               (shutdown)
+                                                               (run)
                                                                (cast! (whereis :concept-manager) [:load-state-msg []]))
              :backcolor backcolor}
 
