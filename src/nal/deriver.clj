@@ -104,7 +104,7 @@
     (coll? term)
 
     ;dont allow a. terms, only NAL statements are allowed (TODO discuss NAL9 name operator handling)
-    (some #(= % (first term)) '[--> <-> ==> pred-impl retro-impl
+    #_(some #(= % (first term)) '[--> <-> ==> pred-impl retro-impl
                                 =|> <=> </> <|>
                                 -- || conj seq-conj &|])
 
