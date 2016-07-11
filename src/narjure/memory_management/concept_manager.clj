@@ -80,8 +80,8 @@
   (doseq [c-state (read-seq-from-file (:path @state))]
     (if (:nars-time c-state )
       (do
-        reset! nars-time (:nars-time c-state)
-        reset! nars-id (:nars-id c-state))
+        (reset! nars-time (:nars-time c-state))
+        (reset! nars-id (:nars-id c-state)))
        (cast! (make-general-concept (:id c-state)) [:set-concept-state-msg c-state]))))
 
 (defn clean-up
