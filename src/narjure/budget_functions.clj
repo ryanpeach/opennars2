@@ -65,14 +65,14 @@
 
 (defn derived-budget
   "The budget of a by general inference derived task."
-  [task derived-task]
+  [b-link-strength task derived-task]
   (when (< (:sc derived-task) max-term-complexity)
-    (let [priority (first (:budget task))
+    (let [priority (t-or (first (:budget task)) (min 1.0 (* 5.0 (first b-link-strength))))
          durability (/ (second (:budget task)) (Math/sqrt (:sc derived-task)))
          truth-quality (if (:truth derived-task) (truth-to-quality (:truth derived-task))
                                                  0.0 #_(w2c 1.0))
          complexity (:sc derived-task)
-         rescale-factor 0.8 ;should probably not above input belief quality!
+         rescale-factor belief-quality ;should probably not above input belief quality!
          quality (* truth-quality
                     rescale-factor
                     #_(/ 1.0 (Math/sqrt complexity)))]

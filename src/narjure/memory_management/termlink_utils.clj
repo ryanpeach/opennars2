@@ -98,7 +98,7 @@
           [p d] ((:termlinks @state) belief-concept-id)]
       (when (and p d truth-quality)
         (add-termlink belief-concept-id [(t-or p (t-or quality activation))
-                                         (t-or d quality)]))
+                                         (t-or d (* 0.1 quality))]))
       )
     (catch Exception e () #_(println "fail"))))
 
@@ -146,5 +146,5 @@
     (if (and resbag (pos? (b/count-elements resbag)))
       (let [[beliefconcept _] (b/get-by-index resbag (selection-fn (b/count-elements resbag)))]
         (forget-termlink (:id beliefconcept))               ;apply forgetting for termlinks only on selection
-        (get-ref-from-term (:id beliefconcept)))
+        [(get-ref-from-term (:id beliefconcept)) (:id beliefconcept)])
       nil)))

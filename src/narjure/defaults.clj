@@ -9,7 +9,7 @@
 (def belief-priority 0.99)
 (def belief-durability 0.9)
 ;todo clarify this
-(def belief-quality 0.8)
+(def belief-quality 0.3)
 
 (def belief-budget
   [belief-priority belief-durability belief-quality])
@@ -17,14 +17,14 @@
 (def question-priority 0.9)
 (def question-durability 0.9)
 ;todo clarify this
-(def question-quality 0.96)
+(def question-quality 0.56)
 
 (def question-budget
   [question-priority question-durability question-quality])
 
 (def goal-confidence 0.9)
 (def goal-priority 0.99)                                    ;set higher than potential quality rewards in the system (best-operation-selection, structural reinforcement)
-(def goal-quality 0.967)
+(def goal-quality 0.567)
 (def goal-durability 0.9)
 
 (def goal-budget
@@ -52,7 +52,7 @@
 (def max-derived-sentences 50)                              ; derived task bag capacity
 (def max-derived-selections 10)                             ; max derived selections per cycle
 (def max-event-selections 10)                               ; no longer used - number of events to select per cycle
-(def inverse-decay-rate 30)                                        ; forgetting adjustment rate for concepts e^-lt where l = (1.0 - durabiity) / decay-rate
+(def inverse-decay-rate 10)                                        ; forgetting adjustment rate for concepts e^-lt where l = (1.0 - durabiity) / decay-rate
 ; durability of 0.5 and decay rate of 100 fully decays priority in 1000 cycles
 ; decay-rate of 10 would fully decay it in 100 cycles
 (def system-tick-interval-slow 150)
@@ -63,7 +63,7 @@
 (def inference-tick-interval (atom inference-tick-interval-slow))
 (def anticipation-scale-dependent-tolerance 4.0)            ;has to be 4 since interval rounding has to agree with time measurement in 2-power
 (def anticipation-disappointment-priority-gain 1.5)         ;should be >=1.0 !
-(def termlink-default-budget [0.1 0.9])
-(def concept-selection-introduced-termlink-default-budget [0.1 0.3])
+(def termlink-default-budget [0.5 0.9])
+(def concept-selection-introduced-termlink-default-budget [0.5 0.3])
 (def termlink-context-adaptations-speed 0.05)
 (def revision-relevant-event-distance 30.0)                  ;TODO check its relation to temporal window and the parameter in projection

@@ -54,7 +54,7 @@
 
 (defn belief-request-handler
   ""
-  [from [_ [task-concept-id task]]]
+  [from [_ [b-link-strength task-concept-id task]]]
   ;todo get a belief which has highest confidence when projected to task time
   (try
     (let [tasks (get-tasks state)
@@ -65,12 +65,12 @@
       (when (not-empty projected-belief-tuples)
         (doseq [belief beliefs]
           (debuglogger search display ["selected belief:" belief "§"])
-          (cast! (:inference-request-router @state) [:do-inference-msg [task-concept-id (:id @state) task belief]])))
+          (cast! (:inference-request-router @state) [:do-inference-msg [b-link-strength task-concept-id (:id @state) task belief]])))
 
       ;dummy? belief as "empty" termlink belief selection for structural inference
       (let [belief {:statement (:id @state) :task-type :question :occurrence :eternal :evidence '()}]
         (debuglogger search display ["selected belief:" belief "§"])
-        (cast! (:inference-request-router @state) [:do-inference-msg [task-concept-id (:id @state) task belief]])))
+        (cast! (:inference-request-router @state) [:do-inference-msg [b-link-strength task-concept-id (:id @state) task belief]])))
     (catch Exception e (debuglogger search display (str "belief request error " (.toString e))))))
 
 (defn inference-request-handler
@@ -81,8 +81,8 @@
       (when (pos? (b/count-elements task-bag))
         (let [[el] (b/lookup-by-index task-bag (selection-fn (b/count-elements task-bag)))]
           (debuglogger search display ["selected inference task:" el])
-          (when-let [c-ref (select-termlink-ref)]
-            (cast! c-ref [:belief-request-msg [(:id @state) (:task el)]])))))))
+          (when-let [[c-ref c-id] (select-termlink-ref)]
+            (cast! c-ref [:belief-request-msg [((:termlinks @state) c-id) (:id @state) (:task el)]])))))))
 
 (defn termlink-strengthen-handler
   "Strenghtens the termlink between two concepts or creates it if not existing.
