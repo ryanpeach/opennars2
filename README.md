@@ -2,19 +2,15 @@
 
 # OpenNARS 2.0
 
-A Clojure implementation of the [Non-Axiomatic Reasoning System](https://github.com/opennars/opennars) proposed by Pei Wang.
+A Clojure implementation of the [Non-Axiomatic Reasoning System](https://sites.google.com/site/narswang/) proposed by Pei Wang.
 
 ## Come chat with us
 
-Join us on [irc://irc.freenode.net:6667/#nars](irc://irc.freenode.net:667/#nars]) or [freenode webchat](https://webchat.freenode.net/?channels=nars)
+Join our discussions on https://groups.google.com/forum/#!forum/open-nars, or join us on [irc://irc.freenode.net:6667/#nars](irc://irc.freenode.net:667/#nars]) / [freenode webchat](https://webchat.freenode.net/?channels=nars)
 
 ## Usage
 
-OpenNARS 2.0 is still in development, please find OpenNaRS 1.7.0 [source here](https://github.com/opennars/opennars) or [binaries here](http://opennars.github.io/opennars/)
-
-## In the meantime
-
-Please read over the [OpenNARS 2.0 System Design](https://goo.gl/nXlg0p) document and [watch our Teamviewer sessions](https://goo.gl/6o7cfY).
+Clone the repository and open it with Cursive/IntelliJ, open a REPL and load Lense.clj.
 
 ## License
 
