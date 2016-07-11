@@ -2921,26 +2921,30 @@ http://stackoverflow.com/questions/24553212/how-to-take-n-random-items-from-a-co
     (if (shuffle? A)
       (for [x shuffled]
         (shuffle-term x))
-      A)))</pre></td></tr><tr><td class="docs">
+      A)))</pre></td></tr><tr><td class="docs"><p>Generate all conclusions between task t1 and task t2</p>
 </td><td class="codes"><pre class="brush: clojure">(defn generate-conclusions
   [rules {p1 :statement :as t1} {p2 :statement :as t2}]
   ;assign statement
   (apply set/union (for [x (range 50)]
      (generate-conclusions-no-commutativity rules
                                             (assoc t1 :statement (shuffle-term p1))
-                                            (assoc t2 :statement (shuffle-term p2))))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn valid-statement [term]
+                                            (assoc t2 :statement (shuffle-term p2))))))</pre></td></tr><tr><td class="docs"><p>Valid statement filter</p>
+</td><td class="codes"><pre class="brush: clojure">(defn valid-statement
+   ;TODO extent
+  [term]
     (not-any? #(and (coll? term)
                     (= (count term) 3)
                     (= (first term) %)
                     (= (second term) (nth term 2)))
               ['--&gt; '&lt;-&gt; '==&gt; 'pred-impl 'retro-impl
-               '=|&gt; '&lt;=&gt; '&lt;/&gt; '&lt;|&gt;]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn occurrence-type [occ]
+               '=|&gt; '&lt;=&gt; '&lt;/&gt; '&lt;|&gt;]))</pre></td></tr><tr><td class="docs"><p>Occurrence task of tasks, either :eternal or :event</p>
+</td><td class="codes"><pre class="brush: clojure">(defn occurrence-type
+  [occ]
   (case occ
     :eternal :eternal
-    :event))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn reorder-inference [parsed-p1 parsed-p2]
+    :event))</pre></td></tr><tr><td class="docs"><p>Inference between both tasks, where the occurrence prefers the :event here when one is :event.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn reorder-inference
+  [parsed-p1 parsed-p2]
   (let [type1 (occurrence-type (:occurrence parsed-p1))
         type2 (occurrence-type (:occurrence parsed-p2))
         p1-occurrence (if (and (= type1 :eternal) (= type2 :event))

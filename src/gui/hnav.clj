@@ -4,13 +4,17 @@
             [gui.globals :refer :all]))
 
 
-(defn width []
+(defn width
+  "Returns the window width"
+  []
   (try (if (or (= nil q/width) (= nil (q/width)))
          init-size
          (q/width))
        (catch Exception e init-size)))
 
-(defn height []
+(defn height
+  "Returns the window height"
+  []
   (try (if (or (= nil q/height) (= nil (q/height)))
          init-size
          (q/height))
@@ -20,19 +24,27 @@
   (^double [^double zoom ^double coord ^double dif ^double wh]
    (* (/ 1.0 zoom) (+ coord (- dif) (- (/ wh 2.0))))))
 
-(defn mouse-to-world-coord-x [state x]
+(defn mouse-to-world-coord-x
+  "Transform the mouse coordinates to world coordinates"
+  [state x]
   (speedhelper (:zoom state) x (:difx state) (width)))
 
-(defn mouse-to-world-coord-y [state y]
+(defn mouse-to-world-coord-y
+  "Transform the mouse coordinates to world coordinates"
+  [state y]
   (speedhelper (:zoom state) y (:dify state) (height)))
 
-(defn transform [{:keys [difx dify zoom]}]
+(defn transform
+  "The hnav navigation world transformation"
+  [{:keys [difx dify zoom]}]
   (q/translate (+ difx (* 0.5 (width)))
                (+ dify (* 0.5 (height))))
   (q/scale zoom zoom))
 
 ;a utility for copy paste todo cleanup
-(defn display-string [debugmessage name]
+(defn display-string
+  "A helper for string printing"
+  [debugmessage name]
   (clojure.string/replace (str (if (> (count (debugmessage name)) 1)
                                  (if (not= "" (deref (second (debugmessage name))))
                                    (str (deref (second (debugmessage name))) "\n"))
@@ -40,7 +52,8 @@
                                ((first (debugmessage name)))) #"§" "\n"))
 
 ;HNAV implementation
-(defn mouse-pressed [graphs debugmessage hud state event]                           ;also HGUI click check here
+(defn mouse-pressed
+  [graphs debugmessage hud state event]                           ;also HGUI click check here
   (when (not= [] graphs)
     (doseq [[V E w h] @graphs]
       (doseq [v V]

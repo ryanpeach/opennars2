@@ -30,10 +30,14 @@
   (:gen-class))
 
 
-(defn inference-tick []                                     ;inference-tick-interval is fast enough compared to system-tick-interval
+(defn inference-tick
+  "Apply an inference tick"
+  []                                     ;inference-tick-interval is fast enough compared to system-tick-interval
   (cast! (whereis :concept-selector) [:inference-tick-msg]))
 
-(defn system-tick []
+(defn system-tick
+  "Apply an system tick"
+  []
   (cast! (whereis :task-creator) [:system-time-tick-msg])
   (cast! (whereis :derived-load-reducer) [:system-time-tick-msg])
   (cast! (whereis :forgettor) [:system-time-tick-msg]))
@@ -46,7 +50,9 @@
 
 (defn prn-ok [msg interval] (info (format "\t[OK] %s (%d ms)" msg interval)))
 
-(defn start-timers []
+(defn start-timers
+  "Start all relevant NARS timers."
+  []
   (info "Initialising system timers...")
   (schedule inference-tick {:in    @inference-tick-interval
                             :every @inference-tick-interval})

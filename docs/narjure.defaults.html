@@ -2873,7 +2873,7 @@ net.brehaut.ClojureTools = (function (SH) {
   [belief-frequency belief-confidence])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def belief-priority 0.99)
 (def belief-durability 0.9)</pre></td></tr><tr><td class="docs"><p>todo clarify this</p>
-</td><td class="codes"><pre class="brush: clojure">(def belief-quality 0.5)</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def belief-quality 0.8)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def belief-budget
   [belief-priority belief-durability belief-quality])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def question-priority 0.9)
@@ -2896,7 +2896,7 @@ net.brehaut.ClojureTools = (function (SH) {
 </td><td class="codes"><pre class="brush: clojure">(def ^{:type double} horizon 1)                             ; personality factor for evidential horizon</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def max-evidence 10)                                       ; maximum length of evidence trail</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def temporal-window-duration 10)                           ; number of system cycles to consider as concurrent</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def max-term-complexity 20)                                ; maximum number of terms and sub terms in a statement - syntactic complexity</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def max-term-complexity 22)                                ; maximum number of terms and sub terms in a statement - syntactic complexity</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def priority-threshold 0.001)                              ; concepts and tasks have to be above this to be processed</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def max-concept-selections 5)                              ; don't set higher if not on a sumpercomputer, will cause trouble</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def termlink-single-sample-evidence-amount 0.01)           ; default conf for termlink truth value</pre></td></tr><tr><td class="docs">

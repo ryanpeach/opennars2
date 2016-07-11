@@ -11,22 +11,29 @@
      [debug-util :refer :all]]
     [narjure.memory-management.concept-utils :refer :all]))
 
-(defn truth-to-quality [t]
+(defn truth-to-quality
+  "The task quality judged by its truth."
+  [t]
   (let [exp (expectation t)
         positive-truth-bias 0.75]
     (max exp (* (- 1.0 exp) positive-truth-bias))))
 
-(defn occurrence-penalty-tr [occ]
+(defn occurrence-penalty-tr
+  "Occurrence budget penalty. Currently not used as forgetting seems to suffice."
+  [occ]
   (let [k 0.0001]
     (if (= occ :eternal)
       1.0
       (/ 1.0 (+ 1.0 (* k (Math/abs (- @nars-time occ))))))))
 
-(defn highest-desire-in-respect-to-now [concept-term]
+(defn highest-desire-in-respect-to-now
+  "The highest desire value in respect to current nars-time."
+  [concept-term]
   (:truth (:strongest-desire-about-now ((:elements-map @c-bag) concept-term)))) ;also projected to now!!
 
-(defn structural-reward-budget [budget derived-task]
-  "returns a budget"
+(defn structural-reward-budget
+  "returns a increased budget for statements of structural interest, mainly for experiments."
+  [budget derived-task]
   (let [not-matched-or-not-desired-budget [(* (first budget) 0.5) (second budget) (nth budget 2)]
         match (second (precondition-operation-consequent-statement derived-task))]
     (if (and (:truth derived-task)
@@ -57,6 +64,7 @@
 
 
 (defn derived-budget
+  "The budget of a by general inference derived task."
   [task derived-task]
   (when (< (:sc derived-task) max-term-complexity)
     (let [priority (first (:budget task))

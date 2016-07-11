@@ -2867,12 +2867,17 @@ net.brehaut.ClojureTools = (function (SH) {
 })(SyntaxHighlighter);
 </script><script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script><title>narjure -- Marginalia</title></head><body><table><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#nal.deriver.set-functions" name="nal.deriver.set-functions"><h1 class="project-name">nal.deriver.set-functions</h1><a class="toc-link" href="toc.html">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns nal.deriver.set-functions
-  (:require [clojure.set :as set]))</pre></td></tr><tr><td class="docs"><p>todo performance</p>
-</td><td class="codes"><pre class="brush: clojure">(defn difference [[op &amp; set1] [_ &amp; set2]]
+  (:require [clojure.set :as set]))</pre></td></tr><tr><td class="docs"><p>Set difference precondition operation application code</p>
+
+<p>todo performance</p>
+</td><td class="codes"><pre class="brush: clojure">(defn difference
+  [[op &amp; set1] [_ &amp; set2]]
   (into [op] (sort-by hash (set/difference (set set1) (set set2)))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn union [[op &amp; set1] [_ &amp; set2]]
+  &quot;Set union precondition operation application code&quot;
   (into [op] (sort-by hash (set/union (set set1) (set set2)))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn intersection [[op &amp; set1] [_ &amp; set2]]
+  &quot;Set intersection precondition operation application code&quot;
   (into [op] (sort-by hash (set/intersection (set set1) (set set2)))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def f-map {:difference   difference
             :union        union

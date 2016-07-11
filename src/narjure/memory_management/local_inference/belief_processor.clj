@@ -16,7 +16,9 @@
     [nal.deriver.projection-eternalization :refer [project-eternalize-to eternalize]])
   (:refer-clojure :exclude [promise await]))
 
-(defn expired? [anticipation]
+(defn expired?
+  "Is the anticipation expired so that a negative disappointment event needs to be generated?"
+  [anticipation]
   (> @nars-time (:expiry anticipation)))
 
 (defn create-negative-confirmation-task [anticipation]
@@ -52,21 +54,29 @@
             :minconfirm)))
 
 (defn create-negated-negative-confirmation-task
+  "Creates the negated negative confirmation task, the negation of the anticipated event
+  in Narsese-negation representation."
   [neg-confirmation]
   (assoc neg-confirmation :statement ['-- (:statement neg-confirmation)] :truth (nal.deriver.truth/negation (:truth neg-confirmation) [0.0 0.0])))
 
-(defn confirmable-observable? [task]
+(defn confirmable-observable?
+  "Is the task observable and derived so potentially predicted?"
+  [task]
   (and (:observable @state) (not= (:occurrence task) :eternal)
        (= (:source task) :derived)))
 
-(defn create-anticipation-task [task]
+(defn create-anticipation-task
+  "The by anticipation disappointment created task."
+  [task]
   (let [k anticipation-scale-dependent-tolerance
         scale (/ (Math/abs (- (:occurrence task) @nars-time)) k)]
     (assoc task :task-type :anticipation
                 :minconfirm (- (:occurrence task) scale) ;left side limit
                :expiry (+ (:occurrence task scale)))))      ;right side limit
 
-(defn satisfaction-based-budget-change [state belief-task goals]
+(defn satisfaction-based-budget-change
+  "Budget change based on the satisfaction of the goal by the belief"
+  [state belief-task goals]
   ;filter goals matching concept content
   ;project-to task time
   ;select best ranked
@@ -84,7 +94,9 @@
           (let [new-belief (increased-belief-budget-by-goal belief-task-projected-to-goal goal)]
             (update-task-in-tasks state (assoc belief-task :budget (:budget new-belief)) belief-task)))))))
 
-(defn answer-based-budget-change [state belief-task questions]
+(defn answer-based-budget-change
+  "Budget change based on the quality of the answer."
+  [state belief-task questions]
   ;filter goals matching concept content
   ;project-to task time
   ;select best ranked
@@ -103,12 +115,17 @@
           (let [new-belief (increased-belief-budget-by-question belief-task-projected-to-question question)]
             (update-task-in-tasks state (assoc belief-task :budget (:budget new-belief)) belief-task)))))))
 
-(defn revision-relevant-tasks [task old-event]
+(defn revision-relevant-tasks
+  "Whether the new task should do revision with the old one,
+  see https://groups.google.com/forum/#!topic/open-nars/4uMf_kI3Etk"
+  [task old-event]
   (or (= (:occurrence task) :eternal)
       (< (Math/abs (- (:occurrence task) (:occurrence old-event)))
       revision-relevant-event-distance)))
 
-(defn process-belief [state task cnt]
+(defn process-belief
+  "Process a belief: revise and put into the task bag, check whether it answers a question, and manage anticipations."
+  [state task cnt]
     ;also allow revision in subterm concepts! this is why statement is compared to task statement, not to ID!!
   (when (not (and (= (:statement task) (:id @state))
                   (:observable @state)

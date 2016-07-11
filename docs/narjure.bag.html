@@ -2910,6 +2910,7 @@ with lowest priority will be removed on addition</p>
 </td><td class="codes"><pre class="brush: clojure">(defrecord DefaultBag [priority-index elements-map capacity]
   Bag
   (add-element [bag {:keys [id priority] :as element}]
+    &quot;Adds a bag element to the bag&quot;
     (let [cnt (count priority-index)]
       (if (exists? bag id)
         (update-element bag element)
@@ -2923,6 +2924,7 @@ with lowest priority will be removed on addition</p>
                 element-map' (assoc elements-map id element)]
             (-&gt;DefaultBag priority-index' element-map' capacity))))))
   (get-by-index [_ index]
+    &quot;Returns an element by its index&quot;
     (let [{:keys [id] :as element} (nth priority-index index)
           priority-index' (disj priority-index element)
           element' (elements-map id)
@@ -2933,12 +2935,14 @@ with lowest priority will be removed on addition</p>
           element' (elements-map id)]
       [element']))
   (get-by-id [bag id]
+    &quot;returns an element by the element id&quot;
     (if-let [{:keys [priority] :as element'} (elements-map id)]
       (let [priority-index' (disj priority-index (el id priority))
             element-map' (dissoc elements-map id)]
         [element' (-&gt;DefaultBag priority-index' element-map' capacity)])
       [nil bag]))
   (pop-element [bag]
+    &quot;Removes the priority-wise worst element in the bag (returning a new bag of course).&quot;
     (let [cnt (count priority-index)]
       (if (pos? cnt)
         (let [{:keys [id] :as element} (nth priority-index (dec cnt))
@@ -2954,6 +2958,7 @@ with lowest priority will be removed on addition</p>
   (update-element [_ {priority' :priority
                       :keys     [id]
                       :as       element'}]
+    &quot;Updating an existing item in the bag.&quot;
     (let [priority (get-in elements-map [id :priority])
           elements-map' (assoc elements-map id element')]
       (if (= priority' priority)

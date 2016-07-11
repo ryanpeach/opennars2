@@ -3053,17 +3053,20 @@ net.brehaut.ClojureTools = (function (SH) {
 </td><td class="codes"><pre class="brush: clojure">(defn check-conditions [syms]
   (-&gt;&gt; (keys syms)
        (keep (partial aliases-&gt;conditins syms))
-       (filter not-empty)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn commutative? [st]
+       (filter not-empty)))</pre></td></tr><tr><td class="docs"><p>whether the statement is a commutative &lt;-> &amp;&amp;, || etc. statement</p>
+</td><td class="codes"><pre class="brush: clojure">(defn commutative?
+  [st]
   (and (coll? st) (some commutative-ops st)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn check-commutative [conclusion]
+  &quot;generate commutativity check&quot;
   (if (commutative? conclusion)
     `(sort-commutative ~(sort-commutative conclusion))
     conclusion))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn check-reduction [conclusion]
+  &quot;generating code for the reduction of the conclusion&quot;
   (walk conclusion
         (and (coll? :el) (reducible-ops (first :el)) (&lt;= 2 (count :el)))
-        `(~(reducible-ops (first :el)) ~:el)))</pre></td></tr><tr><td class="docs">
+        `(~(reducible-ops (first :el)) ~:el)))</pre></td></tr><tr><td class="docs"><p>find the occurrence time shift preconditions :shift-occurrence-backward and :shift-occurrence-forward</p>
 </td><td class="codes"><pre class="brush: clojure">(defn find-shift-precondition
   [preconditions]
   (first

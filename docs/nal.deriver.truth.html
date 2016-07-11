@@ -2887,40 +2887,56 @@ https://github.com/opennars/opennars/blob/7b27dacec4cdbe77ca03d89296323d49875ac2
   {:negative-evidence negative-evidence
    :positive-evidence positive-evidence
    :total-evidence total-evidence }))                                        ;not used by deriver, just by anticipations</pre></td></tr><tr><td class="docs"><p>not used by deriver, just by anticipations</p>
-</td><td class="codes"></td></tr><tr><td class="docs"><h2></h2>
-</td><td class="codes"><pre class="brush: clojure">(defn conversion [_ p1]
-  (when-let [[f c] p1] [1 (w2c (and f c))]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn negation [[^double f ^double c] _] [(- 1 f) c])</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn contraposition [[^double f ^double c]  [^double f2 ^double c2]]
-  [0 (w2c (and (- 1 f) c))])</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn revision [[^double f1 ^double c1] [^double f2 ^double c2]]
+</td><td class="codes"></td></tr><tr><td class="docs"><p><a href="NAL-Specification.pdf#page=90" style="text-decoration:none">Truth formula</a></p>
+
+<h2></h2>
+</td><td class="codes"><pre class="brush: clojure">(defn conversion
+  [_ p1]
+  (when-let [[f c] p1] [1 (w2c (and f c))]))</pre></td></tr><tr><td class="docs"><p><a href="NAL-Specification.pdf#page=90" style="text-decoration:none">Truth formula</a></p>
+</td><td class="codes"><pre class="brush: clojure">(defn negation
+  [[^double f ^double c] _] [(- 1 f) c])</pre></td></tr><tr><td class="docs"><p><a href="NAL-Specification.pdf#page=90" style="text-decoration:none"Truth formula</a></p>
+</td><td class="codes"><pre class="brush: clojure">(defn contraposition
+  [[^double f ^double c]  [^double f2 ^double c2]]
+  [0 (w2c (and (- 1 f) c))])</pre></td></tr><tr><td class="docs"><p><a href="NAL-Specification.pdf#page=90" style="text-decoration:none"Truth formula</a></p>
+</td><td class="codes"><pre class="brush: clojure">(defn revision
+  [[^double f1 ^double c1] [^double f2 ^double c2]]
   (let [w1 (c2w c1)
         w2 (c2w c2)
         w (+ w1 w2)]
-    [(/ (+ (* w1 f1) (* w2 f2)) w) (w2c w)]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn deduction [[^double f1 ^double c1] [^double f2 ^double c2]]
+    [(/ (+ (* w1 f1) (* w2 f2)) w) (w2c w)]))</pre></td></tr><tr><td class="docs"><p><a href="NAL-Specification.pdf#page=90" style="text-decoration:none"Truth formula</a></p>
+</td><td class="codes"><pre class="brush: clojure">(defn deduction
+  [[^double f1 ^double c1] [^double f2 ^double c2]]
   (let [f (t-and f1 f2)]
     [f (t-and f c1 c2)]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn a-deduction [[^double f1 ^double c1] c2] [f1 (t-and f1 c1 c2)])</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn analogy [[^double f1 ^double c1] [^double f2 ^double c2]]
+</td><td class="codes"><pre class="brush: clojure">(defn a-deduction [[^double f1 ^double c1] c2] [f1 (t-and f1 c1 c2)])</pre></td></tr><tr><td class="docs"><p><a href="NAL-Specification.pdf#page=90" style="text-decoration:none"Truth formula</a></p>
+</td><td class="codes"><pre class="brush: clojure">(defn analogy
+  [[^double f1 ^double c1] [^double f2 ^double c2]]
   [(t-and f1 f2) (t-and c1 c2 f2)])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn desire-strong [a b]
-  (analogy a b))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn resemblance [[^double f1 ^double c1] [^double f2 ^double c2]]
-  [(t-and f1 f2) (t-and c1 c2 (t-or f1 f2))])</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn abduction [[^double f1 ^double c1] [^double f2 ^double c2]]
-  [f1 (w2c (t-and f2 c1 c2))])</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn induction [p1 p2] (abduction p2 p1))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn exemplification [[^double f1 ^double c1] [^double f2 ^double c2]]
-  [1 (w2c (t-and f1 f2 c1 c2))])</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn comparison [[^double f1 ^double c1] [^double f2 ^double c2]]
+  (analogy a b))</pre></td></tr><tr><td class="docs"><p><a href="NAL-Specification.pdf#page=90" style="text-decoration:none"Truth formula</a></p>
+</td><td class="codes"><pre class="brush: clojure">(defn resemblance
+  [[^double f1 ^double c1] [^double f2 ^double c2]]
+  [(t-and f1 f2) (t-and c1 c2 (t-or f1 f2))])</pre></td></tr><tr><td class="docs"><p><a href="NAL-Specification.pdf#page=90" style="text-decoration:none"Truth formula</a></p>
+</td><td class="codes"><pre class="brush: clojure">(defn abduction
+  [[^double f1 ^double c1] [^double f2 ^double c2]]
+  [f1 (w2c (t-and f2 c1 c2))])</pre></td></tr><tr><td class="docs"><p><a href="NAL-Specification.pdf#page=90" style="text-decoration:none"Truth formula</a></p>
+</td><td class="codes"><pre class="brush: clojure">(defn induction
+  [p1 p2]
+  (abduction p2 p1))</pre></td></tr><tr><td class="docs"><p><a href="NAL-Specification.pdf#page=90" style="text-decoration:none"Truth formula</a></p>
+</td><td class="codes"><pre class="brush: clojure">(defn exemplification
+  [[^double f1 ^double c1] [^double f2 ^double c2]]
+  [1 (w2c (t-and f1 f2 c1 c2))])</pre></td></tr><tr><td class="docs"><p><a href="NAL-Specification.pdf#page=90" style="text-decoration:none"Truth formula</a></p>
+</td><td class="codes"><pre class="brush: clojure">(defn comparison
+  [[^double f1 ^double c1] [^double f2 ^double c2]]
   (let [f0 (t-or f1 f2)
         f (if (zero? f0) 0 (/ (t-and f1 f2) f0))
         c (w2c (t-and f0 c1 c2))]
-    [f c]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn union [[^double f1 ^double c1] [^double f2 ^double c2]]
-  [(t-or f1 f2) (t-and c1 c2)])</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn intersection [[^double f1 ^double c1] [^double f2 ^double c2]]
+    [f c]))</pre></td></tr><tr><td class="docs"><p><a href="NAL-Specification.pdf#page=90" style="text-decoration:none"Truth formula</a></p>
+</td><td class="codes"><pre class="brush: clojure">(defn union
+  [[^double f1 ^double c1] [^double f2 ^double c2]]
+  [(t-or f1 f2) (t-and c1 c2)])</pre></td></tr><tr><td class="docs"><p><a href="NAL-Specification.pdf#page=90" style="text-decoration:none"Truth formula</a></p>
+</td><td class="codes"><pre class="brush: clojure">(defn intersection
+  [[^double f1 ^double c1] [^double f2 ^double c2]]
   [(t-and f1 f2) (t-and c1 c2)])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn anonymous-analogy [[^double f1 ^double c1] p2] (analogy p2 [f1 (w2c c1)]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn decompose-pnn [[^double f1 ^double c1] p2]
@@ -2953,17 +2969,19 @@ https://github.com/opennars/opennars/blob/7b27dacec4cdbe77ca03d89296323d49875ac2
   (-&gt; (negation p1 p2)
       (intersection p2)
       (a-deduction 1)
-      (negation p2)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn t-identity [p1 _] p1)</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn d-identity [p1 _] p1)</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn belief-identity [_ p2] p2)</pre></td></tr><tr><td class="docs">
+      (negation p2)))</pre></td></tr><tr><td class="docs"><p>Peis email: Confidence</p>
+</td><td class="codes"><pre class="brush: clojure">(defn t-identity [p1 _] [(first p1) (* (second p1) d/belief-confidence)])</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn d-identity [p1 _] [(first p1) (* (second p1) d/belief-confidence)])</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn belief-identity [_ p2] [(first p2) (* (second p2) d/belief-confidence)])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn belief-structural-deduction [_ p2]
   (when p2 (deduction p2 [1 d/belief-confidence])))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn belief-structural-difference [_ p2]
   (when p2
     (let [[^double f ^double c] (deduction p2 [1 d/belief-confidence])]
-      [(- 1 f) c])))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn belief-negation [_ p2] (when p2 (negation p2 nil)))</pre></td></tr><tr><td class="docs">
+      [(- 1 f) c])))</pre></td></tr><tr><td class="docs"><p><a href="NAL-Specification.pdf#page=90" style="text-decoration:none"Truth formula</a></p>
+</td><td class="codes"><pre class="brush: clojure">(defn belief-negation
+  [_ p2]
+  (when p2 (negation p2 nil)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn desire-weak [[f1 c1] [f2 c2]]
   [(t-and f1 f2) (t-and c1 c2 f2 (w2c 1.0))])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn desire-induction

@@ -13,8 +13,9 @@
     [nal.deriver.projection-eternalization :refer [project-eternalize-to]])
   (:refer-clojure :exclude [promise await]))
 
-(defn process-quest [state quest]
-  ;group-by :task-type tasks
+(defn process-quest
+  "Process a quest task: Check how much its answered and add to bag."
+  [state quest]
   (let [goals (filter #(and (= (:task-type %) :goal)
                             (question-unifies (:statement quest) (:statement %)))
                       (get-tasks state))]

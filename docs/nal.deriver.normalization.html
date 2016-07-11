@@ -2912,20 +2912,24 @@ not commutative: --> ==> =/> => </> &amp;/ - ~</p>
                  (assoc ac :prev false :st))))
         {:prev false :st '()}
         statement))
-    :else statement))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn sort-commutative [conclusions]
+    :else statement))</pre></td></tr><tr><td class="docs"><p>provide an order for the commutative ops, so that <a &lt;-> b> and <b &lt;-> a> will both be <b &lt;-> a>,
+  this is needed because they need to end up in the same concept!</p>
+</td><td class="codes"><pre class="brush: clojure">(defn sort-commutative
+  [conclusions]
   (if (coll? conclusions)
     (let [f (first conclusions)]
       (if (commutative-ops f)
         (vec (conj (sort-by hash (drop 1 conclusions)) f))
         conclusions))
-    conclusions))</pre></td></tr><tr><td class="docs"><p>https://gist.github.com/TonyLo1/a3f8e05458c5e90c2e72</p>
+    conclusions))</pre></td></tr><tr><td class="docs"><p>the union set operation for extensional and intensional sets</p>
+
+<p>https://gist.github.com/TonyLo1/a3f8e05458c5e90c2e72</p>
 </td><td class="codes"><pre class="brush: clojure">(defn union
   ([c1 c2] (sort-by hash (set (concat c1 c2))))
-  ([op c1 c2] (vec (conj (union c1 c2) op))))</pre></td></tr><tr><td class="docs">
+  ([op c1 c2] (vec (conj (union c1 c2) op))))</pre></td></tr><tr><td class="docs"><p>the difference set operation for extensional and intensional sets</p>
 </td><td class="codes"><pre class="brush: clojure">(defn diff
   ([c1 c2] (into '() (set/difference (set c1) (set c2))))
-  ([op c1 c2] (vec (conj (diff c1 c2) op))))</pre></td></tr><tr><td class="docs">
+  ([op c1 c2] (vec (conj (diff c1 c2) op))))</pre></td></tr><tr><td class="docs"><p>Reductions for extensional intersection.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn reduce-ext-inter
   [st]
   (m/match
@@ -2936,7 +2940,7 @@ not commutative: --> ==> =/> => </> &amp;/ - ~</p>
     [_ l1 ['ext-inter &amp; l2]] (union 'ext-inter [l1] l2)
     [_ ['int-set &amp; l1] ['int-set &amp; l2]] (union 'int-set l1 l2)
     ;[_ ['ext-set &amp; l1] ['ext-set &amp; l2]] (union 'ext-set l1 l2)
-    :else st))</pre></td></tr><tr><td class="docs">
+    :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for intensional intersection</p>
 </td><td class="codes"><pre class="brush: clojure">(defn reduce-int-inter
   [st]
   (m/match st
@@ -2946,27 +2950,27 @@ not commutative: --> ==> =/> => </> &amp;/ - ~</p>
            ['| l1 ['| &amp; l2]] (union '| [l1] l2)
            ['| ['int-set &amp; l1] ['int-set &amp; l2]] (union 'int-set l1 l2)
            ['| ['ext-set &amp; l1] ['ext-set &amp; l2]] (union 'ext-set l1 l2)
-           :else st))</pre></td></tr><tr><td class="docs">
+           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for intensional difference</p>
 </td><td class="codes"><pre class="brush: clojure">(defn reduce-int-dif
   [st]
   (m/match st
            [_ ['int-set &amp; l1] ['int-set &amp; l2]] (diff 'int-set l1 l2)
-           :else st))</pre></td></tr><tr><td class="docs">
+           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for extensional difference</p>
 </td><td class="codes"><pre class="brush: clojure">(defn reduce-ext-dif
   [st]
   (m/match st
            [_ ['ext-set &amp; l1] ['ext-set &amp; l2]] (diff 'ext-set l1 l2)
-           :else st))</pre></td></tr><tr><td class="docs">
+           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for images</p>
 </td><td class="codes"><pre class="brush: clojure">(defn reduce-image
   [st]
   (m/match st
            [_ ['* t1 t2] t3] (if (and (= t2 t3) (not= t1 t2)) t1 st)
-           :else st))</pre></td></tr><tr><td class="docs">
+           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for negation</p>
 </td><td class="codes"><pre class="brush: clojure">(defn reduce-neg
   [st]
   (m/match st
            ['-- ['-- t]] t
-           :else st))</pre></td></tr><tr><td class="docs">
+           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for or</p>
 </td><td class="codes"><pre class="brush: clojure">(defn reduce-or
   [st]
   (m/match st
@@ -2975,7 +2979,7 @@ not commutative: --> ==> =/> => </> &amp;/ - ~</p>
            ['|| ['|| &amp; l1] l2] (union '|| l1 [l2])
            ['|| l1 ['|| &amp; l2]] (union '|| [l1] l2)
            ['|| t1 t2] (if (= t1 t2) t1 st)
-           :else st))</pre></td></tr><tr><td class="docs">
+           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for and</p>
 </td><td class="codes"><pre class="brush: clojure">(defn reduce-and
   [st]
   (m/match st

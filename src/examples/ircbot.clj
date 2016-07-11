@@ -18,7 +18,9 @@
 ; - State, with example structure -
 (def state (atom {}))
 
-(defn setup-nars [irc]
+(defn setup-nars
+  "Registers the operation and answer handler"
+  [irc]
   (nars-register-operation 'op_talk (fn [args operationgoal]
                                       (let [msg (str "NARS says " args)]
                                         (println msg)
@@ -39,7 +41,9 @@
    "!h - see this message."
 ])
 
-(defn concept [concept-str]
+(defn concept
+  "Show a concept"
+  [concept-str]
   (try
     (let [statement (parse2 (str concept-str "."))]
       (dissoc
@@ -47,10 +51,13 @@
         :ref))
     (catch Exception e (str "Invalid narsese " concept-str))))
 
-(defn concepts []
+(defn concepts
+  "Show all the concepts"
+  []
   (:priority-index @c-bag))
 
 (defn parse-narsese [string]
+  "Input the received Narsese into the system."
   (try
     (let [statement (parse2 string)]
       (nars-input-narsese string)
@@ -58,17 +65,23 @@
       (str "NARS hears " string))
     (catch Exception e (str "Invalid narsese " string))))
 
-(defn parse-sentence [string event-symbol]
+(defn parse-sentence
+  "NLP representation handling."
+  [string event-symbol]
   (let [words (clojure.string/split string #" ")
         sentence (str "<(*," (clojure.string/join "," words) ") --> SENTENCE>. " event-symbol)]
     (parse-narsese sentence)))
 
-(defn reset-nars []
+(defn reset-nars
+  "Resets the system"
+  []
   (nar/shutdown)
   (nar/run)
   "NARS reset")
 
-(defn user-said-in-channel [state nick said]
+(defn user-said-in-channel
+  "Command interpreter"
+  [state nick said]
   (let [[command string] (clojure.string/split said #" " 2)]
     (case command
       ("!n" "!nars" "!narsese")
@@ -98,12 +111,16 @@
   (let [m2 (if (.startsWith (:target m) "#") m (assoc m :target (:nick m)))]
     (reply irc m2 string)))
 
-(defn say! [irc m string]
+(defn say!
+  "Send a string message into the channel"
+  [irc m string]
   (if (nil? string)
     nil
     (working-reply irc m string)))
 
-(defn callback [irc args]
+(defn callback
+  "The message receive callback handler"
+  [irc args]
   (let [{text :text
          target :target
          nick :nick

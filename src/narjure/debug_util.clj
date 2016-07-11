@@ -4,10 +4,13 @@
 
 (def debug-messages 21)
 
-(defn limit-string [st cnt]
+(defn limit-string
+  "Limit a string to cnt elements"
+  [st cnt]
   (subs st 0 (min (count st) cnt)))
 
 (defn narsese-print
+  "Prints out a statement in Narsese-representation."
   ([st]
     (narsese-print st false))
   ([st dictparent]
@@ -82,6 +85,7 @@
       (str (beautify st))))))
 
 (defn debuglogger
+  "Debuglogger as used by all actor components mainly for (Lense) display purposes."
   ([display message]
     (debuglogger (atom "") display message))
   ([filter display message]
@@ -95,6 +99,7 @@
                                 d)))))))
 
 (defn punctuation-print
+  "Print the punctuation of a task in ASCII representation."
   [task-type]
   (case task-type
     :goal "!"
@@ -102,7 +107,9 @@
     :question "?"
     :belief "."))
 
-(defn task-to-narsese [task]
+(defn task-to-narsese
+  "Convert a task to Narsese representation."
+  [task]
   (let [time-print (fn [occurrence]
                      (if (= occurrence :eternal)
                        ""
@@ -118,20 +125,28 @@
          " "
          (truth-print (:truth task)))))
 
-(defn output-task [type task]
+(defn output-task
+  "Output a task into the display."
+  [type task]
   (let [type-print (fn [t] t)]
     (debuglogger output-search output-display (str (type-print type)
                                                    " "
                                                    (task-to-narsese task)))))
 
-(defn get-solution-id [task]
+(defn get-solution-id
+  "The ID that makes solutions unique for output."
+  [task]
   [(:statement task) (:task-type task) (:occurrence task) (:truth task)])
 
-(defn user? [task]
+(defn user?
+  "Is the task an input-task?"
+  [task]
   (= (:source task) :input))
 
 (def max-qu-track 50)
-(defn potential-output-answer [state task-id task solution]
+(defn potential-output-answer
+  "Potentially output the answer to a task, if it wasn't already."
+  [state task-id task solution]
   (when (user? task)
     (let [solution-id (get-solution-id solution)]
      (when (not (some #{[task-id solution-id]} @last-qu-answers))
@@ -142,6 +157,8 @@
          (f task solution))
        (output-task [:answer-to (str (narsese-print (:statement task)) (punctuation-print (:task-type task)) #_" c: " #_concept-id)] solution)))))
 
-(defn conditionalprint [state st stru]
+(defn conditionalprint
+  "For debugging purposes, allowing to add print statements for specific concepts."
+  [state st stru]
   (when (= (:id @state) st)
     (println stru)))

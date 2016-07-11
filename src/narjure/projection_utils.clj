@@ -6,7 +6,9 @@
      [global-atoms :refer :all]]))
 
 
-(defn max-statement-confidence-projected-to-now [state task-type event]
+(defn max-statement-confidence-projected-to-now
+  "Return the element of maximum statement confidence when projected to current moment."
+  [state task-type event]
   (let [fil (filter (fn [z] (and (= (:task-type (:task (second z))) task-type)
                                  (or (not event)
                                      (not= (:occurrence (:task (second z))) :eternal))
@@ -25,7 +27,9 @@
                              @nars-time)
       nil)))
 
-(defn get-conf [task]
+(defn get-conf
+  "Confidence of a task."
+  [task]
   (second (:truth task)))
 
 (defn max-statement-confidence-projected-to-now2

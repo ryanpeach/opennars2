@@ -2869,9 +2869,10 @@ net.brehaut.ClojureTools = (function (SH) {
 </td><td class="codes"><pre class="brush: clojure">(ns nal.core
   (:require [nal.deriver.truth :as t]
             [nal.deriver :refer [generate-conclusions]]
-            [nal.rules :as r]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn choice [[f1 c1] [f2 c2]]
-  (if (&gt;= c1 c2) [f1 c1] [f2 c2]))</pre></td></tr><tr><td class="docs">
+            [nal.rules :as r]))</pre></td></tr><tr><td class="docs"><p><a href="NAL-Specification.pdf#page=25" style="text-decoration:none"Truth formula</a></p>
+</td><td class="codes"><pre class="brush: clojure">(defn choice
+  [[f1 c1] [f2 c2]]
+  (if (&gt;= c1 c2) [f1 c1] [f2 c2]))</pre></td></tr><tr><td class="docs"><p>Apply these rules to task and belief which apply for the task-type.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn inference
   [{:keys [task-type] :as task} belief]
   (generate-conclusions (r/rules task-type) task belief))</pre></td></tr><tr><td class="docs">

@@ -2875,12 +2875,15 @@ net.brehaut.ClojureTools = (function (SH) {
   [{:keys [conclusions]}]
   (some #{:allow-backward} (:post (first conclusions))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn has-prefix? [prefix cond]
+  &quot;check for example for prefix t in :t/deduction as used by the inference rules&quot;
   (when (keyword? cond)
     (s/starts-with? (str cond) prefix)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn not-equal? [cond]
+  &quot;check for not-equal sign&quot;
   (when (coll? cond)
     (= :!= (first cond))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn check-not-equal [pre conclusion]
+  &quot;put not equal sign together with its arguments so that it can be executed&quot;
   (if (some not-equal? pre)
     (let [pre (remove not-equal? pre)]
       (if (and (coll? conclusion) (= 3 (count conclusion)))

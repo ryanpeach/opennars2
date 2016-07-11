@@ -29,15 +29,21 @@
             [clojure.set :as set]
             [clojure.string :as str]))
 
-(defn bag-format [st]
+(defn bag-format
+  "Bag string format: each id goes into a new line"
+  [st]
   (clojure.string/replace (clojure.string/replace st "(:id" "\n( :id") "(\n( " "(("))
 
-(defn bagfilter [fil bag]
+(defn bagfilter
+  "Filter the bag for these entries which contain the filter content"
+  [fil bag]
   (apply vector (filter (fn [x]
                           (every? (fn [y] (.contains (narsese-print x) y))
                                   (str/split (deref fil) #"\n"))) bag)))
 
-(defn bagshow [bag filteratom]
+(defn bagshow
+  "Show the bag, with a string length limit."
+  [bag filteratom]
   (bag-format (limit-string
                 (narsese-print (bagfilter filteratom
                                           (:priority-index bag))) 20000)))
@@ -72,7 +78,9 @@
 (defn nameof [a]
   (if (string? a) a (name a)))
 
-(defn draw-actor [{:keys [name px py backcolor frontcolor displaysize titlesize stroke-weight custom-w custom-h]} node-width node-height]
+(defn draw-actor
+  "Draw an actor block"
+  [{:keys [name px py backcolor frontcolor displaysize titlesize stroke-weight custom-w custom-h]} node-width node-height]
   (q/stroke-weight (if (= nil stroke-weight) 1.0 stroke-weight))
   (apply q/fill (invert-color (if (= backcolor nil) [255 255 255] backcolor)))
   (q/rect px py (if custom-w custom-w node-width) (if custom-h custom-h node-height))
@@ -85,7 +93,9 @@
             (+ px 5) (+ py 20)))
   (q/text-size 2.0))
 
-(defn in-picture [state p hud]
+(defn in-picture
+  "Checks whether the point p is inside of the double-sized screen."
+  [state p hud]
   (if hud
     true
     (if (and (> (:px p) (hnav/mouse-to-world-coord-x state (- (hnav/width))))
@@ -95,7 +105,9 @@
       true
       false)))
 
-(defn in-picture-aggressive [state p hud]
+(defn in-picture-aggressive
+  "Checks whether the point p is inside of the screen."
+  [state p hud]
   (if hud
     true
     (if (and (> (:px p) (hnav/mouse-to-world-coord-x state 0.0))
@@ -105,7 +117,9 @@
       true
       false)))
 
-(defn draw-graph [state [nodes edges node-width node-height] hud]
+(defn draw-graph
+  "Draw a graph, its nodes and edges and their contents"
+  [state [nodes edges node-width node-height] hud]
   (let [prefer-id (fn [n] (if (= nil (:id n))
                             (:name n)
                             (:id n)))]

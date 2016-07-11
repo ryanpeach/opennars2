@@ -17,7 +17,9 @@
   #_(println (str x))
   x)
 
-(defn setup-pong []
+(defn setup-pong
+  "Registers the operations"
+  []
   (nars-input-narsese "<ballpos --> [equal]>! :|:")
   (q/frame-rate 100)
   (nars-register-operation 'op_up (fn [args operationgoal]
@@ -48,6 +50,7 @@
 (def updown-state (atom "equal"))
 
 (defn update-pong
+  "World state transition"
   [state]
 
   (when (= @direction -1)
@@ -176,7 +179,9 @@
       :iteration (inc (:iteration state7)))))
 
 
-(defn draw-pong [state]
+(defn draw-pong
+  "Draw the game"
+  [state]
   (q/background (invert-comp 255))
   (q/stroke (invert-comp 0))
   (q/reset-matrix)

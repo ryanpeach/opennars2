@@ -36,7 +36,10 @@
   [links]
   (filter #(b/exists? @c-bag %) (keys links)))
 
-(defn forget-termlinks []
+(defn forget-termlinks
+  "This one is for absolute forgetting of links: Remove termlinks whose concepts were forgot,
+  remove worst termlinks if above max termlink count."
+  []
   ;TODO test
   (doseq [[tl _] (:termlinks @state)]
     (when (not (b/exists? @c-bag tl))
@@ -45,14 +48,16 @@
     (let [worst (apply min-key (comp first second) (:termlinks @state))]
       (set-state! (assoc @state :termlinks (dissoc (:termlinks @state) (first worst)))))))
 
-(defn add-termlink [tl strength]
+(defn add-termlink
+  "Adds a termlink with term tl and strength strength."
+  [tl strength]
   (set-state! (assoc @state :termlinks (assoc (:termlinks @state)
                                          tl strength)))
   ;(forget-termlinks)
   )
 
 (defn refresh-termlinks [task]
-  ""
+  "Create new potential termlinks to other terms modulated by the concept priority they link to."
   ; :termlinks {term [budget]}
   (let [concept-prio (fn [z] (let [prio (concept-priority z)]
                                (if prio
@@ -67,6 +72,7 @@
     (set-state! (merge @state {:termlinks valid-links}))))
 
 (defn link-feedback-handler
+  "Link growth by contextual relevance of the inference and the result, as well as usefulness of the result."
   [from [_ [derived-task belief-concept-id]]]                       ;this one uses the usual priority durability semantics
   (try
     ;TRADITIONAL BUDGET INFERENCE (BLINK PART)
@@ -84,22 +90,30 @@
       )
     (catch Exception e () #_(println "fail"))))
 
-(defn strengthen-termlink [link-strength]
+(defn strengthen-termlink
+  "Further strengthen a termlink"
+  [link-strength]
   [(t-or (first link-strength) (first concept-selection-introduced-termlink-default-budget))
    (max (second link-strength) (second concept-selection-introduced-termlink-default-budget))])
 
-(defn get-strengthened-termlink [link-strength]
+(defn get-strengthened-termlink
+  "Strenghten a termlink as used by the temporal linkage principle."
+  [link-strength]
   (if link-strength
     (strengthen-termlink link-strength)
     concept-selection-introduced-termlink-default-budget))
 
 
-(defn forget-termlink [term]
+(defn forget-termlink
+  "Relative forgetting of a termlink"
+  [term]
   (let [[p d] ((:termlinks @state) term)
         new-budget [(* p d) d]]
     (set-state! (assoc-in @state [:termlinks term] new-budget))))
 
-(defn get-termlink-endpoints []
+(defn get-termlink-endpoints
+  "Get the link endpoints, namely the concepts which the concept links to: their id as well as priority."
+  []
   (let [initbag (b/default-bag concept-max-termlinks)]
     (try
       (reduce (fn [a b] (b/add-element a b)) initbag (for [[k v] (:termlinks @state)]
@@ -110,7 +124,9 @@
                          ;(println (str "error in get-termlink-endpoints: " e)
                          ))))
 
-(defn select-termlink-ref []
+(defn select-termlink-ref
+  "Select the termlink probabilistically, taking link strength and target priorities into account."
+  []
   ;now search through termlinks, get the endpoint concepts, and form a bag of them
   (let [initbag (b/default-bag concept-max-termlinks)
         resbag (get-termlink-endpoints)]

@@ -2889,15 +2889,18 @@ net.brehaut.ClojureTools = (function (SH) {
     [narjure.narsese :refer [parse2]]
     [taoensso.timbre :refer [info set-level!]]
     [narjure.bag :as b]
-    [narjure.defaults :refer :all])
+    [narjure.defaults :refer :all]
+    [narjure.debug-util ])
   (:refer-clojure :exclude [promise await])
   (:import (ch.qos.logback.classic Level)
            (org.slf4j LoggerFactory)
            (java.util.concurrent TimeUnit))
-  (:gen-class))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn inference-tick []                                     ;inference-tick-interval is fast enough compared to system-tick-interval
-  (cast! (whereis :concept-selector) [:inference-tick-msg]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn system-tick []
+  (:gen-class))</pre></td></tr><tr><td class="docs"><p>Apply an inference tick</p>
+</td><td class="codes"><pre class="brush: clojure">(defn inference-tick
+  []                                     ;inference-tick-interval is fast enough compared to system-tick-interval
+  (cast! (whereis :concept-selector) [:inference-tick-msg]))</pre></td></tr><tr><td class="docs"><p>Apply an system tick</p>
+</td><td class="codes"><pre class="brush: clojure">(defn system-tick
+  []
   (cast! (whereis :task-creator) [:system-time-tick-msg])
   (cast! (whereis :derived-load-reducer) [:system-time-tick-msg])
   (cast! (whereis :forgettor) [:system-time-tick-msg]))</pre></td></tr><tr><td class="docs">
@@ -2906,8 +2909,9 @@ net.brehaut.ClojureTools = (function (SH) {
                                      (format &quot;&lt;%s--&gt;%s&gt;.:|10|:&quot;
                                              (rand-nth [&quot;a&quot; &quot;b&quot; &quot;c&quot; &quot;d&quot; &quot;e&quot; &quot;f&quot; &quot;g&quot;])
                                              (rand-nth [&quot;h&quot; &quot;p&quot; &quot;j&quot; &quot;k&quot; &quot;l&quot; &quot;m&quot; &quot;n&quot;]))]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn prn-ok [msg interval] (info (format &quot;\t[OK] %s (%d ms)&quot; msg interval)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn start-timers []
+</td><td class="codes"><pre class="brush: clojure">(defn prn-ok [msg interval] (info (format &quot;\t[OK] %s (%d ms)&quot; msg interval)))</pre></td></tr><tr><td class="docs"><p>Start all relevant NARS timers.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn start-timers
+  []
   (info &quot;Initialising system timers...&quot;)
   (schedule inference-tick {:in    @inference-tick-interval
                             :every @inference-tick-interval})
@@ -2947,6 +2951,8 @@ net.brehaut.ClojureTools = (function (SH) {
     [&quot;8&quot; :permanent 5 5 :sec 100 (sentence-parser)]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def sup (atom '()))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn run []
+  (info &quot;reset question filter&quot;)
+  (reset! last-qu-answers [])
   (info &quot;Resetting concepts bagss:&quot;)
   (reset! c-bag (b/default-bag max-concepts))
   (info &quot;c-bag count: &quot; (b/count-elements @c-bag))

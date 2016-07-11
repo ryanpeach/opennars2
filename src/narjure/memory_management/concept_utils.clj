@@ -22,22 +22,30 @@
      [projection-eternalization :refer [project-eternalize-to]]])
   (:refer-clojure :exclude [promise await]))
 
-(defn concept-quality []
+(defn concept-quality
+  "Get the quality of a concept."
+  []
   (let [value (:quality ((:elements-map @c-bag) (:id @state)))]
     (if value
       value
       0.0)))
 
-(defn concept-priority [term]
+(defn concept-priority
+  "Get the priority of a concept."
+  [term]
   (let [value (:priority ((:elements-map @c-bag) term))]
     (if value
       value
       0.0)))
 
-(defn concept-observable [term]
+(defn concept-observable
+  "Check whether the concept is observable."
+  [term]
   (:observable ((:elements-map @c-bag) term)))
 
-(defn forget-task [el last-forgotten n]
+(defn forget-task
+  "Task forgetting applied in the task bags."
+  [el last-forgotten n]
   (let [task (:task el)
         el-time (:occurrence task)
         budget (:budget task)
@@ -58,7 +66,9 @@
       (assoc el :priority new-priority
                 :task updated-task))))
 
-(defn forget-tasks []
+(defn forget-tasks
+  "Task forgetting applied in the task bags."
+  []
   (let [tasks (:elements-map (:tasks @state))
         last-forgotten (:last-forgotten @state)
         n (b/count-elements (:tasks @state))]

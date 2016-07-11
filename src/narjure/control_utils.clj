@@ -20,12 +20,12 @@
   (Math/abs (- (* (+ (rand) (rand)) count) count)))
 
 (defn selection-fn #_-old
-  ""
+  "An item selection bag curve."
   [count]
   (- (Math/ceil (* (math/expt (rand) concept-selection-parameter) count)) 1))
 
 (defn selection-fn2
-  ""
+  "An item selection bag curve."
   [bag concept-priority]
   (let [count (b/count-elements bag)
         selection-parameter' (+ 1.0 (* concept-priority task-selection-parameter))
@@ -33,13 +33,16 @@
     i))
 
 (defn forget-element [el]
+  "Forget an element by its durability."
   (let [budget (:budget (:task el))
         new-priority (* (:priority el) (second budget))
         new-budget  [new-priority (second budget)]]
     (assoc el :priority new-priority
               :task (assoc (:task el) :budget new-budget))))
 
-(defn make-ev-helper [e2 e1 sofar]
+(defn make-ev-helper
+  "For merging evidence trails."
+  [e2 e1 sofar]
   (let [r1 (first e1)
         r2 (first e2)]
     (case [(= nil r1) (= nil r2)]
@@ -48,10 +51,14 @@
       [false true] (make-ev-helper (rest e1) [] (concat [r1] sofar))
       [false false] (make-ev-helper (rest e1) (rest e2) (concat [r1] [r2] sofar)))))
 
-(defn make-evidence [e1 e2]
+(defn make-evidence
+  "Merge evidence trails."
+  [e1 e2]
   (take max-evidence (reverse (make-ev-helper e1 e2 []))))
 
-(defn non-overlapping-evidence? [e1 e2]
+(defn non-overlapping-evidence?
+  "Check whether the evidental bases have an overlap."
+  [e1 e2]
   (empty? (clojure.set/intersection (set e1) (set e2))))
 
 (defn select-concepts-rec
@@ -70,14 +77,22 @@
   (let [count (b/count-elements bag)]
     (select-concepts-rec count n bag [])))
 
-(defn sufficient-priority? [selected]
+(defn sufficient-priority?
+  "Is the priority above min. threshold?"
+  [selected]
   (> (:priority selected) priority-threshold))
 
-(defn get-ref-from-term [term]
+(defn get-ref-from-term
+  "Get the concept reference from a term."
+  [term]
   (:ref ((:elements-map @c-bag) term)))
 
-(defn belief? [task]
+(defn belief?
+  "Is the task a belief?"
+  [task]
   (= (:task-type task) :belief))
 
-(defn goal? [task]
+(defn goal?
+  "Is the task a goal?"
+  [task]
   (= (:task-type task)) :goal)

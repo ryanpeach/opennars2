@@ -2876,7 +2876,7 @@ net.brehaut.ClojureTools = (function (SH) {
 </td><td class="codes"><pre class="brush: clojure">(defn allow-swapping?
   [{:keys [pre conclusions]}]
   (let [{:keys [post conclusion]} (first conclusions)]
-    (not-any? anti-swapping-keys (flatten (concat pre post)))))</pre></td></tr><tr><td class="docs">
+    (not-any? anti-swapping-keys (flatten (concat pre post)))))</pre></td></tr><tr><td class="docs"><p>Swaps the premises and truth function arguments to have symmetric rules being able to be used both ways.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn swap-premises
   [{:keys [p1 p2] :as rule}]
   (let [premise-swapped (assoc rule :p1 p2

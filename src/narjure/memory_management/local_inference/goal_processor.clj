@@ -21,7 +21,9 @@
   (:refer-clojure :exclude [promise await]))
 
 
-(defn satisfaction-based-budget-change [state goal-task beliefs]
+(defn satisfaction-based-budget-change
+  "Budget change based on the satisfaction of the goal by the belief"
+  [state goal-task beliefs]
   ;filter goals matching concept content
   ;project-to task time
   ;select best ranked
@@ -40,13 +42,17 @@
             (update-task-in-tasks state (assoc belief :budget (:budget new-belief)) belief)))))))
 
 
-
+;how big the truth expectation has to be in order to allow execution.
 (def decision-threshold 0.51)                                ;0.6
 
-(defn execute? [task]
+(defn execute?
+  "only execute if desire expectation is above decision threshold"
+  [task]
   (> (expectation (:truth task)) decision-threshold))
 
-(defn answer-based-budget-change [state goal-task quests]
+(defn answer-based-budget-change
+  "Budget change based on the answer quality (answering quests, which are questions on desire)."
+  [state goal-task quests]
   ;filter goals matching concept content
   ;project-to task time
   ;select best ranked
@@ -226,7 +232,10 @@
          (cast! (whereis :task-creator) [:derived-sentence-msg [nil nil new-task]])
          )))))
 
-(defn process-goal [state task cnt]
+(defn process-goal
+  "Process a goal task: revise, put into the task bag, check for satisfaction and whether it
+   is answered or answers a quest, and see whether it needs to execute."
+  [state task cnt]
   ;group-by :task-type tasks
 
   (let [tasks (get-tasks state)

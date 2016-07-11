@@ -46,6 +46,7 @@
 (defrecord DefaultBag [priority-index elements-map capacity]
   Bag
   (add-element [bag {:keys [id priority] :as element}]
+    "Adds a bag element to the bag"
     (let [cnt (count priority-index)]
       (if (exists? bag id)
         (update-element bag element)
@@ -60,6 +61,7 @@
             (->DefaultBag priority-index' element-map' capacity))))))
 
   (get-by-index [_ index]
+    "Returns an element by its index"
     (let [{:keys [id] :as element} (nth priority-index index)
           priority-index' (disj priority-index element)
           element' (elements-map id)
@@ -72,6 +74,7 @@
       [element']))
 
   (get-by-id [bag id]
+    "returns an element by the element id"
     (if-let [{:keys [priority] :as element'} (elements-map id)]
       (let [priority-index' (disj priority-index (el id priority))
             element-map' (dissoc elements-map id)]
@@ -79,6 +82,7 @@
       [nil bag]))
 
   (pop-element [bag]
+    "Removes the priority-wise worst element in the bag (returning a new bag of course)."
     (let [cnt (count priority-index)]
       (if (pos? cnt)
         (let [{:keys [id] :as element} (nth priority-index (dec cnt))
@@ -95,6 +99,7 @@
   (update-element [_ {priority' :priority
                       :keys     [id]
                       :as       element'}]
+    "Updating an existing item in the bag."
     (let [priority (get-in elements-map [id :priority])
           elements-map' (assoc elements-map id element')]
       (if (= priority' priority)

@@ -2886,66 +2886,82 @@ net.brehaut.ClojureTools = (function (SH) {
 </td><td class="codes"><pre class="brush: clojure">(defmethod compound-precondition :default [_] [])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmethod compound-precondition :!=
   [[_ &amp; args]]
-  [`(not= ~@args)])</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn check-set [set-type arg]
+  [`(not= ~@args)])</pre></td></tr><tr><td class="docs"><p>Whether it is a extensional or intensional set</p>
+</td><td class="codes"><pre class="brush: clojure">(defn check-set
+  [set-type arg]
   `(and (coll? ~arg) (= ~set-type (first ~arg))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmethod compound-precondition :set-ext? [[_ arg]]
   [(check-set 'ext-set arg)])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmethod compound-precondition :set-int? [[_ arg]]
   [(check-set 'int-set arg)])</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def sets '#{ext-set int-set})</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn set-conditions [set1 set2]
+</td><td class="codes"><pre class="brush: clojure">(def sets '#{ext-set int-set})</pre></td></tr><tr><td class="docs"><p>Set condition handling</p>
+</td><td class="codes"><pre class="brush: clojure">(defn set-conditions
+  [set1 set2]
   [`(coll? ~set1)
    `(coll? ~set2)
    `(let [k# 1 afop# (first ~set1)]
       (and (sets afop#) (= afop# (first ~set2))))])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmethod compound-precondition :difference [[_ arg1 arg2]]
+  &quot;Set difference precondition predicate, it is only true if the last arg is the difference of the input arguments&quot;
   (concat (set-conditions arg1 arg2)
           [`(not-empty-diff? ~arg1 ~arg2)]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmethod compound-precondition :union [[_ arg1 arg2]]
+  &quot;Set union precondition predicate, it is only true if the last arg is the union of the input arguments&quot;
   (set-conditions arg1 arg2))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmethod compound-precondition :intersection [[_ arg1 arg2]]
+  &quot;Set intersection precondition predicate, it is only true if the last arg is the intersection of the input arguments&quot;
   (concat (set-conditions arg1 arg2)
           [`(not-empty-inter? ~arg1 ~arg2)]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmethod compound-precondition :substitute-if-unifies
   [[_ arg1 arg2 arg3]]
+  &quot;This predicate substitutes the for the unification of both arguments
+   needed variable unification also in the conclusion.&quot;
   [`(munification-map ~arg1 ~arg2 ~arg3)])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmethod compound-precondition :contains?
   [[_ arg1 arg2]]
+  &quot;Whether the list arg1 contains the term arg2&quot;
   [`(some (set [~arg2]) ~arg1)])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def implications-and-equivalences
   (union implications equivalences))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmethod compound-precondition :not-implication-or-equivalence
   [[_ arg]]
+  &quot;This precondition predicate only returns true if the arg term is neither a type of implication
+  nor a type of equivalence&quot;
   [`(if (coll? ~arg)
       (nil? (~`implications-and-equivalences (first ~arg)))
       true)])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn get-terms
   [st]
+  &quot;Get all the statement sub-terms&quot;
   (if (coll? st)
     (mapcat get-terms (rest st))
     [st]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmethod compound-precondition :no-common-subterm
   [[_ arg1 arg2]]
+  &quot;Only true if no common subterm between both terms is shared&quot;
   [`(empty? (intersection (set (get-terms ~arg1))
                           (set (get-terms ~arg2))))])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmethod compound-precondition :not-set?
   [[_ arg]]
+  &quot;Only true if the term in question is not a set term.&quot;
   [`(or (not (coll? ~arg)) (not (sets (first ~arg))))])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmethod compound-precondition :measure-time
   [_]
+  &quot;Measures the time between both premises, where task has to have the newer occurrence time and both arguments are non-eternal&quot;
   [`(not= :eternal :t-occurrence)
    `(not= :eternal :b-occurrence)
    `(&lt; :b-occurrence :t-occurrence)
    #_`(&lt;= ~temporal-window-duration (abs (- :t-occurrence :b-occurrence)))])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmethod compound-precondition :measure-time-backward
   [_]
+  &quot;Measures the time between both premises, but this time belief is the newer task in terms of occurrence time.&quot;
   [`(not= :eternal :t-occurrence)
    `(not= :eternal :b-occurrence)
    `(&gt; :b-occurrence :t-occurrence)
    #_`(&lt;= ~temporal-window-duration (abs (- :t-occurrence :b-occurrence)))])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmethod compound-precondition :concurrent
   [_]
+  &quot;Only true when both premises happen below temporal-window-duration away from each other.&quot;
   [`(not= :eternal :t-occurrence)
    `(not= :eternal :b-occurrence)
    `(&gt; ~temporal-window-duration (abs (- :t-occurrence :b-occurrence)))])</pre></td></tr><tr><td class="docs"><h2></h2>
@@ -2961,10 +2977,12 @@ net.brehaut.ClojureTools = (function (SH) {
          [:difference :union :intersection]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmethod precondition-transformation :substitute
   [[_ el1 el2] conclusion]
+  &quot;This precondition predicate is only true if the conclusion has all occurrences of el1 replaced with el2&quot;
   `(walk ~conclusion
      (= :el ~el1) ~el2))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmethod precondition-transformation :substitute-from-list
   [[_ el1 el2] conclusion]
+  &quot;Allows to substitute a certain element in the term list with another value, needed for elegant NAL4 rule specification&quot;
   `(mapv (fn [k#]
            (if (= k# ~el1)
              k#
@@ -3034,6 +3052,7 @@ net.brehaut.ClojureTools = (function (SH) {
         ~conclusion))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmethod conclusion-transformation :shift-occurrence-backward
   [args concl]
+  &quot;Shifts the occurrence time of the conclusion by the specified time offset.&quot;
   (let [temporal-window-duration (- temporal-window-duration)]
     (m/match (mapv #(if (and (coll? %) (= 'quote (first %)))
                      (second %) %) (rest args))
