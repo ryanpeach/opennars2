@@ -428,33 +428,31 @@ So these rules are for bringing NAL-statements into a different, implied and mor
           "
           ; multi-conditional syllogism
           ; Inference about the pre/postconditions
-          #R[Y ((&& X :list/A) ==> B) |- ((&& :list/A) ==> B) :pre ((:substitute-if-unifies "$" X Y)) :post (:t/deduction :order-for-all-same :seq-interval-from-premises)]
-          #R[((&& M :list/A) ==> C) ((&& :list/B) ==> C) |- M :pre ((:substitute-if-unifies "$" (&& :list/A) (&& :list/B))) :post (:t/abduction :order-for-all-same)]
+          #R[Y ((&& X :list/A) <=> B) |- ((&& :list/A) <=> B) :pre ((:substitute-if-unifies "$" Y X)) :post (:t/deduction :order-for-all-same :seq-interval-from-premises)]
+          #R[Y ((&& X :list/A) ==> B) |- ((&& :list/A) ==> B) :pre ((:substitute-if-unifies "$" Y X)) :post (:t/deduction :order-for-all-same :seq-interval-from-premises)]
+          #R[((&& M :list/A) ==> C) ((&& :list/B) ==> C) |- M :pre ((:substitute-if-unifies "$" (&& :list/B) (&& :list/A))) :post (:t/abduction :order-for-all-same)]
           ;degenerate case of this rule:
-          #R[((&& M U) ==> C) (W ==> C) |- M :pre ((:substitute-if-unifies "$" U W)) :post (:t/abduction :order-for-all-same)]
+          #R[((&& M U) ==> C) (W ==> C) |- M :pre ((:substitute-if-unifies "$" W U)) :post (:t/abduction :order-for-all-same)]
 
           ; Can be derived by NAL7 rules so this won't be necessary there (:order-for-all-same left out here)
           ; the first rule does not have :order-for-all-same because it would be invalid see: https://groups.google.com/forum/#!topic/open-nars/r5UJo64Qhrk #R[((&& :list/A) ==> C) M |- ((&& M :list/A) ==> C) :pre ((:not-implication-or-equivalence M)) :post (:t/induction)]
 
-          ;TODO ADD AGAIN ONCE ITS MADE SURE THAT CONJUNCTIONS ARE NOT ADDED FOR EVENT PREMISES:
-          #_#R[((&& :list/A) =|> C) M |- ((&& M :list/A) =|> C) :pre ((:not-implication-or-equivalence M)) :post (:t/induction)]
+          #R[((&& :list/A) ==> C) M |- ((&& M :list/A) ==> C) :pre ((:not-implication-or-equivalence M)) :post (:t/induction)]
           ;degenerate case of this rule:
-          #_#R[(A =|> C) M |- ((&& M A) =|> C) :pre ((:not-implication-or-equivalence M)) :post (:t/induction)]
-          #_#R[((&& :list/A) =/> C) M |- ((&& M :list/A) =/> C) :pre ((:not-implication-or-equivalence M)) :post (:t/induction)]
-          ;degenerate case of this rule:
-          #_#R[(A =/> C) M |- ((&& M A) =/> C) :pre ((:not-implication-or-equivalence M)) :post (:t/induction)]
-          #_#R[((&& :list/A) =\> C) M |- ((&& M :list/A) =\> C) :pre ((:not-implication-or-equivalence M)) :post (:t/induction)]
-          ;degenerate case of this rule:
-          #_#R[(A =\> C) M |- ((&& M A) =\> C) :pre ((:not-implication-or-equivalence M)) :post (:t/induction)]
+          #R[(A ==> C) M |- ((&& M A) ==> C) :pre ((:not-implication-or-equivalence M)) :post (:t/induction)]
+
+          #R[(A <=> M) ((&& M :list/A) ==> C) |- ((&& A :list/A) ==> C) :post (:t/analogy :order-for-all-same :seq-interval-from-premises)]
           #R[(A ==> M) ((&& M :list/A) ==> C) |- ((&& A :list/A) ==> C) :post (:t/deduction :order-for-all-same :seq-interval-from-premises)]
           #R[((&& M :list/A) ==> C) ((&& A :list/A) ==> C) |- (A ==> M) :post (:t/induction :order-for-all-same)]
           #R[(A ==> M) ((&& A :list/A) ==> C) |- ((&& M :list/A) ==> C) :post (:t/abduction :order-for-all-same :seq-interval-from-premises)]
 
           ; precondition combiner inference rule (variable_unification6):
           #R[((&& C :list/A) ==> Z) ((&& C :list/B) ==> Z) |- (((&& :list/A) ==> (&& :list/B)) :post (:t/induction)
-                                                                ((&& :list/B) ==> (&& :list/A)) :post (:t/induction))]
+                                                                ((&& :list/B) ==> (&& :list/A)) :post (:t/induction)
+                                                                ((&& :list/B) <=> (&& :list/A)) :post (:t/comparison))]
           #R[(Z ==> (&& C :list/A)) (Z ==> (&& C :list/B)) |- (((&& :list/A) ==> (&& :list/B)) :post (:t/abduction)
-                                                                ((&& :list/B) ==> (&& :list/A)) :post (:t/abduction))]
+                                                                ((&& :list/B) ==> (&& :list/A)) :post (:t/abduction)
+                                                                ((&& :list/B) <=> (&& :list/A)) :post (:t/comparison))]
           )
 
 (defrules nal6-variable-introduction
@@ -575,16 +573,16 @@ So these rules are for bringing NAL-statements into a different, implied and mor
           The purpose of this is to specialize general statements containing variables to specific cases."
           ; dependent variable elimination
           ; Decomposition with elimination of a variable
-          #R[B (&& A :list/A) |- (&& :list/A) :pre (:belief? (:substitute-if-unifies "#" A B)) :post (:t/anonymous-analogy :d/strong :order-for-all-same :seq-interval-from-premises)]
+          #R[B (&& A :list/A) |- (&& :list/A) :pre (:belief? (:substitute-if-unifies "#" B A)) :post (:t/anonymous-analogy :d/strong :order-for-all-same :seq-interval-from-premises)]
           ;and for the goal-task belief combination:
-          #R[(&& A :list/A) B |- (&& :list/A) :pre (:goal? (:substitute-if-unifies "#" A B)) :post (:t/deduction :d/strong :order-for-all-same :seq-interval-from-premises)]
+          #R[(&& A :list/A) B |- (&& :list/A) :pre (:goal? (:substitute-if-unifies "#" B A)) :post (:t/deduction :d/strong :order-for-all-same :seq-interval-from-premises)]
 
           ; independent variable elimination
           #R[B (A ==> C) |- C :post (:t/deduction :d/induction :order-for-all-same) :pre ((:substitute-if-unifies "$" B A) (:shift-occurrence-forward ==>))]
-          #R[B (C ==> A) |- C :post (:t/abduction :d/deduction :order-for-all-same) :pre ((:substitute-if-unifies "$" B A) (:shift-occurrence-backward C ==>))]
+          #R[B (C ==> A) |- C :post (:t/abduction :d/deduction :order-for-all-same) :pre ((:substitute-if-unifies "$" B A) (:shift-occurrence-backward ==>))]
 
-          #R[B (A <=> C) |- C :post (:t/analogy :d/deduction :order-for-all-same) :pre ((:substitute-if-unifies "$" A B) (:shift-occurrence-backward <=>))]
-          #R[B (C <=> A) |- C :post (:t/analogy :d/deduction :order-for-all-same) :pre ((:substitute-if-unifies "$" A B) (:shift-occurrence-forward <=>))]
+          #R[B (A <=> C) |- C :post (:t/analogy :d/deduction :order-for-all-same) :pre ((:substitute-if-unifies "$" B A) (:shift-occurrence-forward <=>))]
+          #R[B (C <=> A) |- C :post (:t/analogy :d/deduction :order-for-all-same) :pre ((:substitute-if-unifies "$" B A) (:shift-occurrence-backward <=>))]
 
           )
 

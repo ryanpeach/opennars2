@@ -98,7 +98,7 @@
   "checks whether the statement st is an implication"
   (and (coll? st)
        (or (= (first st) 'pred-impl)
-           (= (first st) 'impl)
+           (= (first st) '==>)
            (= (first st) '=|>))))
 
 (defn interval-at [f st]                                    ;TODO move to term utils!!

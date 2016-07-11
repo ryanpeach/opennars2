@@ -74,15 +74,53 @@
                                             (assoc t1 :statement (shuffle-term p1))
                                             (assoc t2 :statement (shuffle-term p2))))))
 
+;a image cant have two _ also it cant have none
+(defn term-is-invalid-image [st]
+  (when (and
+          (coll? st)
+          (or (= (first st) 'ext-image)
+              (= (first st) 'int-image))
+          (let [cnt (count (filter #{'_} st))]
+            (or (< (count st) 3)
+                (= (second st) '_)
+                (> cnt 1)
+                (= cnt 0))))
+    true))
+
+(defn term-has-invalid-image [st]
+  (when (coll? st)
+    (or (some term-is-invalid-image st)
+        (some #{true}
+              (for [x st]
+                (some term-has-invalid-image st))))))
+
 (defn valid-statement
   "Valid statement filter" ;TODO extent
   [term]
-    (not-any? #(and (coll? term)
-                    (= (count term) 3)
+  (and
+    (coll? term)
+
+    ;dont allow a. terms, only NAL statements are allowed (TODO discuss NAL9 name operator handling)
+    (some #(= % (first term)) '[--> <-> ==> pred-impl retro-impl
+                                =|> <=> </> <|>
+                                -- || conj seq-conj &|])
+
+    ;inheritance and Similarity can't have independent vars
+    (not (and (some #(= % (first term)) '[--> <->])
+              (some #(= % 'ind-var) (flatten term))))
+
+    ;todo image transformation rule enhancement to not allow this?
+    (not (and (= (count term) 3)
+              (= (first term) '-->)
+              (or (= (second term) '_)
+                  (= (nth term 2) '_))))
+
+    (not (term-has-invalid-image term))
+
+    (not-any? #(and (= (count term) 3)
                     (= (first term) %)
                     (= (second term) (nth term 2)))
-              ['--> '<-> '==> 'pred-impl 'retro-impl
-               '=|> '<=> '</> '<|>]))
+              '[--> <-> ==> pred-impl retro-impl =|> <=> </> <|>])))
 
 (defn occurrence-type
   "Occurrence task of tasks, either :eternal or :event"
@@ -116,7 +154,9 @@
                                       (and (contains? st :truth)
                                            (coll? (:truth st))
                                            (> (second (:truth st)) 0)))
-                                  (valid-statement (:statement st))))
+                                  (valid-statement (:statement st))
+                                  (not (and (= (:task-type st) :belief) ;TODO why happens at all?
+                                            (some #{'qu-var} (flatten (:statement st)))))))
                     (map no-truth-for-questions-and-quests
                          (map interval-reduction
                               (reorder-inference parsed-p1 parsed-p2)))))))

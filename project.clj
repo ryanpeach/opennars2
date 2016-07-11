@@ -31,7 +31,8 @@
   :eastwood {:exclude-namespaces [nal.rules]}
   :target-path "target/%s"
   :repl-options {:init-ns          narjure.repl
-                 :nrepl-middleware [narjure.repl/narsese-handler]}
+                 :nrepl-middleware [narjure.repl/narsese-handler]
+                 :timeout 10000000}
   :profiles {:uberjar {:aot :all}}
   :marginalia { :javascript ["http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"]}
   :jvm-opts ["-Dco.paralleluniverse.fibers.detectRunawayFibers=false"])
