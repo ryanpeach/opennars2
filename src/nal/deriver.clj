@@ -98,7 +98,9 @@
                 (some term-has-invalid-image st))))))
 
 (defn valid-statement
-  "Valid statement filter" ;TODO extent
+  "Valid statement filter.
+  The filter is a preliminary solution to get rid of statements that are not valid NAL statements.
+  Some of these need detailled analysis and a lot of care / inference rule condition improvement to get rid of." ;TODO extent
   [term]
   (and
     (coll? term)
@@ -117,6 +119,18 @@
               (= (first term) '-->)
               (or (= (second term) '_)
                   (= (nth term 2) '_))))
+
+    ;todo product rule enhancement to not allow this?
+    (not (and (= (count term) 3)
+              (= (first term) '-->)
+              (let [predterm (nth term 2)
+                    subjterm (second term)]
+                (or (and (coll? predterm)
+                        (= '* (first predterm))
+                        (some #{'_} predterm))
+                   (and (coll? subjterm)
+                        (= '* (first subjterm))
+                        (some #{'_} subjterm))))))
 
     (not (term-has-invalid-image term))
 
