@@ -23,7 +23,8 @@
      [question-processor :refer [process-question]]]
     [nal.deriver
      [truth :refer [w2c t-or t-and confidence frequency expectation revision]]
-     [projection-eternalization :refer [project-eternalize-to]]])
+     [projection-eternalization :refer [project-eternalize-to]]]
+    [clojure.set :as set])
   (:refer-clojure :exclude [promise await]))
 
 (defn get-linkable-terms
@@ -56,6 +57,17 @@
   ;(forget-termlinks)
   )
 
+(defn use-stronger [t1 t2]
+  (let [all-keys (set/union (map first t1) (map first t2))]
+    (apply merge (for [k all-keys]
+                 (let [str1 (t1 k)
+                       str2 (t2 k)
+                       st1 (if str1 str1 [0.0 0.0])
+                       st2 (if str2 str2 [0.0 0.0])]
+                   (if (> (first st1) (first st2))
+                     {k st1}
+                     {k st2}))))))
+
 (defn refresh-termlinks [task]
   "Create new potential termlinks to other terms modulated by the concept priority they link to."
   ; :termlinks {term [budget]}
@@ -63,7 +75,7 @@
                                (if prio
                                  prio
                                  0.0)))
-        newtermlinks (merge (apply merge
+        newtermlinks (use-stronger (apply merge
                                    (for [tl (get-linkable-terms task)] ;prefer existing termlinks strengths
                                      {tl [(* (first termlink-default-budget)
                                              (concept-prio tl)) (second termlink-default-budget)]}))
