@@ -1,4 +1,6 @@
-(ns nal.deriver.key-path)
+(ns nal.deriver.key-path
+  (:require
+    [clojure.core.memoize :refer [lru]]))
 
 (defn path
   "Generates premises \"path\" by replacing terms with :any"
@@ -46,7 +48,8 @@
     [path]))
 
 #_(def mpath-invariants (memoize path-invariants))
-(def mpath-invariants path-invariants)
+(def mpath-invariants (lru path-invariants :lru/threshold 50))
+#_(def mpath-invariants path-invariants)
 
 ;(all-paths 'Y '(==> (seq-conj X A1 A2 A3) B))
 (defn all-paths
@@ -57,4 +60,5 @@
     (cart [paths1 [:and] paths2])))
 
 #_(def mall-paths (memoize all-paths))
-(def mall-paths all-paths)
+(def mall-paths (lru all-paths :lru/threshold 50))
+#_(def mall-paths all-paths)

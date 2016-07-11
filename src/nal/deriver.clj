@@ -7,6 +7,7 @@
     [nal.deriver.normalization :refer [commutative-ops]]
     [clojure.set :as set]
     [nal.term_utils :refer :all]
+    [clojure.core.memoize :refer [lru]]
     [nal.rules :as r]))
 
 (defn get-matcher [rules p1 p2]
@@ -19,9 +20,11 @@
       (fn [t1 t2] (mapcat #(% t1 t2) matchers)))))
 
 #_(def mget-matcher (memoize get-matcher))
-(def mget-matcher get-matcher)
+(def mget-matcher (lru get-matcher :lru/threshold 50))
+#_(def mget-matcher get-matcher)
 #_(def mpath (memoize path-with-max-level))
-(def mpath path-with-max-level)
+(def mpath (lru path-with-max-level :lru/threshold 50))
+#_(def mpath path-with-max-level)
 
 (defn generate-conclusions-no-commutativity
   "generate conclusions not taking commutative subterms of premises into account"

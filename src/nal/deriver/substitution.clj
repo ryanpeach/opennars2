@@ -1,6 +1,7 @@
 (ns nal.deriver.substitution
   (:require [nal.deriver.utils :refer [walk]]
             [clojure.core.unify :as u]
+            [clojure.core.memoize :refer [lru]]
             [clojure.string :as s]))
 
 (defn replace-vars
@@ -26,7 +27,8 @@
                 ;this reduces the amount of conclusions which would be weaker and interferre.
 
 #_(def munification-map (memoize unification-map))
-(def munification-map unification-map)
+(def munification-map (lru unification-map :lru/threshold 50))
+#_(def munification-map unification-map)
 
 (defn placeholder->symbol [pl]
   (->> pl str (drop 1) s/join symbol))
