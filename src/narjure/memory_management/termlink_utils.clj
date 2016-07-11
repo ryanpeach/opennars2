@@ -60,8 +60,8 @@
 (defn use-stronger [t1 t2]
   (let [all-keys (set/union (map first t1) (map first t2))]
     (apply merge (for [k all-keys]
-                 (let [str1 (t1 k)
-                       str2 (t2 k)
+                 (let [str1 (when t1 (t1 k))
+                       str2 (when t2 (t2 k))
                        st1 (if str1 str1 [0.0 0.0])
                        st2 (if str2 str2 [0.0 0.0])]
                    (if (> (first st1) (first st2))
