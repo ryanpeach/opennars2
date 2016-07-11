@@ -90,13 +90,6 @@
                 (= cnt 0))))
     true))
 
-(defn term-has-invalid-image [st]
-  (when (coll? st)
-    (or (some term-is-invalid-image st)
-        (some #{true}
-              (for [x st]
-                (some term-has-invalid-image st))))))
-
 (defn valid-statement
   "Valid statement filter.
   The filter is a preliminary solution to get rid of statements that are not valid NAL statements.
@@ -132,7 +125,11 @@
                         (= '* (first subjterm))
                         (some #{'_} subjterm))))))
 
-    (not (term-has-invalid-image term))
+    ;making sure that subject and predicate isnt an invalid image:
+    (not (and (= (count term) 3)
+              (= (first term) '-->)
+              (or (term-is-invalid-image (second term))
+                  (term-is-invalid-image (nth term 2)))))
 
     (not-any? #(and (= (count term) 3)
                     (= (first term) %)
