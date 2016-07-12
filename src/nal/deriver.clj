@@ -83,7 +83,7 @@
   Some of these need detailled analysis and a lot of care / inference rule condition improvement to get rid of." ;TODO extent
   [term]
   (and
-    (coll? term)
+    #_(coll? term)
 
     ;dont allow a. terms, only NAL statements are allowed (TODO discuss NAL9 name operator handling)
     #_(some #(= % (first term)) '[--> <-> ==> pred-impl retro-impl
@@ -91,10 +91,12 @@
                                 -- || conj seq-conj &|])
 
     ;inheritance and Similarity can't have independent vars
-    (not (and (some #(= % (first term)) '[--> <->])
+    (not (and (coll? term)
+              (some #(= % (first term)) '[--> <->])
               (some #(= % 'ind-var) (flatten term))))
 
-    (not-any? #(and (= (count term) 3)
+    (not-any? #(and (coll? term)
+                    (= (count term) 3)
                     (= (first term) %)
                     (= (second term) (nth term 2)))
               '[--> <-> ==> pred-impl retro-impl =|> <=> </> <|>])))
