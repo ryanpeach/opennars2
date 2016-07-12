@@ -11,7 +11,7 @@
 ;; ==> is the <a href="NAL-Specification.pdf#page=46">Implication-relation</a> and naturally encodes the intiutive meaning of implication.<br/>
 ;; && stands for <a href="NAL-Specification.pdf#page=46">Conjunction</a>, || for <a href="NAL-Specification.pdf#page=46">Disjunction</a>. More details can be seen in the relevant inference rule sections.
 
-(declare --S S --P P <-> |- --> ==> M || && =|> -- A Ai B <=>)
+(declare --S S --P P <-> |- --> ==> M || && =|> -- A Ai B <=> A0 A1 A2 A3 A4 A5 A6 A7 A8 A9)
 
 (defrules nal1-nal2-nal3-equivalence-and-implication
           "<h1><a href=\"NAL-Specification.pdf#page=87\" style=\"text-decoration:none\">NAL1 NAL2 NAL3 Equivalence and Implication Rules</a></h1><br/>  <!-- target=\"bible\" -->
@@ -245,18 +245,70 @@ So these rules are for bringing NAL-statements into a different, implied and mor
            "
           ; NAL4 - Transformations between products and images:
           ; Relations and transforming them into different representations so that arguments and the relation it'self can become the subject or predicate
-          #R[((* :list/A) --> M) Ai |- (Ai --> (/ M :list/A))
-             :pre ((:substitute-from-list Ai _) (:contains? (:list/A) Ai))
-             :post (:t/identity :d/identity)]
-          #R[(M --> (* :list/A)) Ai |- ((\ M :list/A) --> Ai)
-            :pre ((:substitute-from-list Ai _) (:contains? (:list/A) Ai))
-            :post (:t/identity :d/identity)]
-            #R[(Ai --> (/ M :list/A )) M |- ((* :list/A) --> M)
-               :pre ((:substitute-from-list _ Ai))
-               :post (:t/identity :d/identity)]
-            #R[((\ M :list/A) --> Ai) M |- (M --> (* :list/A))
-            :pre ((:substitute-from-list _ Ai))
-            :post (:t/identity :d/identity)]
+          ;TODO fix the macro magic, no idea how yet
+          #R[((* A1) --> M) A1 |- (A1 --> (/ M _)) :post (:t/identity :d/identity)]
+          #R[((* A1 A2) --> M) A1 |- (A1 --> (/ M _ A2)) :post (:t/identity :d/identity)]
+          #R[((* A1 A2) --> M) A2 |- (A2 --> (/ M A1 _)) :post (:t/identity :d/identity)]
+          #R[((* A1 A2 A3) --> M) A1 |- (A1 --> (/ M _ A2 A3)) :post (:t/identity :d/identity)]
+          #R[((* A1 A2 A3) --> M) A2 |- (A2 --> (/ M A1 _ A3)) :post (:t/identity :d/identity)]
+          #R[((* A1 A2 A3) --> M) A3 |- (A3 --> (/ M A1 A2 _)) :post (:t/identity :d/identity)]
+          #R[((* A1 A2 A3 A4) --> M) A1 |- (A1 --> (/ M _ A2 A3 A4)) :post (:t/identity :d/identity)]
+          #R[((* A1 A2 A3 A4) --> M) A2 |- (A2 --> (/ M A1 _ A3 A4)) :post (:t/identity :d/identity)]
+          #R[((* A1 A2 A3 A4) --> M) A3 |- (A3 --> (/ M A1 A2 _ A4)) :post (:t/identity :d/identity)]
+          #R[((* A1 A2 A3 A4) --> M) A4 |- (A4 --> (/ M A1 A2 A3 _)) :post (:t/identity :d/identity)]
+          #R[((* A1 A2 A3 A4 A5) --> M) A1 |- (A1 --> (/ M _ A2 A3 A4 A5)) :post (:t/identity :d/identity)]
+          #R[((* A1 A2 A3 A4 A5) --> M) A2 |- (A2 --> (/ M A1 _ A3 A4 A5)) :post (:t/identity :d/identity)]
+          #R[((* A1 A2 A3 A4 A5) --> M) A3 |- (A3 --> (/ M A1 A2 _ A4 A5)) :post (:t/identity :d/identity)]
+          #R[((* A1 A2 A3 A4 A5) --> M) A4 |- (A4 --> (/ M A1 A2 A3 _ A5)) :post (:t/identity :d/identity)]
+          #R[((* A1 A2 A3 A4 A5) --> M) A5 |- (A5 --> (/ M A1 A2 A3 A4 _)) :post (:t/identity :d/identity)]
+
+          #R[(M --> (* A1)) A1 |- ((\ M _) --> A1) :post (:t/identity :d/identity)]
+          #R[(M --> (* A1 A2)) A1 |- ((\ M _ A2) --> A1) :post (:t/identity :d/identity)]
+          #R[(M --> (* A1 A2)) A2 |- ((\ M A1 _) --> A2) :post (:t/identity :d/identity)]
+          #R[(M --> (* A1 A2 A3)) A1 |- ((\ M _ A2 A3) --> A1) :post (:t/identity :d/identity)]
+          #R[(M --> (* A1 A2 A3)) A2 |- ((\ M A1 _ A3) --> A2) :post (:t/identity :d/identity)]
+          #R[(M --> (* A1 A2 A3)) A3 |- ((\ M A1 A2 _) --> A3) :post (:t/identity :d/identity)]
+          #R[(M --> (* A1 A2 A3 A4)) A1 |- ((\ M _ A2 A3 A4) --> A1) :post (:t/identity :d/identity)]
+          #R[(M --> (* A1 A2 A3 A4)) A2 |- ((\ M A1 _ A3 A4) --> A2) :post (:t/identity :d/identity)]
+          #R[(M --> (* A1 A2 A3 A4)) A3 |- ((\ M A1 A2 _ A4) --> A3) :post (:t/identity :d/identity)]
+          #R[(M --> (* A1 A2 A3 A4)) A4 |- ((\ M A1 A2 A3 _) --> A4) :post (:t/identity :d/identity)]
+          #R[(M --> (* A1 A2 A3 A4 A5)) A1 |- ((\ M _ A2 A3 A4 A5) --> A1) :post (:t/identity :d/identity)]
+          #R[(M --> (* A1 A2 A3 A4 A5)) A2 |- ((\ M A1 _ A3 A4 A5) --> A2) :post (:t/identity :d/identity)]
+          #R[(M --> (* A1 A2 A3 A4 A5)) A3 |- ((\ M A1 A2 _ A4 A5) --> A3) :post (:t/identity :d/identity)]
+          #R[(M --> (* A1 A2 A3 A4 A5)) A4 |- ((\ M A1 A2 A3 _ A5) --> A4) :post (:t/identity :d/identity)]
+          #R[(M --> (* A1 A2 A3 A4 A5)) A5 |- ((\ M A1 A2 A3 A4 _) --> A5) :post (:t/identity :d/identity)]
+
+          #R[(A1 --> (/ M _)) A1 |- ((* A1) --> M) :post (:t/identity :d/identity)]
+          #R[(A1 --> (/ M _ A2)) A1 |- ((* A1 A2) --> M) :post (:t/identity :d/identity)]
+          #R[(A2 --> (/ M A1 _)) A2 |- ((* A1 A2) --> M) :post (:t/identity :d/identity)]
+          #R[(A1 --> (/ M _ A2 A3)) A1 |- ((* A1 A2 A3) --> M) :post (:t/identity :d/identity)]
+          #R[(A2 --> (/ M A1 _ A3)) A2 |- ((* A1 A2 A3) --> M) :post (:t/identity :d/identity)]
+          #R[(A3 --> (/ M A1 A2 _)) A3 |- ((* A1 A2 A3) --> M) :post (:t/identity :d/identity)]
+          #R[(A1 --> (/ M _ A2 A3 A4)) A1 |- ((* A1 A2 A3 A4) --> M) :post (:t/identity :d/identity)]
+          #R[(A2 --> (/ M A1 _ A3 A4)) A2 |- ((* A1 A2 A3 A4) --> M) :post (:t/identity :d/identity)]
+          #R[(A3 --> (/ M A1 A2 _ A4)) A3 |- ((* A1 A2 A3 A4) --> M) :post (:t/identity :d/identity)]
+          #R[(A4 --> (/ M A1 A2 A3 _)) A4 |- ((* A1 A2 A3 A4) --> M) :post (:t/identity :d/identity)]
+          #R[(A1 --> (/ M _ A2 A3 A4 A5)) A1 |- ((* A1 A2 A3 A4 A5) --> M) :post (:t/identity :d/identity)]
+          #R[(A2 --> (/ M A1 _ A3 A4 A5)) A2 |- ((* A1 A2 A3 A4 A5) --> M) :post (:t/identity :d/identity)]
+          #R[(A3 --> (/ M A1 A2 _ A4 A5)) A3 |- ((* A1 A2 A3 A4 A5) --> M) :post (:t/identity :d/identity)]
+          #R[(A4 --> (/ M A1 A2 A3 _ A5)) A4 |- ((* A1 A2 A3 A4 A5) --> M) :post (:t/identity :d/identity)]
+          #R[(A5 --> (/ M A1 A2 A3 A4 _)) A5 |- ((* A1 A2 A3 A4 A5) --> M) :post (:t/identity :d/identity)]
+
+          #R[((\ M _) --> A1) A1 |- (M --> (* A1)) :post (:t/identity :d/identity)]
+          #R[((\ M _ A2) --> A1) A1 |- (M --> (* A1 A2)) :post (:t/identity :d/identity)]
+          #R[((\ M A1 _) --> A2) A2 |- (M --> (* A1 A2)) :post (:t/identity :d/identity)]
+          #R[((\ M _ A2 A3) --> A1) A1 |- (M --> (* A1 A2 A3)) :post (:t/identity :d/identity)]
+          #R[((\ M A1 _ A3) --> A2) A2 |- (M --> (* A1 A2 A3)) :post (:t/identity :d/identity)]
+          #R[((\ M A1 A2 _) --> A3) A3 |- (M --> (* A1 A2 A3)) :post (:t/identity :d/identity)]
+          #R[((\ M _ A2 A3 A4) --> A1) A1 |- (M --> (* A1 A2 A3 A4)) :post (:t/identity :d/identity)]
+          #R[((\ M A1 _ A3 A4) --> A2) A2 |- (M --> (* A1 A2 A3 A4)) :post (:t/identity :d/identity)]
+          #R[((\ M A1 A2 _ A4) --> A3) A3 |- (M --> (* A1 A2 A3 A4)) :post (:t/identity :d/identity)]
+          #R[((\ M A1 A2 A3 _) --> A4) A4 |- (M --> (* A1 A2 A3 A4)) :post (:t/identity :d/identity)]
+          #R[((\ M _ A2 A3 A4 A5) --> A1) A1 |- (M --> (* A1 A2 A3 A4 A5)) :post (:t/identity :d/identity)]
+          #R[((\ M A1 _ A3 A4 A5) --> A2) A2 |- (M --> (* A1 A2 A3 A4 A5)) :post (:t/identity :d/identity)]
+          #R[((\ M A1 A2 _ A4 A5) --> A3) A3 |- (M --> (* A1 A2 A3 A4 A5)) :post (:t/identity :d/identity)]
+          #R[((\ M A1 A2 A3 _ A5) --> A4) A4 |- (M --> (* A1 A2 A3 A4 A5)) :post (:t/identity :d/identity)]
+          #R[((\ M A1 A2 A3 A4 _) --> A5) A5 |- (M --> (* A1 A2 A3 A4 A5)) :post (:t/identity :d/identity)]
 
           ; relation introduction rule:
           #R[(A --> C) (B --> D) |- ((* A B) --> (* C D)) :post (:t/intersection)]

@@ -123,7 +123,8 @@
 (defn reduce-image
   "Reductions for images"
   [st]
-  (m/match st
+  st
+  #_(m/match st
            [_ ['* t1 t2] t3] (if (and (= t2 t3) (not= t1 t2)) t1 st)
            :else st))
 
