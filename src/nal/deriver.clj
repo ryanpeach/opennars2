@@ -77,19 +77,6 @@
                                             (assoc t1 :statement (shuffle-term p1))
                                             (assoc t2 :statement (shuffle-term p2))))))
 
-;a image cant have two _ also it cant have none
-(defn term-is-invalid-image [st]
-  (when (and
-          (coll? st)
-          (or (= (first st) 'ext-image)
-              (= (first st) 'int-image))
-          (let [cnt (count (filter #{'_} st))]
-            (or (< (count st) 3)
-                (= (second st) '_)
-                (> cnt 1)
-                (= cnt 0))))
-    true))
-
 (defn valid-statement
   "Valid statement filter.
   The filter is a preliminary solution to get rid of statements that are not valid NAL statements.
@@ -106,30 +93,6 @@
     ;inheritance and Similarity can't have independent vars
     (not (and (some #(= % (first term)) '[--> <->])
               (some #(= % 'ind-var) (flatten term))))
-
-    ;todo image transformation rule enhancement to not allow this?
-    (not (and (= (count term) 3)
-              (= (first term) '-->)
-              (or (= (second term) '_)
-                  (= (nth term 2) '_))))
-
-    ;todo product rule enhancement to not allow this?
-    (not (and (= (count term) 3)
-              (= (first term) '-->)
-              (let [predterm (nth term 2)
-                    subjterm (second term)]
-                (or (and (coll? predterm)
-                        (= '* (first predterm))
-                        (some #{'_} predterm))
-                   (and (coll? subjterm)
-                        (= '* (first subjterm))
-                        (some #{'_} subjterm))))))
-
-    ;making sure that subject and predicate isnt an invalid image:
-    (not (and (= (count term) 3)
-              (= (first term) '-->)
-              (or (term-is-invalid-image (second term))
-                  (term-is-invalid-image (nth term 2)))))
 
     (not-any? #(and (= (count term) 3)
                     (= (first term) %)
