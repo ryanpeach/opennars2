@@ -259,7 +259,13 @@ So these rules are for bringing NAL-statements into a different, implied and mor
             :post (:t/identity :d/identity)]
 
             ; relation introduction rule:
-            ;#R[(A --> C) (B --> D) |- ((* A B) --> (* C D)) :post (:t/intersection)]
+            ;this one cant be allowed due to control reasons: #_#R[(A --> C) (B --> D) |- ((* A B) --> (* C D)) :post (:t/intersection)]
+          #R[(A --> C) (A --> D) |- ((* A A) --> (* C D)) :post (:t/intersection)]
+          #R[(A --> C) (B --> C) |- ((* A B) --> (* C C)) :post (:t/intersection)]
+          #R[({A} --> C) (A --> D) |- ((* {A} A) --> (* C D)) :post (:t/intersection)]
+          #R[(A --> C) ({A} --> D) |- ((* A {A}) --> (* C D)) :post (:t/intersection)]
+          #R[(A --> [C]) (B --> C) |- ((* A B) --> (* [C] C)) :post (:t/intersection)]
+          #R[(A --> C) (B --> [C]) |- ((* A B) --> (* C [C])) :post (:t/intersection)]
 )
 
 (defrules nal5-implication-based-syllogisms
