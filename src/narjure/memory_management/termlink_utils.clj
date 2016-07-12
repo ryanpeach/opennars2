@@ -46,7 +46,7 @@
     (when (not (b/exists? @c-bag tl))
       (set-state! (assoc @state :termlinks (dissoc (:termlinks @state) tl)))))
   (while (> (count (:termlinks @state)) concept-max-termlinks)
-    (let [worst (apply min-key (comp first second) (:termlinks @state))]
+    (let [worst (apply min-key (comp expectation second) (:termlinks @state))]
       (set-state! (assoc @state :termlinks (dissoc (:termlinks @state) (first worst)))))))
 
 (defn add-termlink
@@ -56,6 +56,17 @@
                                          tl strength)))
   ;(forget-termlinks)
   )
+
+
+(defn update-termlink [tl]                                  ;term
+  (let [prio-me (:priority ((:elements-map @c-bag) (:id @state)))
+        old-truth ((:termlinks @state) tl)
+        prio-other (:priority ((:elements-map @c-bag) tl))
+        association (t-and prio-me prio-other)
+        disassocation (t-and prio-me (- 1.0 prio-other))
+        frequency (+ 0.5 (/ (- association disassocation) 2.0))
+        newstrength (revision old-truth [frequency termlink-single-sample-evidence-amount])]
+    (add-termlink tl newstrength)))
 
 (defn use-stronger [t1 t2]
   (let [all-keys (set/union (map first t1) (map first t2))]
@@ -77,7 +88,7 @@
                                  0.0)))
         newtermlinks (use-stronger (apply merge
                                    (for [tl (get-linkable-terms task)] ;prefer existing termlinks strengths
-                                     {tl [(* (first termlink-default-budget)
+                                     {tl [1.0 0.01] #_[(* (first termlink-default-budget)
                                              (concept-prio tl)) (second termlink-default-budget)]}))
                             (:termlinks @state))
         valid-links (select-keys newtermlinks (get-existing-terms-from-links newtermlinks))];only these keys which exist in concept bag
@@ -86,7 +97,7 @@
 (defn link-feedback-handler
   "Link growth by contextual relevance of the inference and the result, as well as usefulness of the result."
   [from [_ [derived-task belief-concept-id]]]                       ;this one uses the usual priority durability semantics
-  (try
+  #_(try
     ;TRADITIONAL BUDGET INFERENCE (BLINK PART)
     (let [complexity (if (:truth derived-task) (syntactic-complexity belief-concept-id) 1.0)
           truth-quality (if (:truth derived-task)
@@ -129,7 +140,7 @@
   (let [initbag (b/default-bag concept-max-termlinks)]
     (try
       (reduce (fn [a b] (b/add-element a b)) initbag (for [[k v] (:termlinks @state)]
-                                                      {:priority (t-or (first v)
+                                                      {:priority (t-and (expectation v)
                                                                        (:priority (first (b/get-by-id @c-bag k))))
                                                        :id       k}))
       (catch Exception e (print "")

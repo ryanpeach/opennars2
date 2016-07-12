@@ -55,6 +55,11 @@
 (defn belief-request-handler
   ""
   [from [_ [task-concept-id task]]]
+
+  (try                                                      ;update termlinks at first
+    (update-termlink (:statement task))          ;task concept here
+    (catch Exception e (debuglogger search display (str "belief side termlink strength error " (.toString e)))))
+
   ;todo get a belief which has highest confidence when projected to task time
   (try
     (let [tasks (get-tasks state)
