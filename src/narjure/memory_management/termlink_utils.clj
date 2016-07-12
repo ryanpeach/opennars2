@@ -64,8 +64,8 @@
         prio-other (:priority ((:elements-map @c-bag) tl))
         association (t-and prio-me prio-other)
         disassocation (t-and prio-me (- 1.0 prio-other))
-        frequency (+ 0.5 (/ (- association disassocation) 2.0))
-        newstrength (revision old-truth [frequency termlink-single-sample-evidence-amount])]
+        frequency 1.0 #_(+ 0.5 (/ (- association 0.0 #_disassocation) 2.0))
+        newstrength (revision [0.0 disassocation] (revision old-truth [frequency association]))] ;termlink-single-sample-evidence-amount
     (add-termlink tl newstrength)))
 
 (defn use-stronger [t1 t2]
@@ -106,10 +106,12 @@
           quality (/ truth-quality complexity)
           [result-concept _]  (b/get-by-id @c-bag (:statement derived-task))
           activation (:priority result-concept)
-          [p d] ((:termlinks @state) belief-concept-id)]
-      (when (and p d truth-quality)
-        (add-termlink belief-concept-id [(t-or p (t-or quality activation))
-                                         (t-or d quality)]))
+          [f c] ((:termlinks @state) belief-concept-id)
+          strength (expectation [f c])]
+      (when (and f c (:truth derived-task)) ;just revise by using the truth value directly
+        ;as evidence for the usefulness
+        (println (str [f c] (:truth derived-task)))
+        (add-termlink belief-concept-id [(revision [f c] (:truth derived-task))]))
       )
     (catch Exception e () #_(println "fail"))))
 
@@ -140,7 +142,7 @@
   (let [initbag (b/default-bag concept-max-termlinks)]
     (try
       (reduce (fn [a b] (b/add-element a b)) initbag (for [[k v] (:termlinks @state)]
-                                                      {:priority (t-and (expectation v)
+                                                      {:priority (+ (expectation v)
                                                                        (:priority (first (b/get-by-id @c-bag k))))
                                                        :id       k}))
       (catch Exception e (print "")

@@ -34,7 +34,7 @@
 (defn structural-reward-budget
   "returns a increased budget for statements of structural interest, mainly for experiments."
   [budget derived-task]
-  (let [not-matched-or-not-desired-budget [(* (first budget) 0.5) (second budget) (nth budget 2)]
+  (let [not-matched-or-not-desired-budget [(* (first budget) 0.8) (second budget) (nth budget 2)]
         match (second (precondition-operation-consequent-statement derived-task))]
     (if (and (:truth derived-task)
              match)
@@ -67,12 +67,13 @@
   "The budget of a by general inference derived task."
   [task derived-task]
   (when (< (:sc derived-task) max-term-complexity)
-    (let [priority (first (:budget task))
+    (let [activation-gain 0.95
+          priority (max 1.0 (t-or activation-gain (first (:budget task))))
          durability (/ (second (:budget task)) (Math/sqrt (:sc derived-task)))
          truth-quality (if (:truth derived-task) (truth-to-quality (:truth derived-task))
                                                  0.0 #_(w2c 1.0))
          complexity (:sc derived-task)
-         rescale-factor 0.8 ;should probably not above input belief quality!
+         rescale-factor 0.3 ;should probably not above input belief quality!
          quality (* truth-quality
                     rescale-factor
                     #_(/ 1.0 (Math/sqrt complexity)))]
