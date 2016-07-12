@@ -47,8 +47,8 @@
               precondition (match '?precondition)
               goal-desire (highest-desire-in-respect-to-now goal)]
           ;(println (str "2: " goal))
-          (if (= precondition goal)                         ;not a valid statement at all, I wonder why I didn't see this earlier.
-            nil                                             ;TODO add invalid NAL statement filter for derivations anyway
+          (if (= precondition goal)
+            nil
             (if goal-desire
               (let [quality (max (nth budget 2)
                                  (t-or (expectation (:truth derived-task)) (t-or (second goal-desire) 0.8)))] ;TODO see goal-processor (unify)

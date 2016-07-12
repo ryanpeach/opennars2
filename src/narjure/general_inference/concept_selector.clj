@@ -20,7 +20,7 @@
   " creates a term-link between last-selected concept and the currently selected concept"
   [state selected]
   (when-let [last-selected (:last-selected state)] ;the last selected observable concept
-    (when-not (concept-observable selected)   ; todo need to be able to link to itself here (&/, a, a) is valid sequence
+    (when (concept-observable (:id selected))   ; todo need to be able to link to itself here (&/, a, a) is valid sequence
       (cast! (:ref selected) [:termlink-strengthen-msg [(:id last-selected)]])
       (cast! (:ref last-selected) [:termlink-strengthen-msg [(:id selected)]])))
   (when (concept-observable (:id selected))
