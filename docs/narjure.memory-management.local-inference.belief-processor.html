@@ -2865,158 +2865,182 @@ net.brehaut.ClojureTools = (function (SH) {
     build_tree: build_tree
   };
 })(SyntaxHighlighter);
-</script><script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script><title>narjure -- Marginalia</title></head><body><table><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#nal.deriver.normalization" name="nal.deriver.normalization"><h1 class="project-name">nal.deriver.normalization</h1><a class="toc-link" href="toc.html">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(ns nal.deriver.normalization
-  (:require [clojure.string :as s]
-            [clojure.set :as set]
-            [clojure.core.match :as m]))</pre></td></tr><tr><td class="docs"><p>operators that should be movet from infix to prefix position</p>
-</td><td class="codes"><pre class="brush: clojure">(def operators
-  #{'&amp;| '--&gt; '&lt;-&gt; '==&gt; 'retro-impl 'pred-impl 'seq-conj 'inst 'prop 'inst-prop
-    'int-image 'ext-image '=/&gt; '=|&gt; '| '&lt;=&gt; '&lt;/&gt; '&lt;|&gt; '- 'int-dif '|| '&amp;&amp;
-    'ext-inter 'conj})</pre></td></tr><tr><td class="docs"><p>commutative:    &lt;-> &lt;=> &lt;|> &amp; | &amp;&amp; ||
-not commutative: --> ==> =/> => </> &amp;/ - ~</p>
-</td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def commutative-ops #{'&lt;-&gt; '&lt;=&gt; '&lt;|&gt; '| '|| 'conj 'ext-inter})</pre></td></tr><tr><td class="docs"><p>Makes transformaitions like [A --> B] to [--> A B].</p>
-</td><td class="codes"><pre class="brush: clojure">(defn infix-&gt;prefix
-  [premise]
-  (if (coll? premise)
-    (let [[f s &amp; tail] premise]
-      (map infix-&gt;prefix
-           (if (operators s)
-             (concat [s f] tail)
-             premise)))
-    premise))</pre></td></tr><tr><td class="docs"><p>Checks if symbol starts with --, true for --A, --X</p>
-</td><td class="codes"><pre class="brush: clojure">(defn- neg-symbol?
-  [el]
-  (and (not= el '--&gt;) (symbol? el) (s/starts-with? (str el) &quot;--&quot;)))</pre></td></tr><tr><td class="docs"><p>Removes -- from symbols with negation:
-  (trim-negation '--A) => A</p>
-</td><td class="codes"><pre class="brush: clojure">(defn- trim-negation
-  [el]
-  (symbol (s/join (drop 2 (str el)))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn neg [el] (list '-- el))</pre></td></tr><tr><td class="docs"><p>Replaces negations's "new notation".</p>
-</td><td class="codes"><pre class="brush: clojure">(defn replace-negation
-  [statement]
-  (cond
-    (neg-symbol? statement) (neg (trim-negation statement))
-    (or (vector? statement) (and (seq? statement) (not= '-- (first statement))))
-    (:st
-      (reduce
-        (fn [{:keys [prev st] :as ac} el]
-          (if (= '-- el)
-            (assoc ac :prev true)
-            (-&gt;&gt; [(cond prev (neg el)
-                        (coll? el) (replace-negation el)
-                        (neg-symbol? el) (neg (trim-negation el))
-                        :else el)]
-                 (concat st)
-                 (assoc ac :prev false :st))))
-        {:prev false :st '()}
-        statement))
-    :else statement))</pre></td></tr><tr><td class="docs"><p>provide an order for the commutative ops, so that <a &lt;-> b> and <b &lt;-> a> will both be <b &lt;-> a>,
-  this is needed because they need to end up in the same concept!</p>
-</td><td class="codes"><pre class="brush: clojure">(defn sort-commutative
-  [conclusions]
-  (if (coll? conclusions)
-    (let [f (first conclusions)]
-      (if (commutative-ops f)
-        (vec (conj (sort-by hash (drop 1 conclusions)) f))
-        conclusions))
-    conclusions))</pre></td></tr><tr><td class="docs"><p>the union set operation for extensional and intensional sets</p>
-
-<p>https://gist.github.com/TonyLo1/a3f8e05458c5e90c2e72</p>
-</td><td class="codes"><pre class="brush: clojure">(defn union
-  ([c1 c2] (sort-by hash (set (concat c1 c2))))
-  ([op c1 c2] (vec (conj (union c1 c2) op))))</pre></td></tr><tr><td class="docs"><p>the difference set operation for extensional and intensional sets</p>
-</td><td class="codes"><pre class="brush: clojure">(defn diff
-  ([c1 c2] (into '() (set/difference (set c1) (set c2))))
-  ([op c1 c2] (vec (conj (diff c1 c2) op))))</pre></td></tr><tr><td class="docs"><p>Reductions for extensional intersection.</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-ext-inter
-  [st]
-  (m/match
-    st
-    [_ t] t
-    [_ ['ext-inter &amp; l1] ['ext-inter &amp; l2]] (union 'ext-inter l1 l2)
-    [_ ['ext-inter &amp; l1] l2] (union 'ext-inter l1 [l2])
-    [_ l1 ['ext-inter &amp; l2]] (union 'ext-inter [l1] l2)
-    [_ ['int-set &amp; l1] ['int-set &amp; l2]] (union 'int-set l1 l2)
-    ;[_ ['ext-set &amp; l1] ['ext-set &amp; l2]] (union 'ext-set l1 l2)
-    :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for intensional intersection</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-int-inter
-  [st]
-  (m/match st
-           ['| t] t
-           ['| ['| &amp; l1] ['| &amp; l2]] (union '| l1 l2)
-           ['| ['| &amp; l1] l2] (union '| l1 [l2])
-           ['| l1 ['| &amp; l2]] (union '| [l1] l2)
-           ['| ['int-set &amp; l1] ['int-set &amp; l2]] (union 'int-set l1 l2)
-           ['| ['ext-set &amp; l1] ['ext-set &amp; l2]] (union 'ext-set l1 l2)
-           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for intensional difference</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-int-dif
-  [st]
-  (m/match st
-           [_ ['int-set &amp; l1] ['int-set &amp; l2]] (diff 'int-set l1 l2)
-           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for extensional difference</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-ext-dif
-  [st]
-  (m/match st
-           [_ ['ext-set &amp; l1] ['ext-set &amp; l2]] (diff 'ext-set l1 l2)
-           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for images</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-image
-  [st]
-  st
-  #_(m/match st
-           [_ ['* t1 t2] t3] (if (and (= t2 t3) (not= t1 t2)) t1 st)
-           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for negation</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-neg
-  [st]
-  (m/match st
-           ['-- ['-- t]] t
-           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for or</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-or
-  [st]
-  (m/match st
-           ['|| t] t
-           ['|| ['|| &amp; l1] ['|| &amp; l2]] (union '|| l1 l2)
-           ['|| ['|| &amp; l1] l2] (union '|| l1 [l2])
-           ['|| l1 ['|| &amp; l2]] (union '|| [l1] l2)
-           ['|| t1 t2] (if (= t1 t2) t1 st)
-           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for and</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-and
-  [st]
-  (m/match st
-           ['conj t] t
-           ['conj ['conj &amp; l1] ['conj &amp; l2]] (union 'conj l1 l2)
-           ['conj ['conj &amp; l1] l2] (union 'conj l1 [l2])
-           ['conj l1 ['conj &amp; l2]] (union 'conj [l1] l2)
-           ['conj t1 t2] (if (= t1 t2) t1 st)
-           :else st))</pre></td></tr><tr><td class="docs"><p>Not in use currently, may change</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-seq-conj
-  [st]
-  st)</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def reducible-ops
-  {'ext-inter `reduce-ext-inter
-   '|         `reduce-int-inter
-   '-         `reduce-ext-dif
-   'int-dif   `reduce-int-dif
-   'int-image `reduce-image
-   'ext-image `reduce-image
-   '--        `reduce-neg
-   'conj      `reduce-and
-   '||        `reduce-or})</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-ops
-  [st]
-  (let [f (first st)]
-    (case f
-      ext-inter (reduce-ext-inter st)
-      | (reduce-int-inter st)
-      - (reduce-ext-dif st)
-      int-dif (reduce-int-dif st)
-      int-image (reduce-image st)
-      ext-image (reduce-image st)
-      -- (reduce-neg st)
-      conj (reduce-and st)
-      || (reduce-or st)
-      st)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
+</script><script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script><title>narjure -- Marginalia</title></head><body><table><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#narjure.memory-management.local-inference.belief-processor" name="narjure.memory-management.local-inference.belief-processor"><h1 class="project-name">narjure.memory-management.local-inference.belief-processor</h1><a class="toc-link" href="toc.html">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(ns narjure.memory-management.local-inference.belief-processor
+  (:require
+    [co.paralleluniverse.pulsar
+     [core :refer :all]
+     [actors :refer :all]]
+    [taoensso.timbre :refer [debug info]]
+    [narjure.bag :as b]
+    [narjure.debug-util :refer :all]
+    [narjure.control-utils :refer :all]
+    [narjure.global-atoms :refer :all]
+    [narjure.defaults :refer :all]
+    [narjure.perception-action.task-creator :refer [event? get-id]]
+    [narjure.memory-management.local-inference.local-inference-utils :refer :all]
+    [nal.term_utils :refer :all]
+    [nal.deriver.truth :refer [t-or confidence frequency w2c t2-evidence-weights]]
+    [nal.deriver.projection-eternalization :refer [project-eternalize-to eternalize]])
+  (:refer-clojure :exclude [promise await]))</pre></td></tr><tr><td class="docs"><p>Is the anticipation expired so that a negative disappointment event needs to be generated?</p>
+</td><td class="codes"><pre class="brush: clojure">(defn expired?
+  [anticipation]
+  (&gt; @nars-time (:expiry anticipation)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn create-negative-confirmation-task [anticipation]
+  &quot;collected input-evidence: [w+,w-]
+   anticipated evidence: [wa+,wa-]
+   positive evidence lack: lack=max(0,wa+ - w+)
+   evidence that was not observed: [f,c]_result = [0,  w2c(positive-lack)]
+   ''justified by the amount of positive evidence that was NOT observed as anticipated to be observed''&quot;
+  #_(println (:truth anticipation))
+  (let [budget (:budget anticipation)
+        anticipated-good-evidence (max 0 (- (:positive-evidence (t2-evidence-weights (:anticipated-truth anticipation)))
+                                            (:negative-evidence (t2-evidence-weights (:anticipated-truth anticipation)))))
+        observed-good-evidence (max 0 (- (:positive-evidence (t2-evidence-weights (:truth anticipation)))
+                                         (:negative-evidence (t2-evidence-weights (:truth anticipation)))))
+        good-evidence-lack (max 0 (- anticipated-good-evidence
+                                     observed-good-evidence))
+        confidence-of-lack (w2c good-evidence-lack)]
+    (println (str &quot;lack confidence: &quot; confidence-of-lack))
+    (dissoc (assoc anticipation :task-type :belief
+                                :evidence (list (get-id))
+                                :truth [0.0 confidence-of-lack]
+                                :budget [(t-or 0.7 (nth budget 0)) (nth budget 1) (nth budget 2)]
+                                :parent-statement nil
+                                :occurrence (:expiry anticipation) ;could be minus/plus anticipation tolerance later
+                                :terms (termlink-subterms (:statement anticipation))
+                               #_:budget #_[(min 1.0
+                                             (* (first (:budget anticipation))
+                                                confidence-of-lack
+                                                anticipation-disappointment-priority-gain))
+                                        (second (:budget anticipation))
+                                        (nth (:budget anticipation) 2)])
+           :expiry
+            :minconfirm)))</pre></td></tr><tr><td class="docs"><p>Creates the negated negative confirmation task, the negation of the anticipated event
+  in Narsese-negation representation.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn create-negated-negative-confirmation-task
+  [neg-confirmation]
+  (assoc neg-confirmation :statement ['-- (:statement neg-confirmation)] :truth (nal.deriver.truth/negation (:truth neg-confirmation) [0.0 0.0])))</pre></td></tr><tr><td class="docs"><p>Is the task observable and derived so potentially predicted?</p>
+</td><td class="codes"><pre class="brush: clojure">(defn confirmable-observable?
+  [task]
+  (and (:observable @state) (not= (:occurrence task) :eternal)
+       (= (:source task) :derived)))</pre></td></tr><tr><td class="docs"><p>The by anticipation disappointment created task.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn create-anticipation-task
+  [task]
+  (let [k anticipation-scale-dependent-tolerance
+        scale (/ (Math/abs (- (:occurrence task) @nars-time)) k)]
+    (assoc task :task-type :anticipation
+                :minconfirm (- (:occurrence task) scale) ;left side limit
+               :expiry (+ (:occurrence task scale)))))      ;right side limit</pre></td></tr><tr><td class="docs"><p>right side limit</p>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>Budget change based on the satisfaction of the goal by the belief</p>
+</td><td class="codes"><pre class="brush: clojure">(defn satisfaction-based-budget-change
+  [state belief-task goals]
+  ;filter goals matching concept content
+  ;project-to task time
+  ;select best ranked
+  (let [projected-list
+        (map (fn [a] [a (project-eternalize-to (:occurrence a) belief-task @nars-time)])
+             (filter #(question-unifies (:statement %) (:statement belief-task)) goals))]
+    (when (not-empty projected-list)
+      (doseq [[goal belief-task-projected-to-goal] projected-list]
+        (when (better-solution belief-task goal)
+          ;update budget and solution
+          ;(potential-output-answer state goal belief-task)
+          (let [new-goal (reduced-goal-budget-by-belief goal belief-task-projected-to-goal)
+                new-goal-with-solution (assoc new-goal :solution belief-task)]
+            (update-task-in-tasks state new-goal-with-solution goal))
+          (let [new-belief (increased-belief-budget-by-goal belief-task-projected-to-goal goal)]
+            (update-task-in-tasks state (assoc belief-task :budget (:budget new-belief)) belief-task)))))))</pre></td></tr><tr><td class="docs"><p>Budget change based on the quality of the answer.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn answer-based-budget-change
+  [state belief-task questions]
+  ;filter goals matching concept content
+  ;project-to task time
+  ;select best ranked
+  (let [projected-list
+        (map (fn [a] [a (project-eternalize-to (:occurrence a) belief-task @nars-time)])
+             (filter #(question-unifies (:statement %) (:statement belief-task))
+                     questions))]
+    (when (not-empty projected-list)
+      (doseq [[question belief-task-projected-to-question] projected-list]
+        (when (better-solution belief-task question)
+          (potential-output-answer state (get-task-id question) question belief-task)
+          ;update budget and solution
+          (let [new-question (reduced-question-budget-by-belief question belief-task-projected-to-question)
+                new-question-with-solution (assoc new-question :solution belief-task)]
+            (update-task-in-tasks state new-question-with-solution question))
+          (let [new-belief (increased-belief-budget-by-question belief-task-projected-to-question question)]
+            (update-task-in-tasks state (assoc belief-task :budget (:budget new-belief)) belief-task)))))))</pre></td></tr><tr><td class="docs"><p>Whether the new task should do revision with the old one,
+  see https://groups.google.com/forum/#!topic/open-nars/4uMf_kI3Etk</p>
+</td><td class="codes"><pre class="brush: clojure">(defn revision-relevant-tasks
+  [task old-event]
+  (or (= (:occurrence task) :eternal)
+      (&lt; (Math/abs (- (:occurrence task) (:occurrence old-event)))
+      revision-relevant-event-distance)))</pre></td></tr><tr><td class="docs"><p>Process a belief: revise and put into the task bag, check whether it answers a question, and manage anticipations.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn process-belief
+  [state task cnt]
+    ;also allow revision in subterm concepts! this is why statement is compared to task statement, not to ID!!
+  (when (not (and (= (:statement task) (:id @state))
+                  (:observable @state)
+                  (= (:task-type task) :belief)
+                  (= (:occurrence task) :eternal)))
+      (let [[{existing-belief :task} _] (b/get-by-id (:tasks @state) (get-task-id task))]
+        (let [processed-task (if (and existing-belief
+                                    (revision-relevant-tasks task existing-belief)
+                                    (non-overlapping-evidence? (:evidence task) (:evidence existing-belief)))
+                             (revise task (project-eternalize-to (:occurrence task) existing-belief @nars-time))
+                             task)]
+           ;add revised task to bag:
+           (add-to-tasks state processed-task)
+           ;check if it satisfies a goal or question and change budget accordingly
+           (satisfaction-based-budget-change state (:task (first (b/get-by-id (:tasks @state) (get-task-id processed-task)))) (filter #(= (:task-type %) :goal) (get-tasks state)))
+           (answer-based-budget-change state (:task (first (b/get-by-id (:tasks @state) (get-task-id processed-task)))) (filter #(= (:task-type %) :question) (get-tasks state))))))
+    ; processing revised anticipations
+  (when (and (event? task) (= (:source task) :input) (belief? task))
+    (when (pos? (count (:anticipations @state)))
+      (doseq [[id anticipation] (:anticipations @state)]  ;{task-id task task-id2 task2}
+        (when (and (= (:statement anticipation) (:statement task))
+                   (&gt; (:occurrence task) (:minconfirm anticipation)))
+          (let [projected-task (project-eternalize-to (:occurrence anticipation) task @nars-time)]
+             ;revise anticipation and add to tasks
+             (when (non-overlapping-evidence? (:evidence projected-task) (:evidence anticipation))
+               #_(println (str &quot;anticipation: &quot; anticipation &quot;\nprojected task: &quot; projected-task))
+               (set-state! (assoc-in @state [:anticipations id]  (revise anticipation projected-task)))))))))
+  (doseq [[id anticipation] (:anticipations @state)]                                                 ;be sure to use updated anticipation
+      ;generate neg confirmation for expired anticipations
+      ;and add to tasks
+      (when (and anticipation (expired? anticipation))
+       (let [neg-confirmation (create-negative-confirmation-task anticipation) ;      ;todo review budget in create-negative - currently priority of 1.0 with parents for d and q
+             negated-neg-confirmation (create-negated-negative-confirmation-task neg-confirmation)]
+         (set-state! (assoc @state :anticipations (dissoc (:anticipations @state) id)))
+         ;(println (str &quot;truth: &quot; neg-confirmation))
+         (when (not= (:truth neg-confirmation) [0.0 0.0])
+           ;add neg-confirmation to tasks bag and remove anticiptaion
+           (cast! (whereis :task-dispatcher) [:task-msg [nil nil neg-confirmation]])
+           (cast! (whereis :task-dispatcher) [:task-msg [nil nil negated-neg-confirmation]])
+           ;hypothesis correction:
+           (when (:anticipation-precondition-task neg-confirmation)
+             (cast! (whereis :inference-request-router) [:do-inference-msg [nil nil neg-confirmation (:anticipation-precondition-task neg-confirmation)]])
+             (println &quot;hypothesis corrected!!! with task: &quot; (:anticipation-precondition-task neg-confirmation) &quot;\n&quot;
+                      &quot;belief: &quot; neg-confirmation))))))
+    ;when task is confirmable and observabnle
+    ;add an anticipation tasks to tasks
+    (when (and (= (:task-type task) :belief)
+            (= (:statement task)                             ;only allow anticipation with concept content
+              (:id @state)))
+      (when (and (confirmable-observable? task)
+                 (&gt; (:occurrence task) @nars-time))
+        (let [with-anticipated-truth (fn [t] (assoc t :source :derived :anticipated-truth (:truth t) :truth [0.5 0.0]))
+              anticipated-task (with-anticipated-truth (create-anticipation-task task))
+              anticipations (:anticipations @state)]
+          (if (&lt; (count anticipations) max-anticipations)
+            (do (set-state! (assoc @state :anticipations (assoc anticipations (get-anticipation-id anticipated-task) anticipated-task)))
+                (println (str &quot;created anticipation: &quot;  (:anticipations @state) &quot; &quot; anticipated-task)))
+            (let [[max-future-id max-future-anticipation] (apply max-key (fn [[id anticipation]] (:occurrence anticipation)) anticipations)]
+              (when (&lt;= (:occurrence anticipated-task) (:occurrence max-future-anticipation))
+                (set-state! (assoc @state :anticipations (assoc (dissoc anticipations max-future-id)
+                                                (get-anticipation-id anticipated-task)
+                                                anticipated-task)))
+                (println (str &quot;created anticipation(full): &quot; anticipated-task)))))))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
 SyntaxHighlighter.all();
 
 // hackity hack

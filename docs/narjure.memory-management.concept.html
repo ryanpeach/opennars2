@@ -2865,158 +2865,150 @@ net.brehaut.ClojureTools = (function (SH) {
     build_tree: build_tree
   };
 })(SyntaxHighlighter);
-</script><script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script><title>narjure -- Marginalia</title></head><body><table><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#nal.deriver.normalization" name="nal.deriver.normalization"><h1 class="project-name">nal.deriver.normalization</h1><a class="toc-link" href="toc.html">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(ns nal.deriver.normalization
-  (:require [clojure.string :as s]
-            [clojure.set :as set]
-            [clojure.core.match :as m]))</pre></td></tr><tr><td class="docs"><p>operators that should be movet from infix to prefix position</p>
-</td><td class="codes"><pre class="brush: clojure">(def operators
-  #{'&amp;| '--&gt; '&lt;-&gt; '==&gt; 'retro-impl 'pred-impl 'seq-conj 'inst 'prop 'inst-prop
-    'int-image 'ext-image '=/&gt; '=|&gt; '| '&lt;=&gt; '&lt;/&gt; '&lt;|&gt; '- 'int-dif '|| '&amp;&amp;
-    'ext-inter 'conj})</pre></td></tr><tr><td class="docs"><p>commutative:    &lt;-> &lt;=> &lt;|> &amp; | &amp;&amp; ||
-not commutative: --> ==> =/> => </> &amp;/ - ~</p>
-</td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def commutative-ops #{'&lt;-&gt; '&lt;=&gt; '&lt;|&gt; '| '|| 'conj 'ext-inter})</pre></td></tr><tr><td class="docs"><p>Makes transformaitions like [A --> B] to [--> A B].</p>
-</td><td class="codes"><pre class="brush: clojure">(defn infix-&gt;prefix
-  [premise]
-  (if (coll? premise)
-    (let [[f s &amp; tail] premise]
-      (map infix-&gt;prefix
-           (if (operators s)
-             (concat [s f] tail)
-             premise)))
-    premise))</pre></td></tr><tr><td class="docs"><p>Checks if symbol starts with --, true for --A, --X</p>
-</td><td class="codes"><pre class="brush: clojure">(defn- neg-symbol?
-  [el]
-  (and (not= el '--&gt;) (symbol? el) (s/starts-with? (str el) &quot;--&quot;)))</pre></td></tr><tr><td class="docs"><p>Removes -- from symbols with negation:
-  (trim-negation '--A) => A</p>
-</td><td class="codes"><pre class="brush: clojure">(defn- trim-negation
-  [el]
-  (symbol (s/join (drop 2 (str el)))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn neg [el] (list '-- el))</pre></td></tr><tr><td class="docs"><p>Replaces negations's "new notation".</p>
-</td><td class="codes"><pre class="brush: clojure">(defn replace-negation
-  [statement]
-  (cond
-    (neg-symbol? statement) (neg (trim-negation statement))
-    (or (vector? statement) (and (seq? statement) (not= '-- (first statement))))
-    (:st
-      (reduce
-        (fn [{:keys [prev st] :as ac} el]
-          (if (= '-- el)
-            (assoc ac :prev true)
-            (-&gt;&gt; [(cond prev (neg el)
-                        (coll? el) (replace-negation el)
-                        (neg-symbol? el) (neg (trim-negation el))
-                        :else el)]
-                 (concat st)
-                 (assoc ac :prev false :st))))
-        {:prev false :st '()}
-        statement))
-    :else statement))</pre></td></tr><tr><td class="docs"><p>provide an order for the commutative ops, so that <a &lt;-> b> and <b &lt;-> a> will both be <b &lt;-> a>,
-  this is needed because they need to end up in the same concept!</p>
-</td><td class="codes"><pre class="brush: clojure">(defn sort-commutative
-  [conclusions]
-  (if (coll? conclusions)
-    (let [f (first conclusions)]
-      (if (commutative-ops f)
-        (vec (conj (sort-by hash (drop 1 conclusions)) f))
-        conclusions))
-    conclusions))</pre></td></tr><tr><td class="docs"><p>the union set operation for extensional and intensional sets</p>
-
-<p>https://gist.github.com/TonyLo1/a3f8e05458c5e90c2e72</p>
-</td><td class="codes"><pre class="brush: clojure">(defn union
-  ([c1 c2] (sort-by hash (set (concat c1 c2))))
-  ([op c1 c2] (vec (conj (union c1 c2) op))))</pre></td></tr><tr><td class="docs"><p>the difference set operation for extensional and intensional sets</p>
-</td><td class="codes"><pre class="brush: clojure">(defn diff
-  ([c1 c2] (into '() (set/difference (set c1) (set c2))))
-  ([op c1 c2] (vec (conj (diff c1 c2) op))))</pre></td></tr><tr><td class="docs"><p>Reductions for extensional intersection.</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-ext-inter
-  [st]
-  (m/match
-    st
-    [_ t] t
-    [_ ['ext-inter &amp; l1] ['ext-inter &amp; l2]] (union 'ext-inter l1 l2)
-    [_ ['ext-inter &amp; l1] l2] (union 'ext-inter l1 [l2])
-    [_ l1 ['ext-inter &amp; l2]] (union 'ext-inter [l1] l2)
-    [_ ['int-set &amp; l1] ['int-set &amp; l2]] (union 'int-set l1 l2)
-    ;[_ ['ext-set &amp; l1] ['ext-set &amp; l2]] (union 'ext-set l1 l2)
-    :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for intensional intersection</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-int-inter
-  [st]
-  (m/match st
-           ['| t] t
-           ['| ['| &amp; l1] ['| &amp; l2]] (union '| l1 l2)
-           ['| ['| &amp; l1] l2] (union '| l1 [l2])
-           ['| l1 ['| &amp; l2]] (union '| [l1] l2)
-           ['| ['int-set &amp; l1] ['int-set &amp; l2]] (union 'int-set l1 l2)
-           ['| ['ext-set &amp; l1] ['ext-set &amp; l2]] (union 'ext-set l1 l2)
-           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for intensional difference</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-int-dif
-  [st]
-  (m/match st
-           [_ ['int-set &amp; l1] ['int-set &amp; l2]] (diff 'int-set l1 l2)
-           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for extensional difference</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-ext-dif
-  [st]
-  (m/match st
-           [_ ['ext-set &amp; l1] ['ext-set &amp; l2]] (diff 'ext-set l1 l2)
-           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for images</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-image
-  [st]
-  st
-  #_(m/match st
-           [_ ['* t1 t2] t3] (if (and (= t2 t3) (not= t1 t2)) t1 st)
-           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for negation</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-neg
-  [st]
-  (m/match st
-           ['-- ['-- t]] t
-           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for or</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-or
-  [st]
-  (m/match st
-           ['|| t] t
-           ['|| ['|| &amp; l1] ['|| &amp; l2]] (union '|| l1 l2)
-           ['|| ['|| &amp; l1] l2] (union '|| l1 [l2])
-           ['|| l1 ['|| &amp; l2]] (union '|| [l1] l2)
-           ['|| t1 t2] (if (= t1 t2) t1 st)
-           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for and</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-and
-  [st]
-  (m/match st
-           ['conj t] t
-           ['conj ['conj &amp; l1] ['conj &amp; l2]] (union 'conj l1 l2)
-           ['conj ['conj &amp; l1] l2] (union 'conj l1 [l2])
-           ['conj l1 ['conj &amp; l2]] (union 'conj [l1] l2)
-           ['conj t1 t2] (if (= t1 t2) t1 st)
-           :else st))</pre></td></tr><tr><td class="docs"><p>Not in use currently, may change</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-seq-conj
-  [st]
-  st)</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def reducible-ops
-  {'ext-inter `reduce-ext-inter
-   '|         `reduce-int-inter
-   '-         `reduce-ext-dif
-   'int-dif   `reduce-int-dif
-   'int-image `reduce-image
-   'ext-image `reduce-image
-   '--        `reduce-neg
-   'conj      `reduce-and
-   '||        `reduce-or})</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-ops
-  [st]
-  (let [f (first st)]
-    (case f
-      ext-inter (reduce-ext-inter st)
-      | (reduce-int-inter st)
-      - (reduce-ext-dif st)
-      int-dif (reduce-int-dif st)
-      int-image (reduce-image st)
-      ext-image (reduce-image st)
-      -- (reduce-neg st)
-      conj (reduce-and st)
-      || (reduce-or st)
-      st)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
+</script><script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script><title>narjure -- Marginalia</title></head><body><table><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#narjure.memory-management.concept" name="narjure.memory-management.concept"><h1 class="project-name">narjure.memory-management.concept</h1><a class="toc-link" href="toc.html">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(ns narjure.memory-management.concept
+  (:require
+    [co.paralleluniverse.pulsar
+     [core :refer :all]
+     [actors :refer :all]]
+    [taoensso.timbre :refer [debug info]]
+    [clojure.core.unify :refer [unifier]]
+    [nal.deriver
+     [truth :refer [w2c t-or t-and confidence frequency expectation revision]]
+     [projection-eternalization :refer [project-eternalize-to]]]
+    [narjure
+     [global-atoms :refer :all]
+     [bag :as b]
+     [debug-util :refer :all]
+     [control-utils :refer :all]
+     [defaults :refer :all]
+     [projection-utils :refer [max-statement-confidence-projected-to-now]]]
+    [narjure.memory-management
+     [concept-utils :refer :all]
+     [termlink-utils :refer :all]]
+    [narjure.memory-management.local-inference
+     [local-inference-utils :refer [get-task-id get-tasks]]
+     [belief-processor :refer [process-belief]]
+     [goal-processor :refer [process-goal]]
+     [quest-processor :refer [process-quest]]
+     [question-processor :refer [process-question]]])
+  (:refer-clojure :exclude [promise await]))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def display (atom '()))
+(def search (atom ))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn task-handler
+  [from [_ [task]]]
+  (debuglogger search display [&quot;task processed:&quot; task])
+  (refresh-termlinks task)
+  ; check observable and set if necessary
+  (when-not (:observable @state)
+    ;(println &quot;obs1&quot;)
+    (let [{:keys [occurrence source]} task]
+      (when (and (not= occurrence :eternal) (= source :input) (= (:statement task) (:id @state)))
+        (set-state! (assoc @state :observable true)))))
+  #_(when (and (= (:task-type task) :goal)
+          (= (:statement task) '[--&gt; ballpos [int-set equal]]))
+    (println &quot;concept ballpos equ exists&quot;))
+  (case (:task-type task)
+    :belief (process-belief state task 0)
+    :goal (process-goal state task 0)
+    :question (process-question state task)
+    :quest (process-quest state task)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn belief-request-handler
+  [from [_ [task-concept-id task]]]
+  ;todo get a belief which has highest confidence when projected to task time
+  (try
+    (let [tasks (get-tasks state)
+          beliefs (filter #(and (= (:statement %) (:id @state))
+                                (= (:task-type %) :belief)) tasks)
+          projected-belief-tuples (map (fn [z] [z (project-eternalize-to (:occurrence task) z @nars-time)]) beliefs)]
+      (when (not-empty projected-belief-tuples)
+        (doseq [belief beliefs]
+          (debuglogger search display [&quot;selected belief:&quot; belief &quot;§&quot;])
+          (cast! (:inference-request-router @state) [:do-inference-msg [task-concept-id (:id @state) task belief]])))
+      ;dummy? belief as &quot;empty&quot; termlink belief selection for structural inference
+      (let [belief {:statement (:id @state) :task-type :question :occurrence :eternal :evidence '()}]
+        (debuglogger search display [&quot;selected belief:&quot; belief &quot;§&quot;])
+        (cast! (:inference-request-router @state) [:do-inference-msg [task-concept-id (:id @state) task belief]])))
+    (catch Exception e (debuglogger search display (str &quot;belief request error &quot; (.toString e))))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn inference-request-handler
+  [from message]
+  (let [task-bag (:tasks @state)]
+    (when true
+      (when (pos? (b/count-elements task-bag))
+        (let [[el] (b/lookup-by-index task-bag (selection-fn (b/count-elements task-bag)))]
+          (debuglogger search display [&quot;selected inference task:&quot; el])
+          (when-let [c-ref (select-termlink-ref)]
+            (cast! c-ref [:belief-request-msg [(:id @state) (:task el)]])))))))</pre></td></tr><tr><td class="docs"><p>Strenghtens the termlink between two concepts or creates it if not existing.
+   A link is {key value] where key is term and value is budget [priority durability]</p>
+</td><td class="codes"><pre class="brush: clojure">(defn termlink-strengthen-handler
+  [from [_ [term]]]
+  (let [termlinks (:termlinks @state)
+        old-link-strength (termlinks term)
+        new-link-strength (get-strengthened-termlink old-link-strength)]
+    (set-state! (assoc-in @state [:termlinks term] new-link-strength))))</pre></td></tr><tr><td class="docs"><p>Sends a copy of the actor state to requesting actor</p>
+</td><td class="codes"><pre class="brush: clojure">(defn concept-state-handler
+  [from _]
+  (let [concept-state @state]
+    (cast! from [:concept-state-msg concept-state])))</pre></td></tr><tr><td class="docs"><p>set concept state to value passed in message</p>
+</td><td class="codes"><pre class="brush: clojure">(defn set-concept-state-handler
+  [from [_ new-state]]
+  (set-state! (merge @state new-state))
+  (let [elements (:elements-map (:tasks new-state))]
+    (set-state! (assoc @state :tasks (b/default-bag max-tasks)))
+    (doseq [[_ el] elements]
+     (set-state! (assoc @state :tasks (b/add-element (:tasks @state) el))))))</pre></td></tr><tr><td class="docs"><p>update cocnept budget</p>
+</td><td class="codes"><pre class="brush: clojure">(defn concept-forget-handler
+  [from [_ new-state]]
+  (forget-tasks)
+  (forget-termlinks)
+  (update-concept-budget @state @self))</pre></td></tr><tr><td class="docs"><p>Processes :shutdown-msg and shuts down actor</p>
+</td><td class="codes"><pre class="brush: clojure">(defn shutdown-handler
+  [from msg]
+  (set-state! {})
+  (unregister!)
+  (shutdown!))</pre></td></tr><tr><td class="docs"><p>Initialises actor: registers actor and sets actor state</p>
+</td><td class="codes"><pre class="brush: clojure">(defn initialise
+  [name]
+  (set-state! {:id                       name
+               :priority                 0.5
+               :quality                  0.0
+               :tasks                    (b/default-bag max-tasks)
+               :termlinks                {}
+               :anticipations            {}
+               :concept-manager          (whereis :concept-manager)
+               :inference-request-router (whereis :inference-request-router)
+               :last-forgotten           @nars-time
+               :observable               false}))</pre></td></tr><tr><td class="docs"><p>Identifies message type and selects the correct message handler.
+   if there is no match it generates a log message for the unhandled message</p>
+</td><td class="codes"><pre class="brush: clojure">(defn msg-handler
+  [from [type :as message]]
+  (when-not (= type :concept-forget-msg) (debuglogger search display message))
+  (when (b/exists? @c-bag (:id @state))                     ;check concept has not been removed first
+    (case type
+      :termlink-strengthen-msg (termlink-strengthen-handler from message)
+      :task-msg (task-handler from message)
+      :link-feedback-msg (link-feedback-handler from message)
+      :belief-request-msg (belief-request-handler from message)
+      :inference-request-msg (inference-request-handler from message)
+      :concept-state-request-msg (concept-state-handler from message)
+      :set-concept-state-msg (set-concept-state-handler from message)
+      :concept-forget-msg (concept-forget-handler from message)
+      :shutdown (shutdown-handler from message)
+      (debug (str &quot;unhandled msg: &quot; type))))
+  (when (pos? debug-messages)
+    ;(reset! lense-anticipations (:anticipation @state))
+    (swap! lense-taskbags
+           (fn [dic]
+             (assoc dic (:id @state) (:tasks @state))))
+    (swap! lense-termlinks
+           (fn [dic]
+             (assoc dic (:id @state) (:termlinks @state))))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn concept [name]
+  (gen-server
+    (reify Server
+      (init [_] (initialise name))
+      (terminate [_ cause] #_(info (str aname &quot; terminated.&quot;)))
+      (handle-cast [_ from id message] (msg-handler from message)))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
 SyntaxHighlighter.all();
 
 // hackity hack

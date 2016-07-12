@@ -2865,158 +2865,225 @@ net.brehaut.ClojureTools = (function (SH) {
     build_tree: build_tree
   };
 })(SyntaxHighlighter);
-</script><script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script><title>narjure -- Marginalia</title></head><body><table><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#nal.deriver.normalization" name="nal.deriver.normalization"><h1 class="project-name">nal.deriver.normalization</h1><a class="toc-link" href="toc.html">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(ns nal.deriver.normalization
-  (:require [clojure.string :as s]
-            [clojure.set :as set]
-            [clojure.core.match :as m]))</pre></td></tr><tr><td class="docs"><p>operators that should be movet from infix to prefix position</p>
-</td><td class="codes"><pre class="brush: clojure">(def operators
-  #{'&amp;| '--&gt; '&lt;-&gt; '==&gt; 'retro-impl 'pred-impl 'seq-conj 'inst 'prop 'inst-prop
-    'int-image 'ext-image '=/&gt; '=|&gt; '| '&lt;=&gt; '&lt;/&gt; '&lt;|&gt; '- 'int-dif '|| '&amp;&amp;
-    'ext-inter 'conj})</pre></td></tr><tr><td class="docs"><p>commutative:    &lt;-> &lt;=> &lt;|> &amp; | &amp;&amp; ||
-not commutative: --> ==> =/> => </> &amp;/ - ~</p>
-</td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def commutative-ops #{'&lt;-&gt; '&lt;=&gt; '&lt;|&gt; '| '|| 'conj 'ext-inter})</pre></td></tr><tr><td class="docs"><p>Makes transformaitions like [A --> B] to [--> A B].</p>
-</td><td class="codes"><pre class="brush: clojure">(defn infix-&gt;prefix
-  [premise]
-  (if (coll? premise)
-    (let [[f s &amp; tail] premise]
-      (map infix-&gt;prefix
-           (if (operators s)
-             (concat [s f] tail)
-             premise)))
-    premise))</pre></td></tr><tr><td class="docs"><p>Checks if symbol starts with --, true for --A, --X</p>
-</td><td class="codes"><pre class="brush: clojure">(defn- neg-symbol?
-  [el]
-  (and (not= el '--&gt;) (symbol? el) (s/starts-with? (str el) &quot;--&quot;)))</pre></td></tr><tr><td class="docs"><p>Removes -- from symbols with negation:
-  (trim-negation '--A) => A</p>
-</td><td class="codes"><pre class="brush: clojure">(defn- trim-negation
-  [el]
-  (symbol (s/join (drop 2 (str el)))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn neg [el] (list '-- el))</pre></td></tr><tr><td class="docs"><p>Replaces negations's "new notation".</p>
-</td><td class="codes"><pre class="brush: clojure">(defn replace-negation
-  [statement]
-  (cond
-    (neg-symbol? statement) (neg (trim-negation statement))
-    (or (vector? statement) (and (seq? statement) (not= '-- (first statement))))
-    (:st
-      (reduce
-        (fn [{:keys [prev st] :as ac} el]
-          (if (= '-- el)
-            (assoc ac :prev true)
-            (-&gt;&gt; [(cond prev (neg el)
-                        (coll? el) (replace-negation el)
-                        (neg-symbol? el) (neg (trim-negation el))
-                        :else el)]
-                 (concat st)
-                 (assoc ac :prev false :st))))
-        {:prev false :st '()}
-        statement))
-    :else statement))</pre></td></tr><tr><td class="docs"><p>provide an order for the commutative ops, so that <a &lt;-> b> and <b &lt;-> a> will both be <b &lt;-> a>,
-  this is needed because they need to end up in the same concept!</p>
-</td><td class="codes"><pre class="brush: clojure">(defn sort-commutative
-  [conclusions]
-  (if (coll? conclusions)
-    (let [f (first conclusions)]
-      (if (commutative-ops f)
-        (vec (conj (sort-by hash (drop 1 conclusions)) f))
-        conclusions))
-    conclusions))</pre></td></tr><tr><td class="docs"><p>the union set operation for extensional and intensional sets</p>
-
-<p>https://gist.github.com/TonyLo1/a3f8e05458c5e90c2e72</p>
-</td><td class="codes"><pre class="brush: clojure">(defn union
-  ([c1 c2] (sort-by hash (set (concat c1 c2))))
-  ([op c1 c2] (vec (conj (union c1 c2) op))))</pre></td></tr><tr><td class="docs"><p>the difference set operation for extensional and intensional sets</p>
-</td><td class="codes"><pre class="brush: clojure">(defn diff
-  ([c1 c2] (into '() (set/difference (set c1) (set c2))))
-  ([op c1 c2] (vec (conj (diff c1 c2) op))))</pre></td></tr><tr><td class="docs"><p>Reductions for extensional intersection.</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-ext-inter
+</script><script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script><title>narjure -- Marginalia</title></head><body><table><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#nal.term_utils" name="nal.term_utils"><h1 class="project-name">nal.term_utils</h1><a class="toc-link" href="toc.html">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(ns nal.term_utils
+  (:require [clojure.set :as set]
+            [narjure.defaults :refer :all]
+            [clojure.core.unify :refer [unify]]))</pre></td></tr><tr><td class="docs"><p>Is the term an interval?</p>
+</td><td class="codes"><pre class="brush: clojure">(defn interval?
+  [content]
+  (and (sequential? content) (= (first content) :interval)))</pre></td></tr><tr><td class="docs"><p>Checks whether st is an operation, namely a term of form &lt;(*,{SELF},arg) --> op_name></p>
+</td><td class="codes"><pre class="brush: clojure">(defn operation?
   [st]
-  (m/match
-    st
-    [_ t] t
-    [_ ['ext-inter &amp; l1] ['ext-inter &amp; l2]] (union 'ext-inter l1 l2)
-    [_ ['ext-inter &amp; l1] l2] (union 'ext-inter l1 [l2])
-    [_ l1 ['ext-inter &amp; l2]] (union 'ext-inter [l1] l2)
-    [_ ['int-set &amp; l1] ['int-set &amp; l2]] (union 'int-set l1 l2)
-    ;[_ ['ext-set &amp; l1] ['ext-set &amp; l2]] (union 'ext-set l1 l2)
-    :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for intensional intersection</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-int-inter
+  (if (and (coll? st)
+           (= (first st) '--&gt;)
+           (coll? (second st))
+           (= (first (second st)) '*)
+           (or (= (second (second st)) ['ext-set 'SELF])
+               (= (second (second st)) ['ext-set 'SELF2])))
+    (let [op (nth st 2)]
+      (and (not (coll? op))
+           (clojure.string/starts-with? (name op) &quot;op_&quot;)))
+    false))</pre></td></tr><tr><td class="docs"><p>Checks whether st is the negation of an operation</p>
+</td><td class="codes"><pre class="brush: clojure">(defn negation-of-operation?
   [st]
-  (m/match st
-           ['| t] t
-           ['| ['| &amp; l1] ['| &amp; l2]] (union '| l1 l2)
-           ['| ['| &amp; l1] l2] (union '| l1 [l2])
-           ['| l1 ['| &amp; l2]] (union '| [l1] l2)
-           ['| ['int-set &amp; l1] ['int-set &amp; l2]] (union 'int-set l1 l2)
-           ['| ['ext-set &amp; l1] ['ext-set &amp; l2]] (union 'ext-set l1 l2)
-           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for intensional difference</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-int-dif
-  [st]
-  (m/match st
-           [_ ['int-set &amp; l1] ['int-set &amp; l2]] (diff 'int-set l1 l2)
-           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for extensional difference</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-ext-dif
-  [st]
-  (m/match st
-           [_ ['ext-set &amp; l1] ['ext-set &amp; l2]] (diff 'ext-set l1 l2)
-           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for images</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-image
-  [st]
-  st
-  #_(m/match st
-           [_ ['* t1 t2] t3] (if (and (= t2 t3) (not= t1 t2)) t1 st)
-           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for negation</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-neg
-  [st]
-  (m/match st
-           ['-- ['-- t]] t
-           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for or</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-or
-  [st]
-  (m/match st
-           ['|| t] t
-           ['|| ['|| &amp; l1] ['|| &amp; l2]] (union '|| l1 l2)
-           ['|| ['|| &amp; l1] l2] (union '|| l1 [l2])
-           ['|| l1 ['|| &amp; l2]] (union '|| [l1] l2)
-           ['|| t1 t2] (if (= t1 t2) t1 st)
-           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for and</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-and
-  [st]
-  (m/match st
-           ['conj t] t
-           ['conj ['conj &amp; l1] ['conj &amp; l2]] (union 'conj l1 l2)
-           ['conj ['conj &amp; l1] l2] (union 'conj l1 [l2])
-           ['conj l1 ['conj &amp; l2]] (union 'conj [l1] l2)
-           ['conj t1 t2] (if (= t1 t2) t1 st)
-           :else st))</pre></td></tr><tr><td class="docs"><p>Not in use currently, may change</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-seq-conj
-  [st]
-  st)</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def reducible-ops
-  {'ext-inter `reduce-ext-inter
-   '|         `reduce-int-inter
-   '-         `reduce-ext-dif
-   'int-dif   `reduce-int-dif
-   'int-image `reduce-image
-   'ext-image `reduce-image
-   '--        `reduce-neg
-   'conj      `reduce-and
-   '||        `reduce-or})</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-ops
-  [st]
-  (let [f (first st)]
-    (case f
-      ext-inter (reduce-ext-inter st)
-      | (reduce-int-inter st)
-      - (reduce-ext-dif st)
-      int-dif (reduce-int-dif st)
-      int-image (reduce-image st)
-      ext-image (reduce-image st)
-      -- (reduce-neg st)
-      conj (reduce-and st)
-      || (reduce-or st)
-      st)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
+  (and (coll? st)
+       (= (first st) '--)
+       (operation? (second st))))</pre></td></tr><tr><td class="docs"><p>Checks whether it is a variable symbol</p>
+</td><td class="codes"><pre class="brush: clojure">(defn variable?
+  [t]
+  (and (coll? t) (or (= (first t) 'ind-var)
+                     (= (first t) 'dep-var)
+                     (= (first t) 'qu-var))))</pre></td></tr><tr><td class="docs"><p>Is the term a compound term?</p>
+</td><td class="codes"><pre class="brush: clojure">(defn compound?
+  [content]
+  (and (sequential? content) (not= (first content) :interval) (not (variable? content))))</pre></td></tr><tr><td class="docs"><p>Calculates the syntactic complexity of a content term,
+  for example (| (&amp; a b) c) has complexity 5</p>
+</td><td class="codes"><pre class="brush: clojure">(defn syntactic-complexity
+  [content]
+  (if (compound? content)
+    (reduce + (map syntactic-complexity content))
+    1))</pre></td></tr><tr><td class="docs"><p>todo -  temp function below should be in nal.clj - Patham9 to resolve</p>
+</td><td class="codes"><pre class="brush: clojure">(def logic-ops
+  #{'--&gt; '&lt;-&gt; 'instance 'property 'instance-property '==&gt; 'pred-impl '=|&gt; 'retro-impl '&lt;=&gt; '&lt;/&gt; '&lt;|&gt; 'ext-set 'int-set 'ext-inter '| '- 'int-dif '* 'ext-image 'int-image '-- '|| 'conj 'seq-conj '&amp;|})</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn placeholder? [t] (= '_ t))</pre></td></tr><tr><td class="docs"><p>Extract the termlink relevant subterms of the term up to 3 levels as demanded by the NAL rules</p>
+</td><td class="codes"><pre class="brush: clojure">(defn termlink-subterms
+  ([level content]
+   (if (and (&lt; level 3) (compound? content))
+     (reduce set/union #{content} (map (partial termlink-subterms (inc level)) content))
+     #{content}))
+  ([content]
+   (remove #(or (logic-ops %) (interval? %) (placeholder? %) (variable? %))
+           (termlink-subterms 0 content))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn is-singular-sequence [st]
+  &quot;Checks whether the sequence is of (&amp;/,a) form&quot;
+  (and (coll? st)
+       (= (count st) 2)
+       (= (first st) 'seq-conj)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn reduce-sequence [st]                                  ;TODO move to term utils!!
+  &quot;Replaces (&amp;/,a) =&gt; a recursively&quot;
+  (if (coll? st)
+    (if (is-singular-sequence st)
+      (second st)
+      (apply vector (for [x st]
+                      (reduce-sequence x))))
+    (if (is-singular-sequence st)
+      (second st)
+      st)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn interval-only-sequence [st]                                ;TODO move to term utils!!
+  &quot;checks whether st is of form (&amp;/,[:interval n]),
+  if yes, return n&quot;
+  (when (and (coll? st)
+             (= (first st) 'seq-conj)
+             (= (count st) 2)
+             (coll? (second st))
+             (= (first (second st)) :interval))
+    (second (second st))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn is-implication [st]                                   ;TODO move to term utils!!
+  &quot;checks whether the statement st is an implication&quot;
+  (and (coll? st)
+       (or (= (first st) 'pred-impl)
+           (= (first st) '==&gt;)
+           (= (first st) '=|&gt;))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn interval-at [f st]                                    ;TODO move to term utils!!
+  &quot;Returns the f=first/last etc. interval of a sequence st&quot;
+  (when (and (coll? st)
+             (= (first st) 'seq-conj)
+             (coll? (f st))
+             (= (first (f st)) :interval))
+    (second (f st))))</pre></td></tr><tr><td class="docs"><p>Reductions for intervals/sequences</p>
+</td><td class="codes"><pre class="brush: clojure">(defn interval-reduction
+  [s]                                   ;TODO move to sentence utils?
+  ;there are certain equivalence transformations only being valid in ''NAL7i (NAL7+Intervals)
+  ;''and which indicate how intervals have to be treated as occurrence time modulators.
+  ;These are:
+  ;''Forward Interval'':
+  ;&lt; (&amp;/, i10) ==&gt; b&gt; = &lt;i10 ==&gt; b&gt; = b. :/10:
+  ;(&amp;/,i10,a_1, ..., a_n) = (&amp;/,a_1, ..., a_n). :/10:
+  ;''Backward Interval'':
+  ;&lt;a ==&gt; (&amp;/, i10)&gt; = &lt;a ==&gt; i10&gt; = a. :\10:
+  ;(&amp;/, a_1, ..., a_n, /10) = (&amp;/, a_1, ..., a_n) . :\10:
+  ;this term is only derived as a A detachment from A =/&gt; B this is why this treatment is valid.
+  ;Also note that these are mandatory reductions, as else if i10 is treated as normal terms,
+  ;semantical nonsense could be derived if an interval alone is the subject or predicate of an implication
+  ;or an event itself, since strictly speaking an interval itself does not encode an event semantically
+  ;but only measures the distance between them!
+  (let [ival-reducer
+        (fn [st]
+          (if (is-implication st)
+            (let [subject (second st)
+                  predicate (nth st 2)
+                  ivalseq-s (interval-only-sequence subject)
+                  ivalseq-p (interval-only-sequence predicate)]
+              (if ivalseq-s
+                [predicate ivalseq-s]                       ;&lt;(&amp;/, i10) ==&gt; b&gt; = &lt;i10 ==&gt; b&gt; = b. :/10:
+                (if ivalseq-p
+                  [subject (- ivalseq-p)]
+                  [(reduce-sequence st) 0])))                                 ;&lt;a ==&gt; (&amp;/, i10)&gt; = &lt;a ==&gt; i10&gt; = a. :\10:
+            (if (and (coll? st)
+                     (= 'seq-conj (first st)))
+              (let [ival-l (interval-at second st)
+                    ival-r (interval-at last st)]
+                (if ival-l
+                  [(reduce-sequence (apply vector (first st) (rest (rest st)))) ival-l] ;(&amp;/,i10,a_1, ..., a_n) = (&amp;/,a_1, ..., a_n). :/10:
+                  (if ival-r
+                    [(reduce-sequence (apply vector (drop-last st))) (- ival-r)] ;(&amp;/, a_1, ..., a_n, /10) = (&amp;/, a_1, ..., a_n) . :\10:
+                    [(reduce-sequence st) 0])))
+              [(reduce-sequence st) 0])))]                                       ;TODO (&amp;/ case) !!!!!
+    (let [occurence (:occurrence s)
+          [st shift] (ival-reducer (:statement s))]
+      (assoc (assoc s :statement st) :occurrence
+                                     (if (= :eternal occurence)
+                                       :eternal
+                                       (+ occurence shift))))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn next-interval-point [n]                               ;term-utils
+  &quot;for establishing tolerance in temporal distance,
+  by rounding to the next power of 2&quot;
+  (let [pot-2 (for [i (range 25)]
+                (int (Math/pow 2 i)))]
+    (first (for [x (filter #(&gt; % n) pot-2)]
+             (if (&lt; (Math/abs (- x n))
+                    (Math/abs (- (/ x 2) n)))
+               x
+               (/ x 2))))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn str-is-integer [s]
+  (every? #(Character/isDigit %) s))</pre></td></tr><tr><td class="docs"><p>Change the interval atom to an interval</p>
+</td><td class="codes"><pre class="brush: clojure">(defn interval-atom-to-interval
+  [t]
+  (let [pot-ival (name t)
+        num (apply str (rest pot-ival))]
+    (if (and (= \i (first pot-ival))
+             (str-is-integer num))
+      [:interval (next-interval-point (Integer/parseInt num))]
+      t)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn parse-intervals [t]
+  &quot;all occurrences of i50 in the term are transformed to [:interval 50]&quot;
+  (if (coll? t)
+    (apply vector
+           (for [x t]
+             (parse-intervals x)))
+    (interval-atom-to-interval t)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn apply-interval-precision [t]
+  &quot;all intervals are changed to the next interval precision point
+  in this magnitude&quot;
+  (if (coll? t)
+    (if (= (first t) :interval)
+      [:interval (next-interval-point (second t))]
+      (apply vector
+             (for [x t]
+               (apply-interval-precision x))))
+    t))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn no-truth-for-questions-and-quests [st]         ;sentence util
+  &quot;makes absolutely sure that goals and beliefs have no truth and desire value for now&quot;
+  (if (or (= (:task-type st) :quest)
+          (= (:task-type st) :question))
+    (dissoc st :truth)
+    st))</pre></td></tr><tr><td class="docs"><p>get the so far max. used variable number
+  to illustrate: (max-var-term '[conj [disj [dep-var 2]] [ind-var 1]]) => 2</p>
+</td><td class="codes"><pre class="brush: clojure">(defn max-var-term
+  ([st]
+   (max-var-term st 0))
+  ([st m]
+   (if (coll? st)
+     (if (and (or (= (first st) 'ind-var)
+                  (= (first st) 'dep-var))
+              (str-is-integer (str (second st))))
+       (read-string (str (second st)))                     ;dangerous? ^^
+       (apply max (for [x st]
+                    (max-var-term x))))
+     m)))</pre></td></tr><tr><td class="docs"><p>inference rules introduce one #X or $X, #Y or $Y variable,
+  we use the maximum so far existing variable number and add one,
+  in order for new introduced variables to
+  have a unique variable name when the old variables
+  were of the form $i #k. Should be fine for most purposes for now.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn normalize-variables
+  ([st]
+   (normalize-variables st (inc (max-var-term st))))
+  ([st m]
+   (if (coll? st)
+     (if (or (= st '[dep-var X])
+             (= st '[dep-var Y]))
+       ['dep-var (symbol (str m))]
+       (if (or (= st '[ind-var X])
+               (= st '[ind-var Y]))
+         ['ind-var (symbol (str m))]                        ;why do we have symbols in derivations?
+         (apply vector (for [x st]
+                         (normalize-variables x m)))))
+     st)))</pre></td></tr><tr><td class="docs"><p>checks whether the statement of task is a it is a type of ((&amp;/,precondition,operation) =/> consequent) statement,
+  also returning the unification map used for the unification between the form and the statement.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn precondition-operation-consequent-statement
+  [task] ;(doseq [op ['pred-impl '&lt;/&gt;]])
+  (let [precondition-op-forms ['[pred-impl [seq-conj [seq-conj ?precondition ?interval1 ?operation] ?interval2] ?goal]]
+        additional-condition (fn [z] (and (not= (second z) nil)
+                                          (operation? ((second z) '?operation))
+                                          (not (operation? ((second z) '?precondition)))
+                                          (not (negation-of-operation? ((second z) '?precondition)))
+                                          (not (operation? ((second z) '?goal)))
+                                          (not (negation-of-operation? ((second z) '?goal)))))]
+    (first
+      (filter additional-condition
+             (for [form precondition-op-forms]
+               [task (unify form (:statement task))])))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
 SyntaxHighlighter.all();
 
 // hackity hack

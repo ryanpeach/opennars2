@@ -2869,6 +2869,7 @@ net.brehaut.ClojureTools = (function (SH) {
 </td><td class="codes"><pre class="brush: clojure">(ns nal.deriver.substitution
   (:require [nal.deriver.utils :refer [walk]]
             [clojure.core.unify :as u]
+            [clojure.core.memoize :refer [lru]]
             [clojure.string :as s]))</pre></td></tr><tr><td class="docs"><p>Defn replaces var-elements from statemts by placeholders for unification.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn replace-vars
   [var-type statement]
@@ -2890,8 +2891,9 @@ net.brehaut.ClojureTools = (function (SH) {
 this reduces the amount of conclusions which would be weaker and interferre.</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">#_(def munification-map (memoize unification-map))
-(def munification-map unification-map)</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn placeholder-&gt;symbol [pl]
+(def munification-map (lru unification-map :lru/threshold 50))
+#_(def munification-map unification-map)
+(defn placeholder-&gt;symbol [pl]
   (-&gt;&gt; pl str (drop 1) s/join symbol))</pre></td></tr><tr><td class="docs"><p>Updates keys in unification map from placeholders like ?X to vectors like
   ['dep-var X]</p>
 </td><td class="codes"><pre class="brush: clojure">(defn replace-placeholders

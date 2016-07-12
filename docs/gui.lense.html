@@ -2865,158 +2865,293 @@ net.brehaut.ClojureTools = (function (SH) {
     build_tree: build_tree
   };
 })(SyntaxHighlighter);
-</script><script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script><title>narjure -- Marginalia</title></head><body><table><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#nal.deriver.normalization" name="nal.deriver.normalization"><h1 class="project-name">nal.deriver.normalization</h1><a class="toc-link" href="toc.html">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(ns nal.deriver.normalization
-  (:require [clojure.string :as s]
+</script><script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script><title>narjure -- Marginalia</title></head><body><table><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#gui.lense" name="gui.lense"><h1 class="project-name">gui.lense</h1><a class="toc-link" href="toc.html">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(ns gui.lense
+  (:require [quil.core :as q]
+            [quil.middleware :as m]
+            [gui.actors :refer [graph-actors]]
+            [gui.gui-utils :refer :all]
+            [gui.gui :refer [graph-gui]]
+            [nal.deriver.projection-eternalization :refer [project-eternalize-to]]
+            [gui.hud :refer [hud]]
+            [gui.hnav :as hnav]
+            [seesaw.core :refer :all]
+            [gui.globals :refer :all]
+            [narjure.core :as nar]
+            [co.paralleluniverse.pulsar.actors :refer [whereis cast!]]
+            [narjure.general-inference.inference-request-router :as inference-request-router]
+            [narjure.general-inference.concept-selector :as concept-selector]
+            [narjure.general-inference.general-inferencer :as general-inferencer]
+            [narjure.memory-management.concept-manager :as concept-manager]
+            [narjure.memory-management.task-dispatcher :as task-dispatcher]
+            [narjure.perception-action.operator-executor :as operator-executor]
+            [narjure.perception-action.sentence-parser :as sentence-parser]
+            [narjure.perception-action.task-creator :as task-creator]
+    ;[narjure.perception-action.input-load-reducer :as input-load-reducer]
+            [narjure.perception-action.derived-load-reducer :as derived-load-reducer]
+            [narjure.memory-management.concept :as concepts]
+            [narjure.global-atoms :refer :all]
+            [narjure.debug-util :refer :all]
+            [narjure.bag :as b]
+            [narjure.defaults :refer [priority-threshold max-concept-selections max-tasks]]
             [clojure.set :as set]
-            [clojure.core.match :as m]))</pre></td></tr><tr><td class="docs"><p>operators that should be movet from infix to prefix position</p>
-</td><td class="codes"><pre class="brush: clojure">(def operators
-  #{'&amp;| '--&gt; '&lt;-&gt; '==&gt; 'retro-impl 'pred-impl 'seq-conj 'inst 'prop 'inst-prop
-    'int-image 'ext-image '=/&gt; '=|&gt; '| '&lt;=&gt; '&lt;/&gt; '&lt;|&gt; '- 'int-dif '|| '&amp;&amp;
-    'ext-inter 'conj})</pre></td></tr><tr><td class="docs"><p>commutative:    &lt;-> &lt;=> &lt;|> &amp; | &amp;&amp; ||
-not commutative: --> ==> =/> => </> &amp;/ - ~</p>
-</td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def commutative-ops #{'&lt;-&gt; '&lt;=&gt; '&lt;|&gt; '| '|| 'conj 'ext-inter})</pre></td></tr><tr><td class="docs"><p>Makes transformaitions like [A --> B] to [--> A B].</p>
-</td><td class="codes"><pre class="brush: clojure">(defn infix-&gt;prefix
-  [premise]
-  (if (coll? premise)
-    (let [[f s &amp; tail] premise]
-      (map infix-&gt;prefix
-           (if (operators s)
-             (concat [s f] tail)
-             premise)))
-    premise))</pre></td></tr><tr><td class="docs"><p>Checks if symbol starts with --, true for --A, --X</p>
-</td><td class="codes"><pre class="brush: clojure">(defn- neg-symbol?
-  [el]
-  (and (not= el '--&gt;) (symbol? el) (s/starts-with? (str el) &quot;--&quot;)))</pre></td></tr><tr><td class="docs"><p>Removes -- from symbols with negation:
-  (trim-negation '--A) => A</p>
-</td><td class="codes"><pre class="brush: clojure">(defn- trim-negation
-  [el]
-  (symbol (s/join (drop 2 (str el)))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn neg [el] (list '-- el))</pre></td></tr><tr><td class="docs"><p>Replaces negations's "new notation".</p>
-</td><td class="codes"><pre class="brush: clojure">(defn replace-negation
-  [statement]
-  (cond
-    (neg-symbol? statement) (neg (trim-negation statement))
-    (or (vector? statement) (and (seq? statement) (not= '-- (first statement))))
-    (:st
-      (reduce
-        (fn [{:keys [prev st] :as ac} el]
-          (if (= '-- el)
-            (assoc ac :prev true)
-            (-&gt;&gt; [(cond prev (neg el)
-                        (coll? el) (replace-negation el)
-                        (neg-symbol? el) (neg (trim-negation el))
-                        :else el)]
-                 (concat st)
-                 (assoc ac :prev false :st))))
-        {:prev false :st '()}
-        statement))
-    :else statement))</pre></td></tr><tr><td class="docs"><p>provide an order for the commutative ops, so that <a &lt;-> b> and <b &lt;-> a> will both be <b &lt;-> a>,
-  this is needed because they need to end up in the same concept!</p>
-</td><td class="codes"><pre class="brush: clojure">(defn sort-commutative
-  [conclusions]
-  (if (coll? conclusions)
-    (let [f (first conclusions)]
-      (if (commutative-ops f)
-        (vec (conj (sort-by hash (drop 1 conclusions)) f))
-        conclusions))
-    conclusions))</pre></td></tr><tr><td class="docs"><p>the union set operation for extensional and intensional sets</p>
-
-<p>https://gist.github.com/TonyLo1/a3f8e05458c5e90c2e72</p>
-</td><td class="codes"><pre class="brush: clojure">(defn union
-  ([c1 c2] (sort-by hash (set (concat c1 c2))))
-  ([op c1 c2] (vec (conj (union c1 c2) op))))</pre></td></tr><tr><td class="docs"><p>the difference set operation for extensional and intensional sets</p>
-</td><td class="codes"><pre class="brush: clojure">(defn diff
-  ([c1 c2] (into '() (set/difference (set c1) (set c2))))
-  ([op c1 c2] (vec (conj (diff c1 c2) op))))</pre></td></tr><tr><td class="docs"><p>Reductions for extensional intersection.</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-ext-inter
+            [clojure.string :as str]))</pre></td></tr><tr><td class="docs"><p>Bag string format: each id goes into a new line</p>
+</td><td class="codes"><pre class="brush: clojure">(defn bag-format
   [st]
-  (m/match
-    st
-    [_ t] t
-    [_ ['ext-inter &amp; l1] ['ext-inter &amp; l2]] (union 'ext-inter l1 l2)
-    [_ ['ext-inter &amp; l1] l2] (union 'ext-inter l1 [l2])
-    [_ l1 ['ext-inter &amp; l2]] (union 'ext-inter [l1] l2)
-    [_ ['int-set &amp; l1] ['int-set &amp; l2]] (union 'int-set l1 l2)
-    ;[_ ['ext-set &amp; l1] ['ext-set &amp; l2]] (union 'ext-set l1 l2)
-    :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for intensional intersection</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-int-inter
-  [st]
-  (m/match st
-           ['| t] t
-           ['| ['| &amp; l1] ['| &amp; l2]] (union '| l1 l2)
-           ['| ['| &amp; l1] l2] (union '| l1 [l2])
-           ['| l1 ['| &amp; l2]] (union '| [l1] l2)
-           ['| ['int-set &amp; l1] ['int-set &amp; l2]] (union 'int-set l1 l2)
-           ['| ['ext-set &amp; l1] ['ext-set &amp; l2]] (union 'ext-set l1 l2)
-           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for intensional difference</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-int-dif
-  [st]
-  (m/match st
-           [_ ['int-set &amp; l1] ['int-set &amp; l2]] (diff 'int-set l1 l2)
-           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for extensional difference</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-ext-dif
-  [st]
-  (m/match st
-           [_ ['ext-set &amp; l1] ['ext-set &amp; l2]] (diff 'ext-set l1 l2)
-           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for images</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-image
-  [st]
-  st
-  #_(m/match st
-           [_ ['* t1 t2] t3] (if (and (= t2 t3) (not= t1 t2)) t1 st)
-           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for negation</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-neg
-  [st]
-  (m/match st
-           ['-- ['-- t]] t
-           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for or</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-or
-  [st]
-  (m/match st
-           ['|| t] t
-           ['|| ['|| &amp; l1] ['|| &amp; l2]] (union '|| l1 l2)
-           ['|| ['|| &amp; l1] l2] (union '|| l1 [l2])
-           ['|| l1 ['|| &amp; l2]] (union '|| [l1] l2)
-           ['|| t1 t2] (if (= t1 t2) t1 st)
-           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for and</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-and
-  [st]
-  (m/match st
-           ['conj t] t
-           ['conj ['conj &amp; l1] ['conj &amp; l2]] (union 'conj l1 l2)
-           ['conj ['conj &amp; l1] l2] (union 'conj l1 [l2])
-           ['conj l1 ['conj &amp; l2]] (union 'conj [l1] l2)
-           ['conj t1 t2] (if (= t1 t2) t1 st)
-           :else st))</pre></td></tr><tr><td class="docs"><p>Not in use currently, may change</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-seq-conj
-  [st]
-  st)</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def reducible-ops
-  {'ext-inter `reduce-ext-inter
-   '|         `reduce-int-inter
-   '-         `reduce-ext-dif
-   'int-dif   `reduce-int-dif
-   'int-image `reduce-image
-   'ext-image `reduce-image
-   '--        `reduce-neg
-   'conj      `reduce-and
-   '||        `reduce-or})</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-ops
-  [st]
-  (let [f (first st)]
-    (case f
-      ext-inter (reduce-ext-inter st)
-      | (reduce-int-inter st)
-      - (reduce-ext-dif st)
-      int-dif (reduce-int-dif st)
-      int-image (reduce-image st)
-      ext-image (reduce-image st)
-      -- (reduce-neg st)
-      conj (reduce-and st)
-      || (reduce-or st)
-      st)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
+  (clojure.string/replace (clojure.string/replace st &quot;(:id&quot; &quot;\n( :id&quot;) &quot;(\n( &quot; &quot;((&quot;))</pre></td></tr><tr><td class="docs"><p>Filter the bag for these entries which contain the filter content</p>
+</td><td class="codes"><pre class="brush: clojure">(defn bagfilter
+  [fil bag]
+  (apply vector (filter (fn [x]
+                          (every? (fn [y] (.contains (narsese-print x) y))
+                                  (str/split (deref fil) #&quot;\n&quot;))) bag)))</pre></td></tr><tr><td class="docs"><p>Show the bag, with a string length limit.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn bagshow
+  [bag filteratom]
+  (bag-format (limit-string
+                (narsese-print (bagfilter filteratom
+                                          (:priority-index bag))) 20000)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def debugmessage {:inference-request-router [(fn [] (deref inference-request-router/display)) inference-request-router/search]
+                   :concept-selector         [(fn [] (deref concept-selector/display)) concept-selector/search]
+                   :general-inferencer       [(fn [] (deref general-inferencer/display)) general-inferencer/search]
+                   :concept-manager          [(fn [] (deref concept-manager/display)) concept-manager/search]
+                   :task-dispatcher          [(fn [] (deref task-dispatcher/display)) task-dispatcher/search]
+                   :operator-executor        [(fn [] (deref operator-executor/display)) operator-executor/search]
+                   :sentence-parser          [(fn [] (deref sentence-parser/display)) sentence-parser/search]
+                   :task-creator             [(fn [] (deref task-creator/display)) task-creator/search]
+                   :concepts                 [(fn [] (deref concepts/display)) concepts/search]
+                   :concept-bag              [(fn [] (bagshow @c-bag concept-filter)) concept-filter]
+                   :derived-load-reducer     [(fn [] (deref derived-load-reducer/display)) derived-load-reducer/search]
+                   :input                    [(fn [] ) inputstr]
+                   :output                   [(fn [] (deref output-display)) output-search]
+                   :+prioTh.                 [(fn [] (deref prio-threshold))]
+                   :speed                    [(fn [] (deref speed))]
+                   :&gt;                   [(fn [] (deref nars-time))]})</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def static-graphs [graph-actors graph-gui])
+(def graphs (atom static-graphs))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn setup []
+  (q/frame-rate 30)
+  ;(nar/run)
+  (merge hnav/states {}))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn update [state] state)</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn nameof [a]
+  (if (string? a) a (name a)))</pre></td></tr><tr><td class="docs"><p>Draw an actor block</p>
+</td><td class="codes"><pre class="brush: clojure">(defn draw-actor
+  [{:keys [name px py backcolor frontcolor displaysize titlesize stroke-weight custom-w custom-h]} node-width node-height]
+  (q/stroke-weight (if (= nil stroke-weight) 1.0 stroke-weight))
+  (apply q/fill (invert-color (if (= backcolor nil) [255 255 255] backcolor)))
+  (q/rect px py (if custom-w custom-w node-width) (if custom-h custom-h node-height))
+  (apply q/fill (invert-color (if (= frontcolor nil) [0 0 0] frontcolor)))
+  (q/text-size (if (= nil titlesize) 10.0 titlesize))
+  (q/text (nameof name) (+ px 5) (+ py (if (= nil titlesize) 10.0 titlesize)))
+  (q/text-size (if (= displaysize nil) 2.0 displaysize))
+  (when (contains? debugmessage name)
+    (q/text (hnav/display-string debugmessage name)
+            (+ px 5) (+ py 20)))
+  (q/text-size 2.0))</pre></td></tr><tr><td class="docs"><p>Checks whether the point p is inside of the double-sized screen.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn in-picture
+  [state p hud]
+  (if hud
+    true
+    (if (and (&gt; (:px p) (hnav/mouse-to-world-coord-x state (- (hnav/width))))
+             (&lt; (:px p) (hnav/mouse-to-world-coord-x state (+ (hnav/width) (hnav/width))))
+             (&gt; (:py p) (hnav/mouse-to-world-coord-y state (- (hnav/height))))
+             (&lt; (:py p) (hnav/mouse-to-world-coord-y state (+ (hnav/height) (hnav/height)))))
+      true
+      false)))</pre></td></tr><tr><td class="docs"><p>Checks whether the point p is inside of the screen.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn in-picture-aggressive
+  [state p hud]
+  (if hud
+    true
+    (if (and (&gt; (:px p) (hnav/mouse-to-world-coord-x state 0.0))
+             (&lt; (:px p) (hnav/mouse-to-world-coord-x state (hnav/width)))
+             (&gt; (:py p) (hnav/mouse-to-world-coord-y state 0.0))
+             (&lt; (:py p) (hnav/mouse-to-world-coord-y state (hnav/height))))
+      true
+      false)))</pre></td></tr><tr><td class="docs"><p>Draw a graph, its nodes and edges and their contents</p>
+</td><td class="codes"><pre class="brush: clojure">(defn draw-graph
+  [state [nodes edges node-width node-height] hud]
+  (let [prefer-id (fn [n] (if (= nil (:id n))
+                            (:name n)
+                            (:id n)))]
+    (doseq [c edges]
+      (when (and (some #(= (:from c) (prefer-id %)) nodes)
+                 (some #(= (:to c) (prefer-id %)) nodes))
+        (let [pxtransform (fn [x] (+ (:px x) (/ node-width 2.0)))
+              pytransform (fn [y] (+ (:py y) (/ node-height 2.0)))
+              left (first (filter #(= (:from c) (prefer-id %)) nodes))
+              right (first (filter #(= (:to c) (prefer-id %)) nodes))
+              middle {:px (/ (+ (:px left) (:px right)) 2.0)
+                      :py (/ (+ (:py left) (:py right)) 2.0)}
+              namepos {:px (/ (+ (* 0.6 (:px left)) (* 0.4 (:px right))) 1.0)
+                       :py (+ 3 (/ (+ (* 0.6 (:py left)) (* 0.4 (:py right))) 1.0))}
+              target (if (not= true (:unidirectional c))
+                       right middle)
+              weight (if (not= nil (:stroke-weight c))
+                       (:stroke-weight c)
+                       0.5)
+              left-x (pxtransform left) left-y (pytransform left)
+              right-x (pxtransform right) right-y (pytransform right)
+              target-x (pxtransform target) target-y (pytransform target)
+              middle-x (pxtransform middle) middle-y (pytransform middle)
+              namepos-x (pxtransform namepos) namepos-y (pytransform namepos)
+              pointf (fn [a b] {:px a :py b})
+              name (:name c)]
+          (when (or (:no-in-picture-check c)
+                    (in-picture state (pointf left-x left-y) hud)
+                    name
+                    (and @link-labels
+                         (in-picture state (pointf namepos-x namepos-y) hud)))
+            (let [eval-color (if (= nil (:link-color c) )
+                               (invert-color [0 0 0])
+                               (invert-color (:link-color c)))
+                  col eval-color
+                  r (first col)
+                  g (second col)
+                  b (nth col 2)]
+              (q/stroke r g b)
+              (q/stroke-weight (* weight 2.0))
+              (q/line left-x left-y
+                      middle-x target-y)
+              (when (and (:unidirectional c)
+                         (not (:opposite-edge-exists c)))
+                (if (:ghost-opposite c)
+                  (do
+                    (q/stroke (invert-comp 210.0))
+                    (q/stroke-weight 0.15))
+                  (do
+                    (q/stroke-weight weight)))
+                (q/line right-x right-y
+                        middle-x middle-y))
+              (when (not= nil name)
+                (q/text (str name) namepos-x namepos-y))))))))
+  (q/stroke (first (invert-color [0 0 0])))
+  (doseq [a nodes]
+    (when (in-picture state (assoc a :px (+ (:px a) (/ node-width 2.0))
+                                     :py (+ (:py a) (/ node-height 2.0))) hud)
+      (draw-actor a node-width node-height))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def selected-concept (atom []))</pre></td></tr><tr><td class="docs"><p>copy of draw below marked as draw2</p>
+</td><td class="codes"><pre class="brush: clojure">(defn draw [state]
+  (q/background (first (invert-color [255 255 255])))
+  (q/reset-matrix)
+  (q/push-matrix)
+  (hnav/transform state)
+  (doseq [g @graphs]
+    (draw-graph state g false))
+  ;(reset! graphs static-graphs)
+  ;concept graph
+  (when (&gt; (hnav/mouse-to-world-coord-x state (hnav/width)) 1600)
+    (try (let [elems (apply vector (:priority-index (deref c-bag)))
+               a 75.0
+               pxfun (fn [ratio] (+ 3500 (* a ratio (Math/cos ratio))))
+               pyfun (fn [ratio] (+ 200 (* a ratio (Math/sin ratio))))
+               isin
+               (apply set/union
+                      (for [i (range (count elems))]
+                        (let [elem (elems i)
+                              ratio (* 30.0 (+ 0.10 (/ i (count elems))))
+                              px (pxfun ratio)
+                              py (pyfun ratio)]
+                          (when ((if @link-labels in-picture in-picture-aggressive) state {:px px :py py} false)
+                            (set/union (set (keys (@lense-termlinks (:id elem))))
+                                       #{(:id elem)})))))
+               nodes (for [i (range (count elems))]
+                       (let [elem (elems i)
+                             ratio (* 30.0 (+ 0.10 (/ i (count elems))))
+                             id (:id elem)
+                             px (pxfun ratio)
+                             py (pyfun ratio)
+                             priority (:priority elem)
+                             quality (:quality ((:elements-map (deref c-bag)) id))]
+                         (when (try
+                                 (and
+                                   (every? (fn [x] (.contains (narsese-print id) x))
+                                           (str/split (deref concept-filter) #&quot;\n&quot;))
+                                      (&gt; priority priority-threshold)
+                                      (&gt; priority @prio-threshold)
+                                      (or (isin id)
+                                          ((if @link-labels in-picture in-picture-aggressive) state {:px px :py py} false)))
+                                 (catch Exception e false))
+                           {:name          (str &quot;\n&quot; (narsese-print id)
+                                                (if (= id @selected-concept)
+                                                  (str &quot;\nfilter: &quot; @task-filter &quot;priority: &quot; priority &quot; &quot; &quot;quality: &quot; quality &quot; &quot;
+                                                       &quot;truth: &quot; (:truth (lense-max-statement-confidence-projected-to-now id :belief nil)) &quot; &quot;
+                                                       &quot;desire: &quot; (:truth (lense-max-statement-confidence-projected-to-now id :goal nil)) &quot;\n&quot;
+                                                       (bag-format
+                                                         (limit-string (narsese-print (apply vector
+                                                                                             (if @link-labels
+                                                                                               (bagfilter task-filter (:elements-map (@lense-taskbags id)))
+                                                                                               (let [curbag (@lense-taskbags id)
+                                                                                                     pindex (:priority-index curbag)]
+                                                                                                 (map (fn [has-id]
+                                                                                                        (let [task (:task (first (b/get-by-id curbag (:id has-id))))]
+                                                                                                          (assoc has-id :truth (:truth task)
+                                                                                                                        :occurrence (if (= (:occurrence task) :eternal)
+                                                                                                                                      :eternal
+                                                                                                                                      (- (:occurrence task) @nars-time))
+                                                                                                                        :quality (nth (:budget task) 2)
+                                                                                                                        :solution (when (:solution task)
+                                                                                                                                    {:statement (:statement (:solution task))
+                                                                                                                                     :truth (:truth (:solution task))
+                                                                                                                                     :occurrence (:occurrence (:solution task))}))))
+                                                                                                      (bagfilter task-filter (:priority-index (@lense-taskbags id)))))))) 20000)))))       ;&quot;\n&quot; @lense-termlinks
+                            :px            px
+                            :py            py
+                            :displaysize   1.0
+                            :backcolor     [(- 255 (* priority 255.0)) 255 255]
+                            :titlesize     2.0
+                            :stroke-weight 0.5
+                            :id            id
+                            :onclick       (fn [state]
+                                             (reset! input-string task-filter)
+                                             (reset! selected-concept id))})))
+               edges (for [n nodes
+                           [k [freq conf]] (@lense-termlinks (:id n))]
+                       (let [disttomiddle (Math/abs (- 0.5 freq))
+                             rterm (/ (if (&gt;= freq 0.5) (* 510.0 disttomiddle) 0.0) 2.0)
+                             bterm (/ (if (&lt; freq 0.5) (* 510.0 disttomiddle) 0.0) 2.0)]
+                         {:from                 (:id n)
+                          :to                   k :unidirectional true
+                          :no-in-picture-check true
+                          :stroke-weight        (* 0.5 conf)
+                          :link-color           (if @invert-colors
+                                                  (invert-color [(+ 128.0 rterm) 128.0 (+ 128.0 bterm)])
+                                                  [0.0 (+ 0 rterm) (+ 0 bterm)])
+                          :name                 (when @link-labels [freq conf])
+                          :opposite-edge-exists (some (fn [[tl2 _]]
+                                                        (= tl2 (:id n)))
+                                                      (@lense-termlinks k))
+                          :ghost-opposite       true}))
+               concept-graph [(filter #(not= % nil) nodes) edges 10 10]]
+           (reset! graphs (concat static-graphs [concept-graph])))
+         (catch Exception e (println &quot;test&quot;))))
+  (q/pop-matrix)
+  (try
+    (draw-graph state hud true)
+    (catch Exception e ()))
+  (draw-graph state hud true))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn key-pressed [state event]
+  (let [name (name (:key event))
+        code (:key-code event)]
+    (swap! (deref input-string) (fn [inputstr] (str (if (not (= code 8))
+                                                      inputstr (subs inputstr 0 (max 0 (dec (count inputstr)))))
+                                                    (if (not (&gt; (count name) 1))
+                                                      (if (not (= code 8))
+                                                        name ) ))))
+    state))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn lense-mousepress [state event]
+  (hnav/mouse-pressed graphs debugmessage false state event)
+  (hnav/mouse-pressed (atom [hud]) debugmessage true state event))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(q/defsketch example
+             :size [(hnav/width) (hnav/height)]
+             :setup setup
+             :draw draw
+             :update update
+             :mouse-pressed lense-mousepress
+             :mouse-dragged hnav/mouse-dragged
+             :mouse-wheel hnav/mouse-wheel
+             :key-pressed key-pressed
+             :middleware [m/fun-mode]
+             :features [ :resizable ]
+             :title &quot;OpenNARS 2.0.0: Lense&quot;)</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
 SyntaxHighlighter.all();
 
 // hackity hack

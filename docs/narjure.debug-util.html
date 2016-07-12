@@ -2865,158 +2865,150 @@ net.brehaut.ClojureTools = (function (SH) {
     build_tree: build_tree
   };
 })(SyntaxHighlighter);
-</script><script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script><title>narjure -- Marginalia</title></head><body><table><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#nal.deriver.normalization" name="nal.deriver.normalization"><h1 class="project-name">nal.deriver.normalization</h1><a class="toc-link" href="toc.html">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(ns nal.deriver.normalization
-  (:require [clojure.string :as s]
-            [clojure.set :as set]
-            [clojure.core.match :as m]))</pre></td></tr><tr><td class="docs"><p>operators that should be movet from infix to prefix position</p>
-</td><td class="codes"><pre class="brush: clojure">(def operators
-  #{'&amp;| '--&gt; '&lt;-&gt; '==&gt; 'retro-impl 'pred-impl 'seq-conj 'inst 'prop 'inst-prop
-    'int-image 'ext-image '=/&gt; '=|&gt; '| '&lt;=&gt; '&lt;/&gt; '&lt;|&gt; '- 'int-dif '|| '&amp;&amp;
-    'ext-inter 'conj})</pre></td></tr><tr><td class="docs"><p>commutative:    &lt;-> &lt;=> &lt;|> &amp; | &amp;&amp; ||
-not commutative: --> ==> =/> => </> &amp;/ - ~</p>
-</td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def commutative-ops #{'&lt;-&gt; '&lt;=&gt; '&lt;|&gt; '| '|| 'conj 'ext-inter})</pre></td></tr><tr><td class="docs"><p>Makes transformaitions like [A --> B] to [--> A B].</p>
-</td><td class="codes"><pre class="brush: clojure">(defn infix-&gt;prefix
-  [premise]
-  (if (coll? premise)
-    (let [[f s &amp; tail] premise]
-      (map infix-&gt;prefix
-           (if (operators s)
-             (concat [s f] tail)
-             premise)))
-    premise))</pre></td></tr><tr><td class="docs"><p>Checks if symbol starts with --, true for --A, --X</p>
-</td><td class="codes"><pre class="brush: clojure">(defn- neg-symbol?
-  [el]
-  (and (not= el '--&gt;) (symbol? el) (s/starts-with? (str el) &quot;--&quot;)))</pre></td></tr><tr><td class="docs"><p>Removes -- from symbols with negation:
-  (trim-negation '--A) => A</p>
-</td><td class="codes"><pre class="brush: clojure">(defn- trim-negation
-  [el]
-  (symbol (s/join (drop 2 (str el)))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn neg [el] (list '-- el))</pre></td></tr><tr><td class="docs"><p>Replaces negations's "new notation".</p>
-</td><td class="codes"><pre class="brush: clojure">(defn replace-negation
-  [statement]
-  (cond
-    (neg-symbol? statement) (neg (trim-negation statement))
-    (or (vector? statement) (and (seq? statement) (not= '-- (first statement))))
-    (:st
-      (reduce
-        (fn [{:keys [prev st] :as ac} el]
-          (if (= '-- el)
-            (assoc ac :prev true)
-            (-&gt;&gt; [(cond prev (neg el)
-                        (coll? el) (replace-negation el)
-                        (neg-symbol? el) (neg (trim-negation el))
-                        :else el)]
-                 (concat st)
-                 (assoc ac :prev false :st))))
-        {:prev false :st '()}
-        statement))
-    :else statement))</pre></td></tr><tr><td class="docs"><p>provide an order for the commutative ops, so that <a &lt;-> b> and <b &lt;-> a> will both be <b &lt;-> a>,
-  this is needed because they need to end up in the same concept!</p>
-</td><td class="codes"><pre class="brush: clojure">(defn sort-commutative
-  [conclusions]
-  (if (coll? conclusions)
-    (let [f (first conclusions)]
-      (if (commutative-ops f)
-        (vec (conj (sort-by hash (drop 1 conclusions)) f))
-        conclusions))
-    conclusions))</pre></td></tr><tr><td class="docs"><p>the union set operation for extensional and intensional sets</p>
-
-<p>https://gist.github.com/TonyLo1/a3f8e05458c5e90c2e72</p>
-</td><td class="codes"><pre class="brush: clojure">(defn union
-  ([c1 c2] (sort-by hash (set (concat c1 c2))))
-  ([op c1 c2] (vec (conj (union c1 c2) op))))</pre></td></tr><tr><td class="docs"><p>the difference set operation for extensional and intensional sets</p>
-</td><td class="codes"><pre class="brush: clojure">(defn diff
-  ([c1 c2] (into '() (set/difference (set c1) (set c2))))
-  ([op c1 c2] (vec (conj (diff c1 c2) op))))</pre></td></tr><tr><td class="docs"><p>Reductions for extensional intersection.</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-ext-inter
-  [st]
-  (m/match
-    st
-    [_ t] t
-    [_ ['ext-inter &amp; l1] ['ext-inter &amp; l2]] (union 'ext-inter l1 l2)
-    [_ ['ext-inter &amp; l1] l2] (union 'ext-inter l1 [l2])
-    [_ l1 ['ext-inter &amp; l2]] (union 'ext-inter [l1] l2)
-    [_ ['int-set &amp; l1] ['int-set &amp; l2]] (union 'int-set l1 l2)
-    ;[_ ['ext-set &amp; l1] ['ext-set &amp; l2]] (union 'ext-set l1 l2)
-    :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for intensional intersection</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-int-inter
-  [st]
-  (m/match st
-           ['| t] t
-           ['| ['| &amp; l1] ['| &amp; l2]] (union '| l1 l2)
-           ['| ['| &amp; l1] l2] (union '| l1 [l2])
-           ['| l1 ['| &amp; l2]] (union '| [l1] l2)
-           ['| ['int-set &amp; l1] ['int-set &amp; l2]] (union 'int-set l1 l2)
-           ['| ['ext-set &amp; l1] ['ext-set &amp; l2]] (union 'ext-set l1 l2)
-           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for intensional difference</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-int-dif
-  [st]
-  (m/match st
-           [_ ['int-set &amp; l1] ['int-set &amp; l2]] (diff 'int-set l1 l2)
-           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for extensional difference</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-ext-dif
-  [st]
-  (m/match st
-           [_ ['ext-set &amp; l1] ['ext-set &amp; l2]] (diff 'ext-set l1 l2)
-           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for images</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-image
-  [st]
-  st
-  #_(m/match st
-           [_ ['* t1 t2] t3] (if (and (= t2 t3) (not= t1 t2)) t1 st)
-           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for negation</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-neg
-  [st]
-  (m/match st
-           ['-- ['-- t]] t
-           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for or</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-or
-  [st]
-  (m/match st
-           ['|| t] t
-           ['|| ['|| &amp; l1] ['|| &amp; l2]] (union '|| l1 l2)
-           ['|| ['|| &amp; l1] l2] (union '|| l1 [l2])
-           ['|| l1 ['|| &amp; l2]] (union '|| [l1] l2)
-           ['|| t1 t2] (if (= t1 t2) t1 st)
-           :else st))</pre></td></tr><tr><td class="docs"><p>Reductions for and</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-and
-  [st]
-  (m/match st
-           ['conj t] t
-           ['conj ['conj &amp; l1] ['conj &amp; l2]] (union 'conj l1 l2)
-           ['conj ['conj &amp; l1] l2] (union 'conj l1 [l2])
-           ['conj l1 ['conj &amp; l2]] (union 'conj [l1] l2)
-           ['conj t1 t2] (if (= t1 t2) t1 st)
-           :else st))</pre></td></tr><tr><td class="docs"><p>Not in use currently, may change</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-seq-conj
-  [st]
-  st)</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def reducible-ops
-  {'ext-inter `reduce-ext-inter
-   '|         `reduce-int-inter
-   '-         `reduce-ext-dif
-   'int-dif   `reduce-int-dif
-   'int-image `reduce-image
-   'ext-image `reduce-image
-   '--        `reduce-neg
-   'conj      `reduce-and
-   '||        `reduce-or})</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn reduce-ops
-  [st]
-  (let [f (first st)]
-    (case f
-      ext-inter (reduce-ext-inter st)
-      | (reduce-int-inter st)
-      - (reduce-ext-dif st)
-      int-dif (reduce-int-dif st)
-      int-image (reduce-image st)
-      ext-image (reduce-image st)
-      -- (reduce-neg st)
-      conj (reduce-and st)
-      || (reduce-or st)
-      st)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
+</script><script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script><title>narjure -- Marginalia</title></head><body><table><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#narjure.debug-util" name="narjure.debug-util"><h1 class="project-name">narjure.debug-util</h1><a class="toc-link" href="toc.html">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(ns narjure.debug-util
+  (:require [narjure.global-atoms :refer :all]
+            [clojure.string :as str]))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def debug-messages 21)</pre></td></tr><tr><td class="docs"><p>Limit a string to cnt elements</p>
+</td><td class="codes"><pre class="brush: clojure">(defn limit-string
+  [st cnt]
+  (subs st 0 (min (count st) cnt)))</pre></td></tr><tr><td class="docs"><p>Prints out a statement in Narsese-representation.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn narsese-print
+  ([st]
+    (narsese-print st false))
+  ([st dictparent]
+  (let [beautify (fn [co]
+                   (case co
+                     nil &quot;nil&quot;
+                     pred-impl &quot;=/&gt;&quot;
+                     retro-impl &quot;=\\&gt;&quot;
+                     ext-inter &quot;&amp;&quot;
+                     int-dif &quot;~&quot;
+                     ext-image &quot;/&quot;
+                     int-image &quot;\\&quot;
+                     conj &quot;&amp;&amp;&quot;
+                     seq-conj &quot;&amp;/&quot;
+                     (let [outp (str co)]
+                       (if (clojure.string/starts-with? outp &quot;op_&quot;)
+                         (clojure.string/replace outp &quot;op_&quot; &quot;^&quot;)
+                         outp))))]
+    (if (coll? st)
+      (let [isvector (vector? st)
+            isdict (map? st)
+            cop (first st)
+            [left right] (case cop
+                           ext-set [&quot;{&quot; &quot;}&quot;]
+                           int-set [&quot;[&quot; &quot;]&quot;]
+                           --&gt; [&quot;&lt;&quot; &quot;&gt;&quot;]
+                           &lt;-&gt; [&quot;&lt;&quot; &quot;&gt;&quot;]
+                           ==&gt; [&quot;&lt;&quot; &quot;&gt;&quot;]
+                           pred-impl [&quot;&lt;&quot; &quot;&gt;&quot;]
+                           =|&gt; [&quot;&lt;&quot; &quot;&gt;&quot;]
+                           retro-impl [&quot;&lt;&quot; &quot;&gt;&quot;]
+                           &lt;=&gt; [&quot;&lt;&quot; &quot;&gt;&quot;]
+                           &lt;|&gt; [&quot;&lt;&quot; &quot;&gt;&quot;]
+                           &lt;/&gt; [&quot;&lt;&quot; &quot;&gt;&quot;]
+                           [&quot;(&quot; &quot;)&quot;])
+            syll-cop ['--&gt; '&lt;-&gt; '==&gt; '=|&gt;
+                      'pred-impl 'retro-impl
+                      '&lt;=&gt; '&lt;|&gt; '&lt;/&gt;]
+            seperator (if (or dictparent
+                              (some #{cop} syll-cop)
+                              (not isvector))
+                        &quot; &quot;
+                        &quot;,&quot;)
+            infixprint (if (some #{cop} syll-cop)
+                         [(second st) (first st) (nth st 2)]
+                         st)
+            var-and-ival (fn [st]
+                           (if (= (first st) :interval)
+                             [(str &quot;i&quot; (second st))]
+                             (if (= (first st) 'dep-var)
+                               [(str &quot;#&quot; (second st))]
+                               (if (= (first st) 'ind-var)
+                                 [(str &quot;$&quot; (second st))]
+                                 (if (= (first st) 'qu-var)
+                                   [(str &quot;?&quot; (second st))]
+                                   st)))))
+            ivar-val (var-and-ival infixprint)
+            [leftres rightres] (if (and (= ivar-val infixprint)
+                                        (not dictparent))
+                                 [left right]
+                                 [&quot;&quot; &quot;&quot;])
+            res (if (or (= (first ivar-val) 'ext-set)
+                        (= (first ivar-val) 'int-set))
+                  (rest ivar-val)
+                  ivar-val)]
+        (str leftres
+             (apply str (for [x res]
+                          (if (= x (first res))
+                            (narsese-print x isdict)
+                            (str seperator (narsese-print x isdict)))))
+             rightres))
+      (str (beautify st))))))</pre></td></tr><tr><td class="docs"><p>Debuglogger as used by all actor components mainly for (Lense) display purposes.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn debuglogger
+  ([display message]
+    (debuglogger (atom &quot;&quot;) display message))
+  ([filter display message]
+   (if (&gt; debug-messages 0)
+     (swap! display (fn [d] (let [msg (narsese-print message)]
+                              (if (every? (fn [x] (.contains msg x))
+                                          (str/split (deref filter) #&quot;\n&quot;))
+                                (if (&lt; (count d) debug-messages)
+                                 (conj d [(limit-string msg 750) &quot;§&quot;])
+                                 (conj (drop-last d) [(limit-string msg 750) &quot;§&quot;]))
+                                d)))))))</pre></td></tr><tr><td class="docs"><p>Print the punctuation of a task in ASCII representation.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn punctuation-print
+  [task-type]
+  (case task-type
+    :goal &quot;!&quot;
+    :quest &quot;@&quot;
+    :question &quot;?&quot;
+    :belief &quot;.&quot;))</pre></td></tr><tr><td class="docs"><p>Convert a task to Narsese representation.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn task-to-narsese
+  [task]
+  (let [time-print (fn [occurrence]
+                     (if (= occurrence :eternal)
+                       &quot;&quot;
+                       (str &quot;:|&quot; (- occurrence @nars-time) &quot;|:&quot;)))
+        truth-print (fn [truth]
+                      (if (= truth nil)
+                        &quot;&quot;
+                        (str &quot;%&quot; (first truth) &quot;;&quot; (second truth) &quot;%&quot;)))]
+    (str (narsese-print (:statement task))
+         (punctuation-print (:task-type task))
+         &quot; &quot;
+         (time-print (:occurrence task))
+         &quot; &quot;
+         (truth-print (:truth task)))))</pre></td></tr><tr><td class="docs"><p>Output a task into the display.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn output-task
+  [type task]
+  (let [type-print (fn [t] t)]
+    (debuglogger output-search output-display (str (type-print type)
+                                                   &quot; &quot;
+                                                   (task-to-narsese task)))))</pre></td></tr><tr><td class="docs"><p>The ID that makes solutions unique for output.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn get-solution-id
+  [task]
+  [(:statement task) (:task-type task) (:occurrence task) (:truth task)])</pre></td></tr><tr><td class="docs"><p>Is the task an input-task?</p>
+</td><td class="codes"><pre class="brush: clojure">(defn user?
+  [task]
+  (= (:source task) :input))</pre></td></tr><tr><td class="docs"><p>Potentially output the answer to a task, if it wasn't already.</p>
+</td><td class="codes"><pre class="brush: clojure">(def max-qu-track 50)
+(defn potential-output-answer
+  [state task-id task solution]
+  (when (user? task)
+    (let [solution-id (get-solution-id solution)]
+     (when (not (some #{[task-id solution-id]} @last-qu-answers))
+       (reset! last-qu-answers (concat [[task-id solution-id]] @last-qu-answers))
+       (while (&gt; (count @last-qu-answers) max-qu-track)
+         (reset! last-qu-answers (drop-last @last-qu-answers)))
+       (doseq [f @answer-handlers]
+         (f task solution))
+       (output-task [:answer-to (str (narsese-print (:statement task)) (punctuation-print (:task-type task)) #_&quot; c: &quot; #_concept-id)] solution)))))</pre></td></tr><tr><td class="docs"><p>For debugging purposes, allowing to add print statements for specific concepts.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn conditionalprint
+  [state st stru]
+  (when (= (:id @state) st)
+    (println stru)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
 SyntaxHighlighter.all();
 
 // hackity hack
