@@ -1,7 +1,7 @@
 (ns nal.deriver.preconditions
   (:require [nal.deriver.set-functions
              :refer [f-map not-empty-diff? not-empty-inter?]]
-            [nal.deriver.utils :refer [walk]]
+            [nal.deriver.utils :refer [walk postwalk-depth1]]
             [nal.deriver.substitution :refer [substitute munification-map]]
             [nal.deriver.terms-permutation :refer [implications equivalences]]
             [clojure.set :refer [union intersection]]
@@ -149,7 +149,7 @@
   `(mapv (fn [k#]
            (if (= k# ~el1)
              k#
-             (walk k# (= :el ~el1) ~el2)))
+             (walk k# (= :el ~el1) ~el2 :single-level-hack)))
          ~conclusion))
 
 (defmethod precondition-transformation :substitute-if-unifies

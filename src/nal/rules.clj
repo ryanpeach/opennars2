@@ -249,17 +249,17 @@ So these rules are for bringing NAL-statements into a different, implied and mor
              :pre ((:substitute-from-list Ai _) (:contains? (:list/A) Ai))
              :post (:t/identity :d/identity)]
           #R[(M --> (* :list/A)) Ai |- ((\ M :list/A) --> Ai)
-:pre ((:substitute-from-list Ai _) (:contains? (:list/A) Ai))
-:post (:t/identity :d/identity)]
-#R[(Ai --> (/ M :list/A )) M |- ((* :list/A) --> M)
-   :pre ((:substitute-from-list _ Ai))
-   :post (:t/identity :d/identity)]
-#R[((\ M :list/A) --> Ai) M |- (M --> (* :list/A))
-:pre ((:substitute-from-list _ Ai))
-:post (:t/identity :d/identity)]
+            :pre ((:substitute-from-list Ai _) (:contains? (:list/A) Ai))
+            :post (:t/identity :d/identity)]
+            #R[(Ai --> (/ M :list/A )) M |- ((* :list/A) --> M)
+               :pre ((:substitute-from-list _ Ai))
+               :post (:t/identity :d/identity)]
+            #R[((\ M :list/A) --> Ai) M |- (M --> (* :list/A))
+            :pre ((:substitute-from-list _ Ai))
+            :post (:t/identity :d/identity)]
 
-; relation introduction rule:
-#R[(A --> C) (B --> D) |- ((* A B) --> (* C D)) :post (:t/intersection)]
+            ; relation introduction rule:
+            #R[(A --> C) (B --> D) |- ((* A B) --> (* C D)) :post (:t/intersection)]
 )
 
 (defrules nal5-implication-based-syllogisms
@@ -680,14 +680,14 @@ So these rules are for bringing NAL-statements into a different, implied and mor
           #R[((* B P) <-> Z) (B <-> A) |- ((* B P) <-> (* A P)) :pre (:question?) :post (:t/belief-structural-deduction :p/belief)]
           #R[((* P B) <-> Z) (B <-> A) |- ((* P B) <-> (* P A)) :pre (:question?) :post (:t/belief-structural-deduction :p/belief)]
           #R[((\ N A _) --> Z) (N --> R) |- ((\ N A _) --> (\ R A _)) :pre (:question?) :post (:t/belief-structural-deduction :p/belief)]
-#R[((/ N _ B) --> Z) (S --> B) |- ((/ N _ B) --> (/ N _ S)) :pre (:question?) :post (:t/belief-structural-deduction :p/belief)]
+          #R[((/ N _ B) --> Z) (S --> B) |- ((/ N _ B) --> (/ N _ S)) :pre (:question?) :post (:t/belief-structural-deduction :p/belief)]
 
-; NAL5:
-#R[--A    A |- --A  :pre (:question?) :post (:t/belief-negation :p/belief)]
-#R[A  --A |-   A  :pre (:question?) :post (:t/belief-negation :p/belief)]
+          ; NAL5:
+          #R[--A    A |- --A  :pre (:question?) :post (:t/belief-negation :p/belief)]
+          #R[A  --A |-   A  :pre (:question?) :post (:t/belief-negation :p/belief)]
 
-; compound composition one premise
-#R[(|| B :list/A) B |- (|| B :list/A) :pre (:question?) :post (:t/belief-structural-deduction :p/belief)]
+          ; compound composition one premise
+          #R[(|| B :list/A) B |- (|| B :list/A) :pre (:question?) :post (:t/belief-structural-deduction :p/belief)]
 )
 
 (def rules (compile-rules nal1-nal2-nal3-equivalence-and-implication nal1-nal5-conversion-contraposition-negation nal1-nal2-inheritance-related-syllogisms
