@@ -262,9 +262,10 @@
                                              (reset! selected-concept id))})))
                edges (for [n nodes
                            [k [freq conf]] (@lense-termlinks (:id n))]
-                       (let [disttomiddle (Math/abs (- 0.5 freq))
-                             rterm (/ (if (>= freq 0.5) (* 510.0 disttomiddle) 0.0) 2.0)
-                             bterm (/ (if (< freq 0.5) (* 510.0 disttomiddle) 0.0) 2.0)]
+                       (let [red-blue-border 0.5
+                             disttomiddle (Math/abs (- 0.5 freq))
+                             rterm (/ (if (>= freq red-blue-border) (* 510.0 disttomiddle) 0.0) 2.0)
+                             bterm (/ (if (< freq red-blue-border) (* 510.0 disttomiddle) 0.0) 2.0)]
                          {:from                 (:id n)
                           :to                   k :unidirectional true
                           :no-in-picture-check true

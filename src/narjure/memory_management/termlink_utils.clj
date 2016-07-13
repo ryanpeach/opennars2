@@ -64,8 +64,7 @@
         prio-other (:priority ((:elements-map @c-bag) tl))
         association (t-and prio-me prio-other)
         disassocation (t-and prio-me (- 1.0 prio-other))
-        frequency 1.0 #_(+ 0.5 (/ (- association 0.0 #_disassocation) 2.0))
-        newstrength (revision [0.0 disassocation] (revision old-truth [frequency association]))] ;termlink-single-sample-evidence-amount
+        newstrength (revision [0.0 disassocation] (revision old-truth [1.0 association]))] ;termlink-single-sample-evidence-amount
     (add-termlink tl newstrength)))
 
 (defn use-stronger [t1 t2]
@@ -88,8 +87,12 @@
                                  0.0)))
         newtermlinks (use-stronger (apply merge
                                    (for [tl (get-linkable-terms task)] ;prefer existing termlinks strengths
-                                     {tl [1.0 0.01] #_[(* (first termlink-default-budget)
-                                             (concept-prio tl)) (second termlink-default-budget)]}))
+                                     {tl (let [prio-me (concept-prio (:id @state))
+                                               prio-other (concept-prio tl)
+                                               association (t-and (concept-prio (:id @state)) prio-other)
+                                               disassocation (t-and prio-me (- 1.0 prio-other))]
+                                           (revision [0.0 disassocation] [1.0 association])) #_[(* (first termlink-default-budget)
+                                                                                                         (concept-prio tl)) (second termlink-default-budget)]}))
                             (:termlinks @state))
         valid-links (select-keys newtermlinks (get-existing-terms-from-links newtermlinks))];only these keys which exist in concept bag
     (set-state! (merge @state {:termlinks valid-links}))))
@@ -97,21 +100,20 @@
 (defn link-feedback-handler
   "Link growth by contextual relevance of the inference and the result, as well as usefulness of the result."
   [from [_ [derived-task belief-concept-id]]]                       ;this one uses the usual priority durability semantics
-  #_(try
+  (try
     ;TRADITIONAL BUDGET INFERENCE (BLINK PART)
     (let [complexity (if (:truth derived-task) (syntactic-complexity belief-concept-id) 1.0)
           truth-quality (if (:truth derived-task)
                  (truth-to-quality (:truth derived-task))
                  (w2c 1.0))
-          quality (/ truth-quality complexity)
+          #_quality #_(/ truth-quality complexity)
+          truth-quality-to-confidence (* truth-quality 1.0)
           [result-concept _]  (b/get-by-id @c-bag (:statement derived-task))
-          activation (:priority result-concept)
-          [f c] ((:termlinks @state) belief-concept-id)
-          strength (expectation [f c])]
+          #_activation #_(:priority result-concept)
+          [f c] ((:termlinks @state) belief-concept-id)]
       (when (and f c (:truth derived-task)) ;just revise by using the truth value directly
         ;as evidence for the usefulness
-        (println (str [f c] (:truth derived-task)))
-        (add-termlink belief-concept-id [(revision [f c] (:truth derived-task))]))
+        (add-termlink belief-concept-id [1.0 truth-quality-to-confidence]))
       )
     (catch Exception e () #_(println "fail"))))
 
@@ -132,7 +134,7 @@
 (defn forget-termlink
   "Relative forgetting of a termlink"
   [term]
-  (let [[p d] ((:termlinks @state) term)
+  #_(let [[p d] ((:termlinks @state) term)
         new-budget [(* p d) d]]
     (set-state! (assoc-in @state [:termlinks term] new-budget))))
 
