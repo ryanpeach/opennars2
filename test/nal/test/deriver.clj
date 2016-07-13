@@ -456,16 +456,6 @@
                "<robin --> [flying]>."
                ["<(--,<robin --> [flying]>) ==> <robin --> bird>>. %0.00;0.47%"]))) ;y
 
-;derives a bunch of nonsense: TODO add testcases to not derive this nonsense!
-;(conclusions "<(--,<robin --> [flying]>) ==> <robin --> bird>>?"
-;             "<(--,<robin --> bird>) ==> <robin --> [flying]>>. %0.1;0.9%")
-;=>
-;#{{:statement [-- [--> robin [int-set flying]]], :task-type :question, :occurrence 0}
-;  {:statement [-- [--> robin bird]], :task-type :question, :occurrence 0}
-;  {:statement [--> robin bird], :task-type :question, :occurrence 0}
-;  {:statement [--> robin [int-set flying]], :task-type :question, :occurrence 0}}
-
-
 ;TODO lookat
 (deftest conditional_deduction
   (is (derived "<(&&,<robin --> [flying]>,<robin --> [withWings]>) ==> <robin --> bird>>."
