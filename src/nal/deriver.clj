@@ -95,6 +95,12 @@
               (some #(= % (first term)) '[--> <->])
               (some #(= % 'ind-var) (flatten term))))
 
+    (not (and (coll? term)
+              (= (count term) 3)
+              (coll? (first term))
+              (= 'seq-conj (first (first term)))
+              (interval? (first (first term)))))
+
     (not-any? #(and (coll? term)
                     (= (count term) 3)
                     (= (first term) %)

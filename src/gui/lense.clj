@@ -216,7 +216,9 @@
                              px (pxfun ratio)
                              py (pyfun ratio)
                              priority (:priority elem)
-                             quality (:quality ((:elements-map (deref c-bag)) id))]
+                             show-concept ((:elements-map (deref c-bag)) id)
+                             quality (:quality show-concept)
+                             observable (:observable show-concept)]
                          (when (try
                                  (and
                                    (every? (fn [x] (.contains (narsese-print id) x))
@@ -228,27 +230,31 @@
                                  (catch Exception e false))
                            {:name          (str "\n" (narsese-print id)
                                                 (if (= id @selected-concept)
-                                                  (str "\nfilter: " @task-filter "priority: " priority " " "quality: " quality " "
-                                                       "truth: " (:truth (lense-max-statement-confidence-projected-to-now id :belief nil)) " "
-                                                       "desire: " (:truth (lense-max-statement-confidence-projected-to-now id :goal nil)) "\n"
-                                                       (bag-format
-                                                         (limit-string (narsese-print (apply vector
-                                                                                             (if @link-labels
-                                                                                               (bagfilter task-filter (:elements-map (@lense-taskbags id)))
-                                                                                               (let [curbag (@lense-taskbags id)
-                                                                                                     pindex (:priority-index curbag)]
-                                                                                                 (map (fn [has-id]
-                                                                                                        (let [task (:task (first (b/get-by-id curbag (:id has-id))))]
-                                                                                                          (assoc has-id :truth (:truth task)
-                                                                                                                        :occurrence (if (= (:occurrence task) :eternal)
-                                                                                                                                      :eternal
-                                                                                                                                      (- (:occurrence task) @nars-time))
-                                                                                                                        :quality (nth (:budget task) 2)
-                                                                                                                        :solution (when (:solution task)
-                                                                                                                                    {:statement (:statement (:solution task))
-                                                                                                                                     :truth (:truth (:solution task))
-                                                                                                                                     :occurrence (:occurrence (:solution task))}))))
-                                                                                                      (bagfilter task-filter (:priority-index (@lense-taskbags id)))))))) 20000)))
+                                                  (let [truth  (:truth (lense-max-statement-confidence-projected-to-now id :belief nil))
+                                                        desire (:truth (lense-max-statement-confidence-projected-to-now id :goal nil))]
+                                                    (str "\nfilter: " @task-filter "priority: " priority " " "quality: " quality " "
+                                                        (when truth "truth: " truth " ")
+                                                        (when desire "desire: " desire " ")
+                                                         (when observable "observable")
+                                                         "\n"
+                                                        (bag-format
+                                                          (limit-string (narsese-print (apply vector
+                                                                                              (if @link-labels
+                                                                                                (bagfilter task-filter (:elements-map (@lense-taskbags id)))
+                                                                                                (let [curbag (@lense-taskbags id)
+                                                                                                      pindex (:priority-index curbag)]
+                                                                                                  (map (fn [has-id]
+                                                                                                         (let [task (:task (first (b/get-by-id curbag (:id has-id))))]
+                                                                                                           (assoc has-id :truth (:truth task)
+                                                                                                                         :occurrence (if (= (:occurrence task) :eternal)
+                                                                                                                                       :eternal
+                                                                                                                                       (- (:occurrence task) @nars-time))
+                                                                                                                         :quality (nth (:budget task) 2)
+                                                                                                                         :solution (when (:solution task)
+                                                                                                                                     {:statement  (:statement (:solution task))
+                                                                                                                                      :truth      (:truth (:solution task))
+                                                                                                                                      :occurrence (:occurrence (:solution task))}))))
+                                                                                                       (bagfilter task-filter (:priority-index (@lense-taskbags id)))))))) 20000))))
                                                   ""))       ;"\n" @lense-termlinks
                             :px            px
                             :py            py

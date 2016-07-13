@@ -57,15 +57,19 @@
   ;(forget-termlinks)
   )
 
+(defn calc-link-strength
+  ([tl]
+    (calc-link-strength tl [0.5 0.0]))
+  ([tl old-strength]
+  (let [prio-me (concept-priority (:id @state))
+        prio-other (concept-priority tl)
+        association (t-and prio-me prio-other)
+        disassocation (t-and prio-me (- 1.0 prio-other))]
+    (revision [0.0 disassocation] (revision old-strength [1.0 association])))))
 
 (defn update-termlink [tl]                                  ;term
-  (let [prio-me (:priority ((:elements-map @c-bag) (:id @state)))
-        old-truth ((:termlinks @state) tl)
-        prio-other (:priority ((:elements-map @c-bag) tl))
-        association (t-and prio-me prio-other)
-        disassocation (t-and prio-me (- 1.0 prio-other))
-        newstrength (revision [0.0 disassocation] (revision old-truth [1.0 association]))] ;termlink-single-sample-evidence-amount
-    (add-termlink tl newstrength)))
+  (let [old-strength ((:termlinks @state) tl)]
+    (add-termlink tl (calc-link-strength tl old-strength))))
 
 (defn use-stronger [t1 t2]
   (let [all-keys (set/union (map first t1) (map first t2))]
@@ -87,11 +91,7 @@
                                  0.0)))
         newtermlinks (use-stronger (apply merge
                                    (for [tl (get-linkable-terms task)] ;prefer existing termlinks strengths
-                                     {tl (let [prio-me (concept-prio (:id @state))
-                                               prio-other (concept-prio tl)
-                                               association (t-and (concept-prio (:id @state)) prio-other)
-                                               disassocation (t-and prio-me (- 1.0 prio-other))]
-                                           (revision [0.0 disassocation] [1.0 association])) #_[(* (first termlink-default-budget)
+                                     {tl (calc-link-strength tl) #_[(* (first termlink-default-budget)
                                                                                                          (concept-prio tl)) (second termlink-default-budget)]}))
                             (:termlinks @state))
         valid-links (select-keys newtermlinks (get-existing-terms-from-links newtermlinks))];only these keys which exist in concept bag
@@ -117,27 +117,6 @@
       )
     (catch Exception e () #_(println "fail"))))
 
-(defn strengthen-termlink
-  "Further strengthen a termlink"
-  [link-strength]
-  [(t-or (first link-strength) (first concept-selection-introduced-termlink-default-budget))
-   (max (second link-strength) (second concept-selection-introduced-termlink-default-budget))])
-
-(defn get-strengthened-termlink
-  "Strenghten a termlink as used by the temporal linkage principle."
-  [link-strength]
-  (if link-strength
-    (strengthen-termlink link-strength)
-    concept-selection-introduced-termlink-default-budget))
-
-
-(defn forget-termlink
-  "Relative forgetting of a termlink"
-  [term]
-  #_(let [[p d] ((:termlinks @state) term)
-        new-budget [(* p d) d]]
-    (set-state! (assoc-in @state [:termlinks term] new-budget))))
-
 (defn get-termlink-endpoints
   "Get the link endpoints, namely the concepts which the concept links to: their id as well as priority."
   []
@@ -160,6 +139,6 @@
     ;now select an element from this bag
     (if (and resbag (pos? (b/count-elements resbag)))
       (let [[beliefconcept _] (b/get-by-index resbag (selection-fn (b/count-elements resbag)))]
-        (forget-termlink (:id beliefconcept))               ;apply forgetting for termlinks only on selection
+        #_(forget-termlink (:id beliefconcept))               ;apply forgetting for termlinks only on selection
         (get-ref-from-term (:id beliefconcept)))
       nil)))

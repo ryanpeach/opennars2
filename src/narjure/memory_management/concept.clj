@@ -93,10 +93,12 @@
   "Strenghtens the termlink between two concepts or creates it if not existing.
    A link is {key value] where key is term and value is budget [priority durability]"
   [from [_ [term]]]
-  (let [termlinks (:termlinks @state)
-        old-link-strength (termlinks term)
-        new-link-strength (get-strengthened-termlink old-link-strength)]
-    (set-state! (assoc-in @state [:termlinks term] new-link-strength))))
+  (try (let
+         [termlinks (:termlinks @state)
+          old-link-strength (termlinks term)
+          new-link-strength (calc-link-strength term (if old-link-strength old-link-strength [0.5 0.0]))]
+     (set-state! (assoc-in @state [:termlinks term] new-link-strength)))
+       (catch Exception e (println "termlink strenghten fatal error"))))
 
 (defn concept-state-handler
   "Sends a copy of the actor state to requesting actor"
