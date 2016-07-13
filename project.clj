@@ -21,7 +21,7 @@
                  [seesaw "1.4.5"]
                  [irclj "0.5.0-alpha4"]]
   :java-agents [[co.paralleluniverse/quasar-core "0.7.5"]]
-  :main ^:skip-aot narjure.core
+  :main gui.lense
   :plugins [[lein-cloverage "1.0.6"]
             [jonase/eastwood "0.2.3"]
             [lein-kibit "0.1.2"]
@@ -29,7 +29,6 @@
             [lein-marginalia "0.9.0"]
             [lein-gorilla "0.3.6"]]
   :eastwood {:exclude-namespaces [nal.rules]}
-  :target-path "target/%s"
   :repl-options {:init-ns          narjure.repl
                  :nrepl-middleware [narjure.repl/narsese-handler]
                  :timeout 10000000}

@@ -5,7 +5,8 @@
             [gui.gui-utils :refer [invert-comp]]
             [narjure.global-atoms :refer :all]
             [narjure.core :as nar]
-            [narjure.sensorimotor :refer :all]))
+            [narjure.sensorimotor :refer :all])
+  (:gen-class))
 
 (def py (atom 280))
 (def direction (atom 0))
@@ -192,14 +193,15 @@
   (q/rect 25 @py 10 barheight)
   (q/rect (:ball-px state) (:ball-py state) 10 10))
 
-(q/defsketch pong
-             :size [(hnav/width) (hnav/height)]
-             :setup setup-pong
-             :draw draw-pong
-             :update update-pong
-             :mouse-pressed (partial hnav/mouse-pressed [] {} false)
-             :mouse-dragged hnav/mouse-dragged
-             :mouse-wheel hnav/mouse-wheel
-             :middleware [m/fun-mode]
-             :features [ :resizable ]
-             :title "OpenNARS 2.0.0: Pong")
+(defn -main []
+  (q/defsketch pong
+              :size [(hnav/width) (hnav/height)]
+              :setup setup-pong
+              :draw draw-pong
+              :update update-pong
+              :mouse-pressed (partial hnav/mouse-pressed [] {} false)
+              :mouse-dragged hnav/mouse-dragged
+              :mouse-wheel hnav/mouse-wheel
+              :middleware [m/fun-mode]
+              :features [:resizable]
+              :title "OpenNARS 2.0.0: Pong"))

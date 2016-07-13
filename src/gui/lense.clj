@@ -27,7 +27,8 @@
             [narjure.bag :as b]
             [narjure.defaults :refer [priority-threshold max-concept-selections max-tasks]]
             [clojure.set :as set]
-            [clojure.string :as str]))
+            [clojure.string :as str])
+  (:gen-class))
 
 (defn bag-format
   "Bag string format: each id goes into a new line"
@@ -308,15 +309,16 @@
   (hnav/mouse-pressed graphs debugmessage false state event)
   (hnav/mouse-pressed (atom [hud]) debugmessage true state event))
 
-(q/defsketch example
-             :size [(hnav/width) (hnav/height)]
-             :setup setup
-             :draw draw
-             :update update
-             :mouse-pressed lense-mousepress
-             :mouse-dragged hnav/mouse-dragged
-             :mouse-wheel hnav/mouse-wheel
-             :key-pressed key-pressed
-             :middleware [m/fun-mode]
-             :features [ :resizable ]
-             :title "OpenNARS 2.0.0: Lense")
+(defn -main []
+  (q/defsketch example
+              :size [(hnav/width) (hnav/height)]
+              :setup setup
+              :draw draw
+              :update update
+              :mouse-pressed lense-mousepress
+              :mouse-dragged hnav/mouse-dragged
+              :mouse-wheel hnav/mouse-wheel
+              :key-pressed key-pressed
+              :middleware [m/fun-mode]
+              :features [:resizable]
+              :title "OpenNARS 2.0.0: Lense"))
