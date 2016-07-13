@@ -114,19 +114,14 @@
     :eternal :eternal
     :event))
 
-(defn reorder-inference
+(defn gen-conclusions
   "Inference between both tasks, where the occurrence prefers the :event here when one is :event."
   [parsed-p1 parsed-p2]
-  (let [type1 (occurrence-type (:occurrence parsed-p1))
-        type2 (occurrence-type (:occurrence parsed-p2))
-        p1-occurrence (if (and (= type1 :eternal) (= type2 :event))
-                     (:occurrence parsed-p2)                ;in this case use the occurrence of the second premise as it also holds at this time since its eternal
-                     (:occurrence parsed-p1))]              ;nothing changed
-      (generate-conclusions
-        (r/rules (:task-type parsed-p1))
-        (assoc parsed-p1 :occurrence p1-occurrence)
-        parsed-p2)
-      ))
+  (generate-conclusions
+      (r/rules (:task-type parsed-p1))
+      parsed-p1
+      parsed-p2)
+    )
 
 ;this is the inference function we should use
 (defn inference
@@ -144,4 +139,4 @@
                                             (some #{'qu-var} (flatten (:statement st)))))))
                     (map no-truth-for-questions-and-quests
                          (map interval-reduction
-                              (reorder-inference parsed-p1 parsed-p2)))))))
+                              (gen-conclusions parsed-p1 parsed-p2)))))))
