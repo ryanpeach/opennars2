@@ -2915,6 +2915,9 @@ net.brehaut.ClojureTools = (function (SH) {
     :quest (process-quest state task)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn belief-request-handler
   [from [_ [task-concept-id task]]]
+  (try                                                      ;update termlinks at first
+    (update-termlink (:statement task))          ;task concept here
+    (catch Exception e (debuglogger search display (str &quot;belief side termlink strength error &quot; (.toString e)))))
   ;todo get a belief which has highest confidence when projected to task time
   (try
     (let [tasks (get-tasks state)
@@ -2942,10 +2945,12 @@ net.brehaut.ClojureTools = (function (SH) {
    A link is {key value] where key is term and value is budget [priority durability]</p>
 </td><td class="codes"><pre class="brush: clojure">(defn termlink-strengthen-handler
   [from [_ [term]]]
-  (let [termlinks (:termlinks @state)
-        old-link-strength (termlinks term)
-        new-link-strength (get-strengthened-termlink old-link-strength)]
-    (set-state! (assoc-in @state [:termlinks term] new-link-strength))))</pre></td></tr><tr><td class="docs"><p>Sends a copy of the actor state to requesting actor</p>
+  (try (let
+         [termlinks (:termlinks @state)
+          old-link-strength (termlinks term)
+          new-link-strength (calc-link-strength term (if old-link-strength old-link-strength [0.5 0.0]))]
+     (set-state! (assoc-in @state [:termlinks term] new-link-strength)))
+       (catch Exception e (println &quot;termlink strenghten fatal error&quot;))))</pre></td></tr><tr><td class="docs"><p>Sends a copy of the actor state to requesting actor</p>
 </td><td class="codes"><pre class="brush: clojure">(defn concept-state-handler
   [from _]
   (let [concept-state @state]

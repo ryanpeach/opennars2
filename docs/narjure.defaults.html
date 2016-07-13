@@ -2873,17 +2873,17 @@ net.brehaut.ClojureTools = (function (SH) {
   [belief-frequency belief-confidence])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def belief-priority 0.99)
 (def belief-durability 0.9)</pre></td></tr><tr><td class="docs"><p>todo clarify this</p>
-</td><td class="codes"><pre class="brush: clojure">(def belief-quality 0.8)</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def belief-quality 0.5)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def belief-budget
   [belief-priority belief-durability belief-quality])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def question-priority 0.9)
 (def question-durability 0.9)</pre></td></tr><tr><td class="docs"><p>todo clarify this</p>
-</td><td class="codes"><pre class="brush: clojure">(def question-quality 0.96)</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def question-quality 0.56)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def question-budget
   [question-priority question-durability question-quality])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def goal-confidence 0.9)
 (def goal-priority 0.99)                                    ;set higher than potential quality rewards in the system (best-operation-selection, structural reinforcement)</pre></td></tr><tr><td class="docs"><p>set higher than potential quality rewards in the system (best-operation-selection, structural reinforcement)</p>
-</td><td class="codes"><pre class="brush: clojure">(def goal-quality 0.967)
+</td><td class="codes"><pre class="brush: clojure">(def goal-quality 0.567)
 (def goal-durability 0.9)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def goal-budget
   [goal-priority goal-durability goal-quality])</pre></td></tr><tr><td class="docs">
@@ -2907,7 +2907,7 @@ net.brehaut.ClojureTools = (function (SH) {
 </td><td class="codes"><pre class="brush: clojure">(def max-derived-sentences 50)                              ; derived task bag capacity</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def max-derived-selections 10)                             ; max derived selections per cycle</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def max-event-selections 10)                               ; no longer used - number of events to select per cycle</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def inverse-decay-rate 30)                                        ; forgetting adjustment rate for concepts e^-lt where l = (1.0 - durabiity) / decay-rate</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def inverse-decay-rate 10)                                        ; forgetting adjustment rate for concepts e^-lt where l = (1.0 - durabiity) / decay-rate</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def system-tick-interval-slow 150)
 (def inference-tick-interval-slow 110)
 (def system-tick-interval-fast 50)

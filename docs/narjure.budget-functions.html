@@ -2895,7 +2895,7 @@ net.brehaut.ClojureTools = (function (SH) {
 </td><td class="codes"></td></tr><tr><td class="docs"><p>returns a increased budget for statements of structural interest, mainly for experiments.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn structural-reward-budget
   [budget derived-task]
-  (let [not-matched-or-not-desired-budget [(* (first budget) 0.5) (second budget) (nth budget 2)]
+  (let [not-matched-or-not-desired-budget [(* (first budget) 0.8) (second budget) (nth budget 2)]
         match (second (precondition-operation-consequent-statement derived-task))]
     (if (and (:truth derived-task)
              match)
@@ -2908,8 +2908,8 @@ net.brehaut.ClojureTools = (function (SH) {
               precondition (match '?precondition)
               goal-desire (highest-desire-in-respect-to-now goal)]
           ;(println (str &quot;2: &quot; goal))
-          (if (= precondition goal)                         ;not a valid statement at all, I wonder why I didn't see this earlier.
-            nil                                             ;TODO add invalid NAL statement filter for derivations anyway
+          (if (= precondition goal)
+            nil
             (if goal-desire
               (let [quality (max (nth budget 2)
                                  (t-or (expectation (:truth derived-task)) (t-or (second goal-desire) 0.8)))] ;TODO see goal-processor (unify)
@@ -2924,12 +2924,13 @@ net.brehaut.ClojureTools = (function (SH) {
 </td><td class="codes"><pre class="brush: clojure">(defn derived-budget
   [task derived-task]
   (when (&lt; (:sc derived-task) max-term-complexity)
-    (let [priority (first (:budget task))
+    (let [activation-gain 0.95
+          priority (max 1.0 (t-or activation-gain (first (:budget task))))
          durability (/ (second (:budget task)) (Math/sqrt (:sc derived-task)))
          truth-quality (if (:truth derived-task) (truth-to-quality (:truth derived-task))
                                                  0.0 #_(w2c 1.0))
          complexity (:sc derived-task)
-         rescale-factor 0.8 ;should probably not above input belief quality!
+         rescale-factor 0.3 ;should probably not above input belief quality!
          quality (* truth-quality
                     rescale-factor
                     #_(/ 1.0 (Math/sqrt complexity)))]

@@ -4273,6 +4273,11 @@ http://stackoverflow.com/questions/24553212/how-to-take-n-random-items-from-a-co
     (not (and (coll? term)
               (some #(= % (first term)) '[--&gt; &lt;-&gt;])
               (some #(= % 'ind-var) (flatten term))))
+    (not (and (coll? term)
+              (= (count term) 3)
+              (coll? (first term))
+              (= 'seq-conj (first (first term)))
+              (interval? (first (first term)))))
     (not-any? #(and (coll? term)
                     (= (count term) 3)
                     (= (first term) %)
@@ -4283,17 +4288,12 @@ http://stackoverflow.com/questions/24553212/how-to-take-n-random-items-from-a-co
   (case occ
     :eternal :eternal
     :event))</pre></td></tr><tr><td class="docs"><p>Inference between both tasks, where the occurrence prefers the :event here when one is :event.</p>
-</td><td class="codes"><pre class="brush: clojure">(defn reorder-inference
+</td><td class="codes"><pre class="brush: clojure">(defn gen-conclusions
   [parsed-p1 parsed-p2]
-  (let [type1 (occurrence-type (:occurrence parsed-p1))
-        type2 (occurrence-type (:occurrence parsed-p2))
-        p1-occurrence (if (and (= type1 :eternal) (= type2 :event))
-                     (:occurrence parsed-p2)                ;in this case use the occurrence of the second premise as it also holds at this time since its eternal
-                     (:occurrence parsed-p1))]              ;nothing changed
-      (generate-conclusions
-        (r/rules (:task-type parsed-p1))
-        (assoc parsed-p1 :occurrence p1-occurrence)
-        parsed-p2)))</pre></td></tr><tr><td class="docs"><p>Inference between two premises</p>
+  (generate-conclusions
+      (r/rules (:task-type parsed-p1))
+      parsed-p1
+      parsed-p2))</pre></td></tr><tr><td class="docs"><p>Inference between two premises</p>
 
 <p>this is the inference function we should use</p>
 </td><td class="codes"><pre class="brush: clojure">(defn inference
@@ -4310,7 +4310,7 @@ http://stackoverflow.com/questions/24553212/how-to-take-n-random-items-from-a-co
                                             (some #{'qu-var} (flatten (:statement st)))))))
                     (map no-truth-for-questions-and-quests
                          (map interval-reduction
-                              (reorder-inference parsed-p1 parsed-p2)))))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#nal.reader" name="nal.reader"><h1 class="project-name">nal.reader</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+                              (gen-conclusions parsed-p1 parsed-p2)))))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#nal.reader" name="nal.reader"><h1 class="project-name">nal.reader</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns nal.reader
   (:require [clojure.string :as s])
   (:import (clojure.lang LispReader)))</pre></td></tr><tr><td class="docs">
@@ -5384,7 +5384,7 @@ with lowest priority will be removed on addition</p>
 </td><td class="codes"></td></tr><tr><td class="docs"><p>returns a increased budget for statements of structural interest, mainly for experiments.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn structural-reward-budget
   [budget derived-task]
-  (let [not-matched-or-not-desired-budget [(* (first budget) 0.5) (second budget) (nth budget 2)]
+  (let [not-matched-or-not-desired-budget [(* (first budget) 0.8) (second budget) (nth budget 2)]
         match (second (precondition-operation-consequent-statement derived-task))]
     (if (and (:truth derived-task)
              match)
@@ -5397,8 +5397,8 @@ with lowest priority will be removed on addition</p>
               precondition (match '?precondition)
               goal-desire (highest-desire-in-respect-to-now goal)]
           ;(println (str &quot;2: &quot; goal))
-          (if (= precondition goal)                         ;not a valid statement at all, I wonder why I didn't see this earlier.
-            nil                                             ;TODO add invalid NAL statement filter for derivations anyway
+          (if (= precondition goal)
+            nil
             (if goal-desire
               (let [quality (max (nth budget 2)
                                  (t-or (expectation (:truth derived-task)) (t-or (second goal-desire) 0.8)))] ;TODO see goal-processor (unify)
@@ -5413,12 +5413,13 @@ with lowest priority will be removed on addition</p>
 </td><td class="codes"><pre class="brush: clojure">(defn derived-budget
   [task derived-task]
   (when (&lt; (:sc derived-task) max-term-complexity)
-    (let [priority (first (:budget task))
+    (let [activation-gain 0.95
+          priority (max 1.0 (t-or activation-gain (first (:budget task))))
          durability (/ (second (:budget task)) (Math/sqrt (:sc derived-task)))
          truth-quality (if (:truth derived-task) (truth-to-quality (:truth derived-task))
                                                  0.0 #_(w2c 1.0))
          complexity (:sc derived-task)
-         rescale-factor 0.8 ;should probably not above input belief quality!
+         rescale-factor 0.3 ;should probably not above input belief quality!
          quality (* truth-quality
                     rescale-factor
                     #_(/ 1.0 (Math/sqrt complexity)))]
@@ -5757,17 +5758,17 @@ with lowest priority will be removed on addition</p>
   [belief-frequency belief-confidence])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def belief-priority 0.99)
 (def belief-durability 0.9)</pre></td></tr><tr><td class="docs"><p>todo clarify this</p>
-</td><td class="codes"><pre class="brush: clojure">(def belief-quality 0.8)</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def belief-quality 0.5)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def belief-budget
   [belief-priority belief-durability belief-quality])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def question-priority 0.9)
 (def question-durability 0.9)</pre></td></tr><tr><td class="docs"><p>todo clarify this</p>
-</td><td class="codes"><pre class="brush: clojure">(def question-quality 0.96)</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def question-quality 0.56)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def question-budget
   [question-priority question-durability question-quality])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def goal-confidence 0.9)
 (def goal-priority 0.99)                                    ;set higher than potential quality rewards in the system (best-operation-selection, structural reinforcement)</pre></td></tr><tr><td class="docs"><p>set higher than potential quality rewards in the system (best-operation-selection, structural reinforcement)</p>
-</td><td class="codes"><pre class="brush: clojure">(def goal-quality 0.967)
+</td><td class="codes"><pre class="brush: clojure">(def goal-quality 0.567)
 (def goal-durability 0.9)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def goal-budget
   [goal-priority goal-durability goal-quality])</pre></td></tr><tr><td class="docs">
@@ -5791,7 +5792,7 @@ with lowest priority will be removed on addition</p>
 </td><td class="codes"><pre class="brush: clojure">(def max-derived-sentences 50)                              ; derived task bag capacity</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def max-derived-selections 10)                             ; max derived selections per cycle</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def max-event-selections 10)                               ; no longer used - number of events to select per cycle</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def inverse-decay-rate 30)                                        ; forgetting adjustment rate for concepts e^-lt where l = (1.0 - durabiity) / decay-rate</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def inverse-decay-rate 10)                                        ; forgetting adjustment rate for concepts e^-lt where l = (1.0 - durabiity) / decay-rate</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def system-tick-interval-slow 150)
 (def inference-tick-interval-slow 110)
 (def system-tick-interval-fast 50)
@@ -5824,7 +5825,7 @@ with lowest priority will be removed on addition</p>
 </td><td class="codes"><pre class="brush: clojure">(defn strengthen-temporal-link
   [state selected]
   (when-let [last-selected (:last-selected state)] ;the last selected observable concept
-    (when-not (concept-observable selected)   ; todo need to be able to link to itself here (&amp;/, a, a) is valid sequence
+    (when (concept-observable (:id selected))   ; todo need to be able to link to itself here (&amp;/, a, a) is valid sequence
       (cast! (:ref selected) [:termlink-strengthen-msg [(:id last-selected)]])
       (cast! (:ref last-selected) [:termlink-strengthen-msg [(:id selected)]])))
   (when (concept-observable (:id selected))
@@ -6048,6 +6049,9 @@ this variable is purely for visualization/debugging purposes!!</p>
     :quest (process-quest state task)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn belief-request-handler
   [from [_ [task-concept-id task]]]
+  (try                                                      ;update termlinks at first
+    (update-termlink (:statement task))          ;task concept here
+    (catch Exception e (debuglogger search display (str &quot;belief side termlink strength error &quot; (.toString e)))))
   ;todo get a belief which has highest confidence when projected to task time
   (try
     (let [tasks (get-tasks state)
@@ -6075,10 +6079,12 @@ this variable is purely for visualization/debugging purposes!!</p>
    A link is {key value] where key is term and value is budget [priority durability]</p>
 </td><td class="codes"><pre class="brush: clojure">(defn termlink-strengthen-handler
   [from [_ [term]]]
-  (let [termlinks (:termlinks @state)
-        old-link-strength (termlinks term)
-        new-link-strength (get-strengthened-termlink old-link-strength)]
-    (set-state! (assoc-in @state [:termlinks term] new-link-strength))))</pre></td></tr><tr><td class="docs"><p>Sends a copy of the actor state to requesting actor</p>
+  (try (let
+         [termlinks (:termlinks @state)
+          old-link-strength (termlinks term)
+          new-link-strength (calc-link-strength term (if old-link-strength old-link-strength [0.5 0.0]))]
+     (set-state! (assoc-in @state [:termlinks term] new-link-strength)))
+       (catch Exception e (println &quot;termlink strenghten fatal error&quot;))))</pre></td></tr><tr><td class="docs"><p>Sends a copy of the actor state to requesting actor</p>
 </td><td class="codes"><pre class="brush: clojure">(defn concept-state-handler
   [from _]
   (let [concept-state @state]
@@ -6322,8 +6328,8 @@ this variable is purely for visualization/debugging purposes!!</p>
         el {:id       (:id state)
             :priority (max p new-q)
             :quality new-q
-            :observable (:observable state)
             :ref      self
+            :observable (:observable state)
             :strongest-belief-about-now (max-statement-confidence-projected-to-now state :belief nil)
             :strongest-desire-about-now (max-statement-confidence-projected-to-now state :goal nil)
             :strongest-belief-event-about-now (max-statement-confidence-projected-to-now state :belief :event)
@@ -6722,8 +6728,8 @@ this variable is purely for visualization/debugging purposes!!</p>
                        :budget     (:budget goal)
                        :task-type  :goal
                        :sc (syntactic-complexity statement)}]
-         #_(println (str &quot;based on &quot; (best-option :debug-belief)))
-         #_(println (str &quot;operator selector sending to task-creator &quot; (:statement new-task) (:truth new-task) (expectation (:truth new-task))))
+         (println (str &quot;based on &quot; (best-option :debug-belief)))
+         (println (str &quot;operator selector sending to task-creator &quot; (:statement new-task) (:truth new-task) (expectation (:truth new-task))))
          (when (&gt; (expectation (:truth new-task)) decision-threshold)
            ;create prediction for consequence:
            (let [
@@ -7194,13 +7200,25 @@ increased-belief-budget-by-question</p>
     (when (not (b/exists? @c-bag tl))
       (set-state! (assoc @state :termlinks (dissoc (:termlinks @state) tl)))))
   (while (&gt; (count (:termlinks @state)) concept-max-termlinks)
-    (let [worst (apply min-key (comp first second) (:termlinks @state))]
+    (let [worst (apply min-key (comp expectation second) (:termlinks @state))]
       (set-state! (assoc @state :termlinks (dissoc (:termlinks @state) (first worst)))))))</pre></td></tr><tr><td class="docs"><p>Adds a termlink with term tl and strength strength.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn add-termlink
   [tl strength]
   (set-state! (assoc @state :termlinks (assoc (:termlinks @state)
                                          tl strength)))
   ;(forget-termlinks))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn calc-link-strength
+  ([tl]
+    (calc-link-strength tl [0.5 0.0]))
+  ([tl old-strength]
+  (let [prio-me (concept-priority (:id @state))
+        prio-other (concept-priority tl)
+        association (t-and prio-me prio-other)
+        disassocation (t-and prio-me (- 1.0 prio-other))]
+    (revision [0.0 disassocation] (revision old-strength [1.0 association])))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn update-termlink [tl]                                  ;term
+  (let [old-strength ((:termlinks @state) tl)]
+    (add-termlink tl (calc-link-strength tl old-strength))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn use-stronger [t1 t2]
   (let [all-keys (set/union (map first t1) (map first t2))]
     (apply merge (for [k all-keys]
@@ -7220,8 +7238,8 @@ increased-belief-budget-by-question</p>
                                  0.0)))
         newtermlinks (use-stronger (apply merge
                                    (for [tl (get-linkable-terms task)] ;prefer existing termlinks strengths
-                                     {tl [(* (first termlink-default-budget)
-                                             (concept-prio tl)) (second termlink-default-budget)]}))
+                                     {tl (calc-link-strength tl) #_[(* (first termlink-default-budget)
+                                                                                                         (concept-prio tl)) (second termlink-default-budget)]}))
                             (:termlinks @state))
         valid-links (select-keys newtermlinks (get-existing-terms-from-links newtermlinks))];only these keys which exist in concept bag
     (set-state! (merge @state {:termlinks valid-links}))))</pre></td></tr><tr><td class="docs"><p>Link growth by contextual relevance of the inference and the result, as well as usefulness of the result.</p>
@@ -7233,34 +7251,21 @@ increased-belief-budget-by-question</p>
           truth-quality (if (:truth derived-task)
                  (truth-to-quality (:truth derived-task))
                  (w2c 1.0))
-          quality (/ truth-quality complexity)
+          #_quality #_(/ truth-quality complexity)
+          truth-quality-to-confidence (* truth-quality 1.0)
           [result-concept _]  (b/get-by-id @c-bag (:statement derived-task))
-          activation (:priority result-concept)
-          [p d] ((:termlinks @state) belief-concept-id)]
-      (when (and p d truth-quality)
-        (add-termlink belief-concept-id [(t-or p (t-or quality activation))
-                                         (t-or d quality)])))
-    (catch Exception e () #_(println &quot;fail&quot;))))</pre></td></tr><tr><td class="docs"><p>Further strengthen a termlink</p>
-</td><td class="codes"><pre class="brush: clojure">(defn strengthen-termlink
-  [link-strength]
-  [(t-or (first link-strength) (first concept-selection-introduced-termlink-default-budget))
-   (max (second link-strength) (second concept-selection-introduced-termlink-default-budget))])</pre></td></tr><tr><td class="docs"><p>Strenghten a termlink as used by the temporal linkage principle.</p>
-</td><td class="codes"><pre class="brush: clojure">(defn get-strengthened-termlink
-  [link-strength]
-  (if link-strength
-    (strengthen-termlink link-strength)
-    concept-selection-introduced-termlink-default-budget))</pre></td></tr><tr><td class="docs"><p>Relative forgetting of a termlink</p>
-</td><td class="codes"><pre class="brush: clojure">(defn forget-termlink
-  [term]
-  (let [[p d] ((:termlinks @state) term)
-        new-budget [(* p d) d]]
-    (set-state! (assoc-in @state [:termlinks term] new-budget))))</pre></td></tr><tr><td class="docs"><p>Get the link endpoints, namely the concepts which the concept links to: their id as well as priority.</p>
+          #_activation #_(:priority result-concept)
+          [f c] ((:termlinks @state) belief-concept-id)]
+      (when (and f c (:truth derived-task)) ;just revise by using the truth value directly
+        ;as evidence for the usefulness
+        (add-termlink belief-concept-id [1.0 truth-quality-to-confidence])))
+    (catch Exception e () #_(println &quot;fail&quot;))))</pre></td></tr><tr><td class="docs"><p>Get the link endpoints, namely the concepts which the concept links to: their id as well as priority.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn get-termlink-endpoints
   []
   (let [initbag (b/default-bag concept-max-termlinks)]
     (try
       (reduce (fn [a b] (b/add-element a b)) initbag (for [[k v] (:termlinks @state)]
-                                                      {:priority (t-or (first v)
+                                                      {:priority (+ (expectation v)
                                                                        (:priority (first (b/get-by-id @c-bag k))))
                                                        :id       k}))
       (catch Exception e (print &quot;&quot;)
@@ -7273,7 +7278,7 @@ increased-belief-budget-by-question</p>
     ;now select an element from this bag
     (if (and resbag (pos? (b/count-elements resbag)))
       (let [[beliefconcept _] (b/get-by-index resbag (selection-fn (b/count-elements resbag)))]
-        (forget-termlink (:id beliefconcept))               ;apply forgetting for termlinks only on selection
+        #_(forget-termlink (:id beliefconcept))               ;apply forgetting for termlinks only on selection
         (get-ref-from-term (:id beliefconcept)))
       nil)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#narjure.narsese" name="narjure.narsese"><h1 class="project-name">narjure.narsese</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns narjure.narsese
@@ -8348,7 +8353,9 @@ increased-belief-budget-by-question</p>
                              px (pxfun ratio)
                              py (pyfun ratio)
                              priority (:priority elem)
-                             quality (:quality ((:elements-map (deref c-bag)) id))]
+                             show-concept ((:elements-map (deref c-bag)) id)
+                             quality (:quality show-concept)
+                             observable (:observable show-concept)]
                          (when (try
                                  (and
                                    (every? (fn [x] (.contains (narsese-print id) x))
@@ -8360,27 +8367,31 @@ increased-belief-budget-by-question</p>
                                  (catch Exception e false))
                            {:name          (str &quot;\n&quot; (narsese-print id)
                                                 (if (= id @selected-concept)
-                                                  (str &quot;\nfilter: &quot; @task-filter &quot;priority: &quot; priority &quot; &quot; &quot;quality: &quot; quality &quot; &quot;
-                                                       &quot;truth: &quot; (:truth (lense-max-statement-confidence-projected-to-now id :belief nil)) &quot; &quot;
-                                                       &quot;desire: &quot; (:truth (lense-max-statement-confidence-projected-to-now id :goal nil)) &quot;\n&quot;
-                                                       (bag-format
-                                                         (limit-string (narsese-print (apply vector
-                                                                                             (if @link-labels
-                                                                                               (bagfilter task-filter (:elements-map (@lense-taskbags id)))
-                                                                                               (let [curbag (@lense-taskbags id)
-                                                                                                     pindex (:priority-index curbag)]
-                                                                                                 (map (fn [has-id]
-                                                                                                        (let [task (:task (first (b/get-by-id curbag (:id has-id))))]
-                                                                                                          (assoc has-id :truth (:truth task)
-                                                                                                                        :occurrence (if (= (:occurrence task) :eternal)
-                                                                                                                                      :eternal
-                                                                                                                                      (- (:occurrence task) @nars-time))
-                                                                                                                        :quality (nth (:budget task) 2)
-                                                                                                                        :solution (when (:solution task)
-                                                                                                                                    {:statement (:statement (:solution task))
-                                                                                                                                     :truth (:truth (:solution task))
-                                                                                                                                     :occurrence (:occurrence (:solution task))}))))
-                                                                                                      (bagfilter task-filter (:priority-index (@lense-taskbags id)))))))) 20000)))))       ;&quot;\n&quot; @lense-termlinks
+                                                  (let [truth  (:truth (lense-max-statement-confidence-projected-to-now id :belief nil))
+                                                        desire (:truth (lense-max-statement-confidence-projected-to-now id :goal nil))]
+                                                    (str &quot;\nfilter: &quot; @task-filter &quot;priority: &quot; priority &quot; &quot; &quot;quality: &quot; quality &quot; &quot;
+                                                        (when truth &quot;truth: &quot; truth &quot; &quot;)
+                                                        (when desire &quot;desire: &quot; desire &quot; &quot;)
+                                                         (when observable &quot;observable&quot;)
+                                                         &quot;\n&quot;
+                                                        (bag-format
+                                                          (limit-string (narsese-print (apply vector
+                                                                                              (if @link-labels
+                                                                                                (bagfilter task-filter (:elements-map (@lense-taskbags id)))
+                                                                                                (let [curbag (@lense-taskbags id)
+                                                                                                      pindex (:priority-index curbag)]
+                                                                                                  (map (fn [has-id]
+                                                                                                         (let [task (:task (first (b/get-by-id curbag (:id has-id))))]
+                                                                                                           (assoc has-id :truth (:truth task)
+                                                                                                                         :occurrence (if (= (:occurrence task) :eternal)
+                                                                                                                                       :eternal
+                                                                                                                                       (- (:occurrence task) @nars-time))
+                                                                                                                         :quality (nth (:budget task) 2)
+                                                                                                                         :solution (when (:solution task)
+                                                                                                                                     {:statement  (:statement (:solution task))
+                                                                                                                                      :truth      (:truth (:solution task))
+                                                                                                                                      :occurrence (:occurrence (:solution task))}))))
+                                                                                                       (bagfilter task-filter (:priority-index (@lense-taskbags id)))))))) 20000))))))       ;&quot;\n&quot; @lense-termlinks
                             :px            px
                             :py            py
                             :displaysize   1.0
@@ -8393,9 +8404,10 @@ increased-belief-budget-by-question</p>
                                              (reset! selected-concept id))})))
                edges (for [n nodes
                            [k [freq conf]] (@lense-termlinks (:id n))]
-                       (let [disttomiddle (Math/abs (- 0.5 freq))
-                             rterm (/ (if (&gt;= freq 0.5) (* 510.0 disttomiddle) 0.0) 2.0)
-                             bterm (/ (if (&lt; freq 0.5) (* 510.0 disttomiddle) 0.0) 2.0)]
+                       (let [red-blue-border 0.5
+                             disttomiddle (Math/abs (- 0.5 freq))
+                             rterm (/ (if (&gt;= freq red-blue-border) (* 510.0 disttomiddle) 0.0) 2.0)
+                             bterm (/ (if (&lt; freq red-blue-border) (* 510.0 disttomiddle) 0.0) 2.0)]
                          {:from                 (:id n)
                           :to                   k :unidirectional true
                           :no-in-picture-check true

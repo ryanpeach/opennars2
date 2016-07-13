@@ -3045,8 +3045,8 @@ net.brehaut.ClojureTools = (function (SH) {
                        :budget     (:budget goal)
                        :task-type  :goal
                        :sc (syntactic-complexity statement)}]
-         #_(println (str &quot;based on &quot; (best-option :debug-belief)))
-         #_(println (str &quot;operator selector sending to task-creator &quot; (:statement new-task) (:truth new-task) (expectation (:truth new-task))))
+         (println (str &quot;based on &quot; (best-option :debug-belief)))
+         (println (str &quot;operator selector sending to task-creator &quot; (:statement new-task) (:truth new-task) (expectation (:truth new-task))))
          (when (&gt; (expectation (:truth new-task)) decision-threshold)
            ;create prediction for consequence:
            (let [

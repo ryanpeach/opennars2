@@ -2947,8 +2947,8 @@ net.brehaut.ClojureTools = (function (SH) {
         el {:id       (:id state)
             :priority (max p new-q)
             :quality new-q
-            :observable (:observable state)
             :ref      self
+            :observable (:observable state)
             :strongest-belief-about-now (max-statement-confidence-projected-to-now state :belief nil)
             :strongest-desire-about-now (max-statement-confidence-projected-to-now state :goal nil)
             :strongest-belief-event-about-now (max-statement-confidence-projected-to-now state :belief :event)
