@@ -13,3 +13,4 @@
 <<$1 --> (/,livingIn,_,{graz})> ==> <$1 --> murder>>.
 'who is the murder?
 <{?who} --> murder>?
+ 
