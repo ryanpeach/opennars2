@@ -62,7 +62,7 @@
 (defn confirmable-observable?
   "Is the task observable and derived so potentially predicted?"
   [task]
-  (and (:observable @state) (not= (:occurrence task) :eternal)
+  (and #_(:observable @state) (not= (:occurrence task) :eternal)
        (= (:source task) :derived)))
 
 (defn create-anticipation-task
@@ -127,7 +127,7 @@
   "Process a belief: revise and put into the task bag, check whether it answers a question, and manage anticipations."
   [state task cnt]
     ;also allow revision in subterm concepts! this is why statement is compared to task statement, not to ID!!
-  (when (not (and (= (:statement task) (:id @state))
+  (when true #_(not (and (= (:statement task) (:id @state))
                   (:observable @state)
                   (= (:task-type task) :belief)
                   (= (:occurrence task) :eternal)))
@@ -146,7 +146,7 @@
 
     ; processing revised anticipations
 
-  (when (and (event? task) (= (:source task) :input) (belief? task))
+  (when (and (event? task) #_(= (:source task) :input) (belief? task))
     (when (pos? (count (:anticipations @state)))
       (doseq [[id anticipation] (:anticipations @state)]  ;{task-id task task-id2 task2}
 

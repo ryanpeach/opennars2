@@ -107,7 +107,7 @@
              (println "concept ballpos equ goal processed")))
 
   ;1.: find all beliefs that predict the goal ''=/> =|>  <|> </>''
-  (when (and (= (:occurrence goal) :eternal)
+  (when true #_(and (= (:occurrence goal) :eternal)
              (= (:id @state) (:statement goal)))
 
     #_(when (and (= (:task-type goal) :goal)
@@ -150,7 +150,7 @@
                                                                  belief))
                                          (let [precondition (unificaton-map '?precondition)
                                                [precondition-concept bag] (b/get-by-id @c-bag precondition)
-                                               strongest-belief-about-now (project-eternalize-to @nars-time (:strongest-belief-about-now precondition-concept) @nars-time)]
+                                               strongest-belief-about-now (project-eternalize-to @nars-time (:strongest-belief-event-about-now precondition-concept) @nars-time)]
                                            (when (and precondition-concept
                                                       (:truth strongest-belief-about-now)
                                                       (:truth belief))
