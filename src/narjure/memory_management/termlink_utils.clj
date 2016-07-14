@@ -69,7 +69,7 @@
 
 (defn update-termlink [tl]                                  ;term
   (let [old-strength ((:termlinks @state) tl)]
-    (add-termlink tl (calc-link-strength tl old-strength))))
+    (add-termlink tl (calc-link-strength tl (if old-strength old-strength [0.5 1.0])))))
 
 (defn use-stronger [t1 t2]
   (let [all-keys (set/union (map first t1) (map first t2))]
