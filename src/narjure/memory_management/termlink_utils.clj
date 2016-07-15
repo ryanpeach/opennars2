@@ -140,5 +140,5 @@
     (if (and resbag (pos? (b/count-elements resbag)))
       (let [[beliefconcept _] (b/get-by-index resbag (selection-fn (b/count-elements resbag)))]
         #_(forget-termlink (:id beliefconcept))               ;apply forgetting for termlinks only on selection
-        (get-ref-from-term (:id beliefconcept)))
+        [(:id beliefconcept) (get-ref-from-term (:id beliefconcept))])
       nil)))
