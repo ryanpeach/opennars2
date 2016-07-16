@@ -63,9 +63,11 @@
   ([tl old-strength]
   (let [prio-me (concept-priority (:id @state))
         prio-other (concept-priority tl)
+        evidence-mul 0.5
         association (t-and prio-me prio-other)
         disassocation (t-and prio-me (- 1.0 prio-other))]
-    (revision [0.0 disassocation] (revision old-strength [1.0 association])))))
+    (revision [0.0 (* evidence-mul disassocation)]
+              (revision old-strength [1.0 (* evidence-mul association)])))))
 
 (defn update-termlink [tl]                                  ;term
   (let [old-strength ((:termlinks @state) tl)]
