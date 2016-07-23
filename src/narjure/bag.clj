@@ -47,20 +47,33 @@
   Bag
   (add-element [bag {:keys [id priority] :as element}]
     "Adds a bag element to the bag"
-    (let [add-element-nonrecursive-doesnt-exist (fn [bag {:keys [id priority] :as element}]
-                         (let [priority-index' (conj priority-index (el id priority))
-                               element-map' (assoc elements-map id element)]
-                           (->DefaultBag priority-index' element-map' capacity)))]
-      (let [cnt (count priority-index)]
-        (if (exists? bag id)
-          (update-element bag element)
-          (if (>= cnt capacity)
-            (if (<= (:priority (nth priority-index (dec cnt)));if same priority, still prefer the new one.
-                    priority)                                ;if new element has lower priority than the lowest,
-              (let [[_ bag'] (pop-element bag)]               ;then don't even attempt to add the new element.
-                (add-element-nonrecursive-doesnt-exist bag' element))
-              bag)
-            (add-element-nonrecursive-doesnt-exist bag element))))))
+    (let [cnt (count priority-index)]
+      (if (exists? bag id)
+        (update-element bag element)
+        (if (>= cnt capacity)
+          (if (<= (:priority (nth priority-index (dec cnt)));if same priority, still prefer the new one.
+                  priority)                                ;if new element has lower priority than the lowest,
+            (let [[_ bag'] (pop-element bag)]               ;then don't even attempt to add the new element.
+              (add-element bag' element))
+            bag)
+          (let [priority-index' (conj priority-index (el id priority))
+                element-map' (assoc elements-map id element)]
+            (->DefaultBag priority-index' element-map' capacity))))))
+
+  (add-element [bag {:keys [id priority] :as element}]
+    "Adds a bag element to the bag"
+    (let [cnt (count priority-index)]
+      (if (exists? bag id)
+        (update-element bag element)
+        (if (>= cnt capacity)
+          (if (<= (:priority (nth priority-index (dec cnt)));if same priority, still prefer the new one.
+                  priority)                                ;if new element has lower priority than the lowest,
+            (let [[_ bag'] (pop-element bag)]               ;then don't even attempt to add the new element.
+              (add-element bag' element))
+            bag)
+          (let [priority-index' (conj priority-index (el id priority))
+                element-map' (assoc elements-map id element)]
+            (->DefaultBag priority-index' element-map' capacity))))))
 
 
 
