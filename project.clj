@@ -6,6 +6,7 @@
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/core.logic "0.8.10"]
                  [instaparse "1.4.1"]
+                 [aleph "0.4.1"]
                  [com.rpl/specter "0.9.1"]
                  [org.clojure/tools.nrepl "0.2.12"]
                  [org.clojure/data.priority-map "0.0.7"]
