@@ -84,7 +84,7 @@ $invalid")
   [op_name args operationgoal]
   ; First, create the key we will use for this particular call
   (let [id (new-uuid)
-        k (rm-white (str id ":?:" op_name "@-|" (cstr/join "," args) "|-@" operationgoal))]
+        k (rm-white (str id ":<:" op_name ":<:" (cstr/join ":<:" args) ":<:" operationgoal))]
   ; First, add a channel for yourself
   (swap! waiting conj [k (chan)])
   ; Then, send the message requesting an answer
