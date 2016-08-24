@@ -1,13 +1,10 @@
 (ns examples.interface
   (:require [aleph.tcp :as tcp]
-            [narjure.global-atoms :refer :all]
-            [narjure.core :as nar]
-            [narjure.sensorimotor :refer :all]
-            [clojure.string :as :cstr]
-            [clojure.core.async
-             :as a
-             :refer [>! <! >!! <!! go chan buffer close! thread
-                     alts! alts!! timeout]])
+            ;[narjure.global-atoms :refer :all]
+            ;[narjure.core :as nar]
+            ;[narjure.sensorimotor :refer :all]
+            [clojure.string :as cstr]
+            [clojure.core.async :refer [>! <! >!! <!! chan go]])
   (:gen-class))
 
 ; The help dialogue for the server
@@ -32,8 +29,12 @@ Client Response:
 $op_name $t/f$ & ret
 $invalid")
 
-(defn echo-handler [s info]
-  (s/connect s s))
+; ID & Dividers
+(defn newid [] (str (java.util.UUID/randomUUID)))
+(def IN ":>:")
+(def OUT ":<:")
+(def CONFIRMED "confirmed")
+(def INVALID "invalid")
 
 ; Support functions
 (defn exists?
@@ -49,94 +50,35 @@ $invalid")
   ([f l]
   (not (some (complement f) l))))
 
-; Communication 
-(defn sendTCP
+; Communication
+(def writer (chan))
+(defn sendCMD
   "Sends string over TCP, returns boolean success."
-  [string]
-  (do 
-    (println (str "Sending: " string))
-    (println string)
-    true))
-  
+  ([op]
+  (recur (newid) op))
+  ([id op]
+  (let [msg (str id OUT op)]
+    (println (str "Sending: " msg))
+    (>! writer msg)))
+  ([id op & args]
+  (let [msg (str id OUT op OUT (cstr/join OUT args))] 
+    (println (str "Sending: " msg))
+    (>! writer msg))))
+
 (defn confirm
   "Quick function to send confirmation or error as a response given boolean input."
-  [success]
-  (if success
-    (sendTCP "*confirmed")
-    (sendTCP "*invalid")))
-
-(defn parse-in
-  "Prints the string as received and splits it in two."
-  [string] (do 
-    (println (str "Received: " string))
-    (cstr/split string #" " 2)))
-
-(def error (partial confirm false))
-
-; Some string functions
-(defn rm-white [s] (apply str (filter #(not (= \space %)) (into [] s))))
-(defn new-uuid [] (str (java.util.UUID/randomUUID)))
-
-; Asyncronous listening function
-(def waiting (atom {}))
-(defn new_op_template
-  "Used as the template to define new operations in narsee over the server."
-  [op_name args operationgoal]
-  ; First, create the key we will use for this particular call
-  (let [id (new-uuid)
-        k (rm-white (str id ":<:" op_name ":<:" (cstr/join ":<:" args) ":<:" operationgoal))]
-  ; First, add a channel for yourself
-  (swap! waiting conj [k (chan)])
-  ; Then, send the message requesting an answer
-  (sendTCP k)
-  ; Then wait for a reply
-  (let [[tf & extra] (<!! (get waiting id))]
-  ; When done, delete yourself from waiting
-  (swap! waiting dissoc k)
-  ; Then, process extra as narsee
-  (if (all? (map receive-narsee extra))
-      (sendTCP "*confirmed")
-      (sendTCP "*invalid_narsee"))
-  ; And return true or false
-  tf)))
-
-(defn new_op
-  "Register a new operation."
-  [op_name]
+  [id success]
   (do 
-  (nars-register-operation (partial new_op_template op_name))
-  (confirm true))
+    (if success
+      (sendCMD id CONFIRMED)
+      (sendCMD id INVALID))
+  success)
 
-(defn classify
-  [input]
-  (let [sp (cstr/split " " input 2)
-        ans (cstr/split ":>:" input)]
-  (cond
-    (> (count ans) 1) (apply answ-question ans)
-    (= (count sp) 2)  (apply handle-double sp)
-    (= (count sp) 1)  (apply handle-single sp)
-    :else             nil)))
-  
-(defn handle-single
-  "Handles client statements."
-  [input]
-    (case input
-      "!Quit" (println "Quitting...")
-      (error)))
-    
-(defn handle-double
-  "Handles complex client statements."
-  [command args]
-  (case command
-    "!echo" (println args)
-    (error)))
-  
-(defn answer-question
-  "Specifically handles answers."
-  [id tf & extra]
-  (>!! (get waiting id) (into [tf] extra))) ; put [tf & extra] onto channel in waiting at key id
+; Automatic true/false
+(def error (partial confirm false))
+(def conf  (partial confirm true))
 
-; Setup Narjure
+; Narsese Input
 (defn parse-narsese
   "Input the received Narsese into the system."
   [string]
@@ -146,26 +88,83 @@ $invalid")
       (println (str "NARS hears " string))
       true)
     (catch Exception e false)))
+  
+; Asyncronous listening function
+(def waiting (atom {}))
+(defn new_op_template
+  "Used as the template to define new operations in narsee over the server."
+  [op_name args operationgoal]
+  ; First, create the key we will use for this particular call
+  (let [id (newid)
+        comb (into args operationgoal)]
+  ; First, add a channel for yourself
+  (swap! waiting conj [id (chan)])
+  ; Then, send the message requesting an answer
+  (apply sendCMD (into [id op_name] comb))
+  ; Then wait for a reply
+  (let [[tf & extra] (<!! (get waiting id))]
+  ; When done, delete yourself from waiting
+  (swap! waiting dissoc id)
+  ; Then, process extra as narsee, and return true or false
+  (if (exists? tf ["True" "true" "t" "T" "1" "1." "1.0"])
+      (confirm id (all? (map parse-narsese extra)))
+      false))))
 
-(defn list-to-narsee [l]
-  (let [success (map parse-narsee l)] (all? success))
+(defn new_op
+  "Register a new operation."
+  [op_name]
+  (nars-register-operation (partial new_op_template op_name)))
+  
+(defn answer-question
+  "Specifically handles answers."
+  [id tf & extra]
+  (>!! (get waiting id) (into [tf] extra))) ; put [tf & extra] onto channel in waiting at key id
 
+; Read Loop
+(defn parse-in
+  "Prints the string as received and splits it in two."
+  [string] (do 
+    (println (str "Received: " string))
+    (map cstr/trim (cstr/split string #IN)))
+
+(defn process-in
+  [id op & args]
+  (case op
+    "new-op" (confirm id (new_op (get args 0)))
+    "answer" (confirm id (apply answer-question (into [id] args)))
+    "input"  (confirm id (all? (map parse-narjure args)))
+    (confirm id false)))
+  
+(def reader (chan))
+(defn readCMD
+  "The main reading loop."
+  [] 
+  (do
+    (let [input (<! reader)]
+      (println (str "Received: " input))
+      (go (apply classify (parse-in input))))
+    (recur)))
+
+; Startup
 (defn setup-nars
   "Registers the operation and answer handler"
   []
+  (do 
   (nars-register-operation 'op_say (fn [args operationgoal]
-                                      (let [msg (str "?say " args)]
-                                        (sendTCP msg)
-                                        true)))
+                                      (let [allargs (conj args operationgoal)
+                                            total   (into [(newid) "say"] allargs)]
+                                      (apply sendCMD total))))
   (nars-register-answer-handler (fn [task solution]
-                                  (let [msg (str "?answ " (narsese-print (:statement task)) "? " (task-to-narsese solution))]
-                                    (sendTCP msg)))))
-    
+                                  (let [taskn (str (narsese-print (:statement task)) "?")
+                                        soln  (str (task-to-narsese solution))]
+                                    (sendCMD (newid) "answer" taskn soln))))
+  ))
+
 (defn -main [& args]
   (println "Connecting...")
   (tcp/start-server echo-handler {:port 10001})
   (setup-nars)
-  (repl)
+  (go readT)
   
   ;(if (not (exists? "--nogui" args))
   ;  (lense/-main)
