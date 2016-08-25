@@ -130,6 +130,22 @@ $invalid")
   [id tf & extra]
   (>!! (get waiting id) (into [tf] extra))) ; put [tf & extra] onto channel in waiting at key id
 
+; Copied from ircbot
+(defn concept
+  "Show a concept"
+  [concept-str]
+  (try
+    (let [statement (parse2 (str concept-str "."))]
+      (dissoc
+        (first (narjure.bag/get-by-id @c-bag (:statement statement)))
+        :ref))
+    (catch Exception e (str "Invalid narsese " concept-str))))
+
+(defn concepts
+  "Show all the concepts"
+  []
+  (:priority-index @c-bag))
+
 ; Read Loop
 (defn parse-in
   "Prints the string as received and splits it in two."
@@ -140,10 +156,13 @@ $invalid")
 (defn process-in
   [id op & args]
   (case op
-    "new-op" (confirm id (new_op (get args 0)))
-    "answer" (confirm id (apply answer-question (into [id] args)))
-    "input"  (confirm id (all? (map parse-narsese args)))
-    (confirm id false)))
+    "new-op"   (confirm id (new_op (get args 0)))
+    "answer"   (confirm id (apply answer-question (into [id] args)))
+    "input"    (confirm id (all? (map parse-narsese args)))
+    "concept"  (try (sendCMD id "concept" (concept (get args 0))) (catch Exception e (error)))
+    "concepts" (sendCMD id "concepts" (concepts))
+    "help"     (sendCMD id (str HELP))
+    (error id)))
 
 (def reader (chan))
 (defn readCMD
@@ -174,9 +193,7 @@ $invalid")
   (>!! reader (str 1 IN "input" IN "<a --> b>."))
   (>!! reader (str 2 IN "input" IN "<b --> c>."))
   (>!! reader (str 3 IN "input" IN "<a --> c>?"))
-  (<!! writer)
-  (<!! writer)
-  (<!! writer)
+  (loop [] (println (<!! writer)) (recur))
   ))
 
 (defn -main [& args] (do
