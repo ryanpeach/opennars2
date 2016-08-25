@@ -122,7 +122,7 @@ $invalid")
 (defn new_op
   "Register a new operation."
   [op_name]
-  (nars-register-operation (partial new_op_template op_name)))
+  (do (nars-register-operation (partial new_op_template op_name)) true))
 
 (defn answer-question
   "Specifically handles answers."
@@ -155,12 +155,13 @@ $invalid")
 (defn process-in
   [id op & args]
   (case op
-    "new-op"   (confirm id (new_op (get args 0)))
+    "new-op"   (confirm id (all? (map new_op args)))
     "answer"   (confirm id (apply answer-question (into [id] args)))
     "input"    (confirm id (all? (map parse-narsese args)))
-    "concept"  (try (sendCMD id "concept" (concept (get args 0))) (catch Exception e (error)))
+    "concept"  (try (sendCMD id "concept" (concept (get args 0))) (catch Exception e (error id)))
     "concepts" (sendCMD id "concepts" (concepts))
     "help"     (sendCMD id (str HELP))
+    "valid"    (confirm id (all? (map valid-narsese args)))
     (error id)))
 
 (def reader (chan))
