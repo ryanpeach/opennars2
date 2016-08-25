@@ -1,6 +1,5 @@
 (ns examples.interface
   (:require [aleph.tcp :as tcp]
-            [examples.ircbot :refer [concepts concept]]
             [narjure.global-atoms :refer :all]
             [narjure.core :as nar]
             [narjure.sensorimotor :refer :all]
