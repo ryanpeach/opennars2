@@ -1,8 +1,11 @@
 (ns examples.interface
   (:require [aleph.tcp :as tcp]
-            ;[narjure.global-atoms :refer :all]
-            ;[narjure.core :as nar]
-            ;[narjure.sensorimotor :refer :all]
+            [examples.ircbot :refer [concepts concept]]
+            [narjure.global-atoms :refer :all]
+            [narjure.core :as nar]
+            [narjure.sensorimotor :refer :all]
+            [narjure.narsese :refer [parse2]]
+            [narjure.debug-util :refer :all]
             [clojure.string :as cstr]
             [clojure.core.async :refer [>! <! >!! <!! chan go]])
   (:gen-class))
@@ -14,17 +17,17 @@
 !c {string} - show concept.
 !cs - show concepts.
 !r - reset NARS.
-        
+
 Server Response:
 *answ {question} {answer}
 *invalid
 *confirmed
 *online
 *offline
-          
+
 Server Commands:
 ?say &args - execute operation
-          
+
 Client Response:
 $op_name $t/f$ & ret
 $invalid")
@@ -55,28 +58,28 @@ $invalid")
 (defn sendCMD
   "Sends string over TCP, returns boolean success."
   ([op]
-  (recur (newid) op))
+  (sendCMD (newid) op))
   ([id op]
   (let [msg (str id OUT op)]
     (println (str "Sending: " msg))
-    (>! writer msg)))
+    (go (>! writer msg))))
   ([id op & args]
-  (let [msg (str id OUT op OUT (cstr/join OUT args))] 
+  (let [msg (str id OUT op OUT (cstr/join OUT args))]
     (println (str "Sending: " msg))
-    (>! writer msg))))
+    (go (>! writer msg)))))
 
 (defn confirm
   "Quick function to send confirmation or error as a response given boolean input."
   [id success]
-  (do 
+  (do
     (if success
       (sendCMD id CONFIRMED)
       (sendCMD id INVALID))
-  success)
+  success))
 
 ; Automatic true/false
-(def error (partial confirm false))
-(def conf  (partial confirm true))
+(def error #(confirm % false))
+(def conf  #(confirm % true))
 
 ; Narsese Input
 (defn parse-narsese
@@ -88,7 +91,14 @@ $invalid")
       (println (str "NARS hears " string))
       true)
     (catch Exception e false)))
-  
+
+(defn valid-narsese
+  "Checks if input narsese is valid."
+  [string]
+  (try
+    (do (parse2 string) true)
+    (catch Exception e false)))
+
 ; Asyncronous listening function
 (def waiting (atom {}))
 (defn new_op_template
@@ -114,7 +124,7 @@ $invalid")
   "Register a new operation."
   [op_name]
   (nars-register-operation (partial new_op_template op_name)))
-  
+
 (defn answer-question
   "Specifically handles answers."
   [id tf & extra]
@@ -123,33 +133,33 @@ $invalid")
 ; Read Loop
 (defn parse-in
   "Prints the string as received and splits it in two."
-  [string] (do 
+  [string] (do
     (println (str "Received: " string))
-    (map cstr/trim (cstr/split string #IN)))
+    (map cstr/trim (cstr/split string (re-pattern IN)))))
 
 (defn process-in
   [id op & args]
   (case op
     "new-op" (confirm id (new_op (get args 0)))
     "answer" (confirm id (apply answer-question (into [id] args)))
-    "input"  (confirm id (all? (map parse-narjure args)))
+    "input"  (confirm id (all? (map parse-narsese args)))
     (confirm id false)))
-  
+
 (def reader (chan))
 (defn readCMD
   "The main reading loop."
-  [] 
+  []
   (do
-    (let [input (<! reader)]
+    (let [input (<!! reader)]
       (println (str "Received: " input))
-      (go (apply classify (parse-in input))))
-    (recur)))
+      (apply process-in (parse-in input))
+    (recur))))
 
 ; Startup
 (defn setup-nars
   "Registers the operation and answer handler"
   []
-  (do 
+  (do
   (nars-register-operation 'op_say (fn [args operationgoal]
                                       (let [allargs (conj args operationgoal)
                                             total   (into [(newid) "say"] allargs)]
@@ -160,12 +170,22 @@ $invalid")
                                     (sendCMD (newid) "answer" taskn soln))))
   ))
 
-(defn -main [& args]
-  (println "Connecting...")
-  (tcp/start-server echo-handler {:port 10001})
+(defn -test [] (do
+  (>!! reader (str 1 IN "input" IN "<a --> b>."))
+  (>!! reader (str 2 IN "input" IN "<b --> c>."))
+  (>!! reader (str 3 IN "input" IN "<a --> c>?"))
+  (<!! writer)
+  (<!! writer)
+  (<!! writer)
+  ))
+
+(defn -main [& args] (do
+  ;(println "Connecting...")
+  ;(tcp/start-server echo-handler {:port 10001})
   (setup-nars)
-  (go readT)
-  
+  (go (readCMD))
+  (-test)))
+
   ;(if (not (exists? "--nogui" args))
   ;  (lense/-main)
   ;  (set-fast-speed)
