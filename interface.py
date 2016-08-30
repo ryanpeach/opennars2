@@ -5,6 +5,11 @@ QUIT = []
 IN   = ":<:"
 OUT  = ":>:"
 
+def test_writer(address, timeout):
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client.connect((address, timeout))
+    
+
 class NARS():
     def __init__(self, address, timeout = 5000):
         self.address, self.timeout = address, timeout

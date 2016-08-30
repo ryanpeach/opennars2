@@ -1,12 +1,12 @@
 (ns examples.interface
-  (:require [aleph.tcp :as tcp]
-            [narjure.global-atoms :refer :all]
+  (:require [narjure.global-atoms :refer :all]
             [narjure.core :as nar]
             [narjure.sensorimotor :refer :all]
             [narjure.narsese :refer [parse2]]
             [narjure.debug-util :refer :all]
             [clojure.string :as cstr]
-            [clojure.core.async :refer [>! <! >!! <!! chan go]])
+            [clojure.core.async :refer [>! <! >!! <!! chan go]]
+            [examples.tcp.server :refer :all])
   (:gen-class))
 
 ; The help dialogue for the server
@@ -39,6 +39,11 @@
 (def OUT ":<:")
 (def CONFIRMED "confirmed")
 (def INVALID "invalid")
+(def PORT 8080)
+(def RUNNING (atom true))
+(def WAITING (atom {}))
+(def READER (chan))
+(def WRITER (chan))
 
 ; Support functions
 (defn replace-with
@@ -47,7 +52,6 @@
     (map r l)))                    ; return the mapping of r onto l
 
 ; Communication
-(def writer (chan))
 (defn sendCMD
   "Sends string over TCP, returns boolean success."
   ([op]
@@ -55,11 +59,11 @@
   ([id op]
   (let [msg (str id OUT op)]
     (println (str "Sending: " msg))
-    (go (>! writer msg))))
+    (go (>! WRITER msg))))
   ([id op & args]
   (let [msg (str id OUT op OUT (cstr/join OUT args))]
     (println (str "Sending: " msg))
-    (go (>! writer msg)))))
+    (go (>! WRITER msg)))))
 
 (defn confirm
   "Quick function to send confirmation or error as a response given boolean input."
@@ -93,7 +97,6 @@
     (catch Exception e false)))
 
 ; Asyncronous listening function
-(def waiting (atom {}))
 (defn new_op_template
   "Used as the template to define new operations in narsee over the server."
   [op_name args operationgoal]
@@ -101,13 +104,13 @@
   (let [id (newid)
         comb (conj [operationgoal] args)]
   ; First, add a channel for yourself
-  (swap! waiting conj [id (chan)])
+  (swap! WAITING conj [id (chan)])
   ; Then, send the message requesting an answer
   (apply sendCMD (into [id op_name] comb))
   ; Then wait for a reply
-  (let [[tf & extra] (<!! (get waiting id))]
+  (let [[tf & extra] (<!! (get WAITING id))]
   ; When done, delete yourself from waiting
-  (swap! waiting dissoc id)
+  (swap! WAITING dissoc id)
   ; Then, process extra as narsee, and return true or false
   ()
 
@@ -131,7 +134,7 @@
   (let [tf (string-to-bool tfstr)]
   (if (not (every? identity (map valid args)))
     (error id)
-    (do (>!! (get waiting id) (into [tf] args)) true))))
+    (do (>!! (get WAITING id) (into [tf] args)) true))))
   
 ; Copied from ircbot
 (defn concept
@@ -154,12 +157,11 @@
   ([& args] (concepts args)))            ; can take them either as a list or as a bunch of items
   
 ; Read Loop
-(def running (atom true))
 (defn quit
   "Quits everything"
   []
   (nar/shutdown)
-  (swap! running not)
+  (swap! RUNNING not)
   true)
 
 (defn reset-nars
@@ -178,25 +180,25 @@
 (defn process-in
   [id op & args]
   (case op
-    "new-op"     (sendCMD (into [id "new-op"] (map new-op args)))
-    "input"      (sendCMD (into [id "input"] (map input-narsese args)))
-    "valid"      (sendCMD (into [id "valid"] (map valid-narsese args)))
-    "concept"    (sendCMD (into [id "concept"] (concepts args)))
-    "concepts"   (sendCMD (into [id "concept"] (concepts)))
+    "new-op"     (apply sendCMD (into [id "new-op"] (map new-op args)))
+    "input"      (apply sendCMD (into [id "input"] (map input-narsese args)))
+    "valid"      (apply sendCMD (into [id "valid"] (map valid-narsese args)))
+    "concept"    (apply sendCMD (into [id "concept"] (concepts args)))
+    "concepts"   (apply sendCMD (into [id "concept"] (concepts)))
     "help"       (sendCMD id "help" (str HELP))
     "reset"      (confirm id (reset-nars))
     "quit"       (confirm id (quit))
     "answer"     (confirm id (apply answer-question (into [id] args)))
     (error id)))
 
-(def reader (chan))
+; Main Read Loop
 (defn readCMD
   "The main reading loop."
   []
-  (let [input (<!! reader)]
-    (println (str "Received: " input))
-    (apply process-in (parse-in input)))
-  (if (@running) (recur) (nil)))
+  (let [input (<!! READER)]
+  (println (str "Received: " input))
+  (apply process-in (parse-in input)))
+  (if @RUNNING (recur) (println "Quitting")))
 
 ; Startup
 (defn setup-nars
@@ -218,13 +220,21 @@
   (>!! reader (str 3 IN "input" IN "<a --> c>?"))
   (loop [] (println (<!! writer)) (recur)))
 
-(defn -main [& args] (do
-  ;(println "Connecting...")
-  ;(tcp/start-server echo-handler {:port 10001})
-  (setup-nars)
-  (go (readCMD))
-  (-test)))
-
-  ;(if (not (exists? "--nogui" args))
-  ;  (lense/-main)
-  ;  (set-fast-speed)
+(defn -main [& args]
+  ; Get port number from args
+  (let [PORT (if (empty? args)
+                 8080
+                 (first args))]
+  
+    ; Initialize server to connect with COMM channel
+    (start-server 
+      (fn [s info]
+        (s/connect s READER)
+        (s/connect WRITER s))
+      PORT)
+    
+    ; Setup nars answer-handler and new-op function
+    (setup-nars)
+    
+    ; Start read loop
+    (go (readCMD))))
