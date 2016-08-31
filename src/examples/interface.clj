@@ -8,7 +8,7 @@
             [clojure.core.async :refer [>! <! >!! <!! chan go]]
             [examples.tcp.server :refer :all])
   (:gen-class))
-
+ 
 ; The help dialogue for the server
 (def predefined-ops ["new-op" "input" "valid" "concept" "concepts"
                      "help" "reset" "quit" "answer" "say" CONFIRMED INVALID IN OUT])
