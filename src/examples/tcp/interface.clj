@@ -1,49 +1,61 @@
-(ns examples.interface
+(ns examples.tcp.interface
   (:require [narjure.global-atoms :refer :all]
             [narjure.core :as nar]
             [narjure.sensorimotor :refer :all]
             [narjure.narsese :refer [parse2]]
             [narjure.debug-util :refer :all]
+            [manifold.stream :as s]
             [clojure.string :as cstr]
             [clojure.core.async :refer [>! <! >!! <!! chan go]]
             [examples.tcp.server :refer :all])
   (:gen-class))
- 
+
 ; The help dialogue for the server
-(def predefined-ops ["new-op" "input" "valid" "concept" "concepts"
-                     "help" "reset" "quit" "answer" "say" CONFIRMED INVALID IN OUT])
-(def HELP 
+(def HELP
 "
         Client Querys                       |         Expected Reply
        op    |       args                   |     op     |          args
-1.  new-op   | opname1 opname2...           | new-op     | success1? success2?... 
+1.  new-op   | opname1 opname2...           | new-op     | success1? success2?...
 2.  input    | narsese1 narsese2...         | input      | success1? success2?...
 3.  valid    | narsese1 narsese2...         | valid      | tf1 tf2...
-4.  concept  | narsese1 narsese2...         | concept    | conceptstr1/invalid conceptstr2/invalid... 
+4.  concept  | narsese1 narsese2...         | concept    | conceptstr1/invalid conceptstr2/invalid...
 5.  concepts |                              | concept    | conceptstr1 conceptstr2...
 6.  help     |                              | help       | helpstring
 7.  reset    |                              | confirmed? |
 8.  quit     |                              | confirmed? |
 9.  answer   | success? return1 return2...  | confirmed? |
 
-        Server Querys                       |         Expected Reply                   
+        Server Querys                       |         Expected Reply
        op    |       args                   |     op     |          args
-9.  op-name  | arg1 arg2...                 | answer     | success? return1 return2... 
+9.  op-name  | arg1 arg2...                 | answer     | success? return1 return2...
 10. say      | narsese                      |            |
 11. answer   | task solution                |            |
 ")
 
 ; ID & Dividers
 (defn newid [] (str (java.util.UUID/randomUUID)))
-(def IN ":>:")
-(def OUT ":<:")
+(def IN ":<:")
+(def OUT ":>:")
 (def CONFIRMED "confirmed")
 (def INVALID "invalid")
-(def PORT 8080)
 (def RUNNING (atom true))
 (def WAITING (atom {}))
-(def READER (chan))
+(def predefined-ops ["new-op" "input" "valid" "concept" "concepts"
+                     "help" "reset" "quit" "answer" "say" CONFIRMED INVALID IN OUT])
+
+; Server
 (def WRITER (chan))
+(def READER (chan))
+(def PORT (if (empty? *command-line-args*)
+              8080
+              (first *command-line-args*)))
+
+(def SERVER (start-server
+  (fn [s info]
+    (println (str "New Connection: " info))
+    (s/connect s READER)
+    (s/connect WRITER s))
+  PORT))
 
 ; Support functions
 (defn replace-with
@@ -57,11 +69,11 @@
   ([op]
   (sendCMD (newid) op))
   ([id op]
-  (let [msg (str id OUT op)]
+  (let [msg (str id OUT op "\n")]
     (println (str "Sending: " msg))
     (go (>! WRITER msg))))
   ([id op & args]
-  (let [msg (str id OUT op OUT (cstr/join OUT args))]
+  (let [msg (str id OUT op OUT (cstr/join OUT args) "\n")]
     (println (str "Sending: " msg))
     (go (>! WRITER msg)))))
 
@@ -112,13 +124,13 @@
   ; When done, delete yourself from waiting
   (swap! WAITING dissoc id)
   ; Then, process extra as narsee, and return true or false
-  ()
+  (and (map input-narsese args)))))
 
 (defn new-op
   "Register a new operation."
   [op_name]
   (if (not (some #{op_name} predefined-ops))
-    (do 
+    (do
       (nars-register-operation (partial new_op_template op_name))
       true)
     (false)))
@@ -132,10 +144,10 @@
   "Specifically handles answers."
   [id tfstr & args]
   (let [tf (string-to-bool tfstr)]
-  (if (not (every? identity (map valid args)))
+  (if (not (every? identity (map valid-narsese args)))
     (error id)
     (do (>!! (get WAITING id) (into [tf] args)) true))))
-  
+
 ; Copied from ircbot
 (defn concept
   "Show a concept"
@@ -153,15 +165,16 @@
   (:priority-index @c-bag))              ; get all concepts. FIXME: Is this a list?
   ([args]
   (let [returns (map concept args)]      ; get a list containing each concept or an error
-    (replace-with returns not INVALID))) ; replace errors with INVALID and return 
-  ([& args] (concepts args)))            ; can take them either as a list or as a bunch of items
-  
+    (replace-with returns not INVALID))) ; replace errors with INVALID and return
+  ([arg0 & args] (apply concepts (into [arg0] args))))            ; can take them either as a list or as a bunch of items
+
 ; Read Loop
 (defn quit
   "Quits everything"
   []
   (nar/shutdown)
   (swap! RUNNING not)
+  (.close SERVER)
   true)
 
 (defn reset-nars
@@ -174,7 +187,7 @@
 (defn parse-in
   "Prints the string as received and splits it in two."
   [string]
-    (println (str "Received: " string))
+    (println (str "Parsing: " string))
     (map cstr/trim (cstr/split string (re-pattern IN))))
 
 (defn process-in
@@ -195,10 +208,12 @@
 (defn readCMD
   "The main reading loop."
   []
-  (let [input (<!! READER)]
+  (println "Waiting...")
+  (loop [input (<!! READER)]
   (println (str "Received: " input))
-  (apply process-in (parse-in input)))
-  (if @RUNNING (recur) (println "Quitting")))
+  (let [parse (parse-in input)]
+    (when (> (count parse) 1) (apply process-in parse)))
+  (if @RUNNING (recur (<!! READER)) (println "Quitting"))))
 
 ; Startup
 (defn setup-nars
@@ -213,28 +228,15 @@
                                         soln  (str (task-to-narsese solution))]
                                     (sendCMD (newid) "answer" taskn soln)))))
 
-(defn -test
-  []
-  (>!! reader (str 1 IN "input" IN "<a --> b>."))
-  (>!! reader (str 2 IN "input" IN "<b --> c>."))
-  (>!! reader (str 3 IN "input" IN "<a --> c>?"))
-  (loop [] (println (<!! writer)) (recur)))
+;(defn -test
+;  []
+;  (>!! reader (str 1 IN "input" IN "<a --> b>."))
+;  (>!! reader (str 2 IN "input" IN "<b --> c>."))
+;  (>!! reader (str 3 IN "input" IN "<a --> c>?"))
+;  (loop [] (println (<!! writer)) (recur)))
 
 (defn -main [& args]
-  ; Get port number from args
-  (let [PORT (if (empty? args)
-                 8080
-                 (first args))]
-  
-    ; Initialize server to connect with COMM channel
-    (start-server 
-      (fn [s info]
-        (s/connect s READER)
-        (s/connect WRITER s))
-      PORT)
-    
-    ; Setup nars answer-handler and new-op function
-    (setup-nars)
-    
-    ; Start read loop
-    (go (readCMD))))
+  ; Setup nars answer-handler and new-op function
+  (println "Running!")
+  (setup-nars)
+  (readCMD))

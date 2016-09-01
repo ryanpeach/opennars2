@@ -1,4 +1,4 @@
-import socket
+from narsocket import *
 import uuid
 import argparse
 
@@ -18,23 +18,23 @@ address = args.address
 port    = args.port
 buffsz  = args.buffsz
 
-# Create Socket
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-print(address, port)
-client_socket.connect((address, port))
+# Connection
+client = NARSocket(address, port)
 
-# Main loop
+# Test
+client.send("1:<:input:<:<a-->b>.")
+print(client.recv())
+client.send("2:<:input:<:<b-->c>.")
+print(client.recv())
+client.send("3:<:input:<:<a-->c>?")
+print(client.recv())
+
+# Loop
 while True:
-    user = raw_input()
-    data = user.split(' ')
-    id0 = str(uuid.uuid4())
-    data = [id0]+data
-    if len(data) >= 2:
-        if data[1] == 'quit':
-            print("Quitting...")
-            break
-        data = IN.join(data)
-        print("Sending: ", data)
-        client_socket.sendall(data)
-    else:
-        print("Invalid")
+    data = raw_input()
+    if data == 'quit':
+        print("Quitting...")
+        break
+    print("Sending: ", data)
+    client.send(data)
+    print(client.recv())

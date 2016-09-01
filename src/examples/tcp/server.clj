@@ -1,7 +1,7 @@
 ; Modified from Aleph examples
 ; http://aleph.io/examples/literate.html#aleph.examples.tcp
 
-(ns examples.server
+(ns examples.tcp.server
   (require
     [manifold.deferred :as d]
     [manifold.stream :as s]
@@ -12,12 +12,7 @@
     [clojure.core.async :refer [>! <! >!! <!! chan go]])
   (:gen-class))
 
-(def protocol
-  (gloss/compile-frame
-    (gloss/finite-frame :uint32
-      (gloss/string :utf-8))
-    pr-str
-    edn/read-string))
+(def protocol (gloss/string :utf-8 :delimiters ["\n"]))
 
 (defn wrap-duplex-stream
   [protocol s]

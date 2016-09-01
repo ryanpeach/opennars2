@@ -8,6 +8,8 @@
                  [org.clojure/core.async "0.2.385"]
                  [instaparse "1.4.1"]
                  [aleph "0.4.1"]
+                 [manifold "0.1.5"]
+                 [gloss "0.2.6"]
                  [com.rpl/specter "0.9.1"]
                  [org.clojure/tools.nrepl "0.2.12"]
                  [org.clojure/data.priority-map "0.0.7"]
@@ -23,7 +25,7 @@
                  [seesaw "1.4.5"]
                  [irclj "0.5.0-alpha4"]]
   :java-agents [[co.paralleluniverse/quasar-core "0.7.5"]]
-  :main gui.lense
+  :main examples.tcp.interface
   :plugins [[lein-cloverage "1.0.6"]
             [jonase/eastwood "0.2.3"]
             [lein-kibit "0.1.2"]
@@ -37,4 +39,3 @@
   :profiles {:uberjar {:aot :all}}
   :marginalia { :javascript ["http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"]}
   :jvm-opts ["-Dco.paralleluniverse.fibers.detectRunawayFibers=false"])
-
