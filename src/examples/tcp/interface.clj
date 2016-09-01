@@ -114,6 +114,7 @@
   (try 
     (let [id (newid)
           comb (into [operationgoal] args)
+          operation (str "(^" op_name (cstr/join ", " args) ")")
           swrite (get OPS opname)
           sread s/stream]
       ; Create a waiting reference at this id
@@ -121,13 +122,15 @@
       ; Send the message to the appropriate stream requesting an answer
       (apply send-stream (into [swrite id op_name] comb))
       ; Then wait for a reply
-      (let [[tf & extra] @(s/take! sread)]
-        ; destroy the waiting reference
+      (let [[tf concequence] @(s/take! sread)]
+        ; Destroy the waiting reference
         (swap! WAITING dissoc id)
-        ; Then, process extra as narsee, and return true or false
-        (apply confirm (into [swrite id] (map input-narsese extra)))
-        (tf)))
-  ; On an exception, remove the opname from OPS so it can be reinitialized, and return false
+        ; Then, process concequence as narsee, and return true or false, Confirm receipt
+        (confirm swrite id
+          (input-narsese (str "<" operation "/=>" concequence ">. :|:")))
+        ; Return the given true/false
+        tf))
+    ; On an exception, remove the opname from OPS so it can be reinitialized, and return false
     (catch Exception e
       (swap! OPS dissoc opname)
       (swap! WAITING dissoc id)
@@ -151,13 +154,12 @@
 
 (defn answer-question
   "Specifically handles answers."
-  [id tfstr & args]
+  [ch id tfstr concequence]
   (try
     (let [tf (string-to-bool tfstr)
-          ch (get WAITING id)]
-      (s/put! ch (into [tf] args))
-      true)
-    (catch Exception e (println e) false)))
+          w (get WAITING id)]
+      (s/put! w (conj [tf] concequence)))
+    (catch Exception e (println e) (error ch id))))
 
 ; Copied from ircbot
 (defn concept
@@ -211,7 +213,7 @@
     "help"       (send-stream ch id "help" (str HELP))
     "reset"      (confirm ch id (reset-nars))
     "quit"       (quit ch)
-    "answer"     (confirm ch id (apply answer-question (into [id] args)))
+    "answer"     (try (apply answer-question (into [ch id] args)) (catch Exception e (println e) false))
     (error id)))
 
 ; Main Read Loop
