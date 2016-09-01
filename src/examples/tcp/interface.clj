@@ -23,7 +23,7 @@
 6.  help     |                              | help       | helpstring
 7.  reset    |                              | confirmed? |
 8.  quit     |                              | confirmed? |
-9.  answer   | success? return1 return2...  | confirmed? |
+9.  answer   | success? return1 return2...  | confirmed? | validnarsese1? validnarsese2?
 
         Server Querys                       |         Expected Reply
        op    |       args                   |     op     |          args
@@ -38,24 +38,17 @@
 (def OUT ":>:")
 (def CONFIRMED "confirmed")
 (def INVALID "invalid")
-(def RUNNING (atom true))
+(def RUNNING true)
 (def WAITING (atom {}))
+(def OPS (atom {}))
 (def predefined-ops ["new-op" "input" "valid" "concept" "concepts"
                      "help" "reset" "quit" "answer" "say" CONFIRMED INVALID IN OUT])
 
 ; Server
-(def WRITER (chan))
-(def READER (chan))
+(def STREAMS (atom {}))
 (def PORT (if (empty? *command-line-args*)
               8080
               (first *command-line-args*)))
-
-(def SERVER (start-server
-  (fn [s info]
-    (println (str "New Connection: " info))
-    (s/connect s READER)
-    (s/connect WRITER s))
-  PORT))
 
 ; Support functions
 (defn replace-with
@@ -64,31 +57,36 @@
     (map r l)))                    ; return the mapping of r onto l
 
 ; Communication
-(defn sendCMD
-  "Sends string over TCP, returns boolean success."
-  ([op]
-  (sendCMD (newid) op))
-  ([id op]
+(defn send-stream
+  "Sends string over TCP to given stream."
+  ([ch op]
+  (send-stream ch (newid) op))
+  ([ch id op]
   (let [msg (str id OUT op "\n")]
     (println (str "Sending: " msg))
-    (go (>! WRITER msg))))
-  ([id op & args]
+    (put! ch msg)))
+  ([ch id op & args]
   (let [msg (str id OUT op OUT (cstr/join OUT args) "\n")]
     (println (str "Sending: " msg))
-    (go (>! WRITER msg)))))
+    (put! ch msg))))
+  
+(defn send-all
+  "Sends string over TCP to all clients."
+  [arg0 & args]
+  (map #(apply send-stream (into [% arg0] args)) STREAMS))
 
 (defn confirm
   "Quick function to send confirmation or error as a response given boolean input."
-  [id success]
+  [ch id success & args]
   (do
     (if success
-      (sendCMD id CONFIRMED)
-      (sendCMD id INVALID))
+      (apply send-stream (into [ch id CONFIRMED] args))
+      (apply send-stream (into [ch id INVALID] args)))
   success))
 
 ; Automatic true/false
-(def error #(confirm % false))
-(def conf  #(confirm % true))
+(def error #(confirm % % false))
+(def conf  #(confirm % % true))
 
 ; Narsese Input
 (defn input-narsese
@@ -113,26 +111,37 @@
   "Used as the template to define new operations in narsee over the server."
   [op_name args operationgoal]
   ; First, create the key we will use for this particular call
-  (let [id (newid)
-        comb (conj [operationgoal] args)]
-  ; First, add a channel for yourself
-  (swap! WAITING conj [id (chan)])
-  ; Then, send the message requesting an answer
-  (apply sendCMD (into [id op_name] comb))
-  ; Then wait for a reply
-  (let [[tf & extra] (<!! (get WAITING id))]
-  ; When done, delete yourself from waiting
-  (swap! WAITING dissoc id)
-  ; Then, process extra as narsee, and return true or false
-  (and (map input-narsese args)))))
+  (try 
+    (let [id (newid)
+          comb (into [operationgoal] args)
+          swrite (get OPS opname)
+          sread s/stream]
+      ; Create a waiting reference at this id
+      (swap! WAITING conj [id sread]) 
+      ; Send the message to the appropriate stream requesting an answer
+      (apply send-stream (into [swrite id op_name] comb))
+      ; Then wait for a reply
+      (let [[tf & extra] @(s/take! sread)]
+        ; destroy the waiting reference
+        (swap! WAITING dissoc id)
+        ; Then, process extra as narsee, and return true or false
+        (apply confirm (into [swrite id] (map input-narsese extra)))
+        (tf)))
+  ; On an exception, remove the opname from OPS so it can be reinitialized, and return false
+    (catch Exception e
+      (swap! OPS dissoc opname)
+      (swap! WAITING dissoc id)
+      (println e)
+      (false))))
 
 (defn new-op
   "Register a new operation."
-  [op_name]
-  (if (not (some #{op_name} predefined-ops))
-    (do
-      (nars-register-operation (partial new_op_template op_name))
-      true)
+  [ch op_name]
+  (if (not (or (some #{op_name} predefined-ops)
+               (some #{op_name} (keys OPS))))
+    (do 
+        (swap! OPS conj [op_name ch])
+        (nars-register-operation (partial new_op_template op_name)) true)
     (false)))
 
 (defn string-to-bool
@@ -143,10 +152,12 @@
 (defn answer-question
   "Specifically handles answers."
   [id tfstr & args]
-  (let [tf (string-to-bool tfstr)]
-  (if (not (every? identity (map valid-narsese args)))
-    (error id)
-    (do (>!! (get WAITING id) (into [tf] args)) true))))
+  (try
+    (let [tf (string-to-bool tfstr)
+          ch (get WAITING id)]
+      (s/put! ch (into [tf] args))
+      true)
+    (catch Exception e (println e) false)))
 
 ; Copied from ircbot
 (defn concept
@@ -170,11 +181,10 @@
 
 ; Read Loop
 (defn quit
-  "Quits everything"
-  []
-  (nar/shutdown)
-  (swap! RUNNING not)
-  (.close SERVER)
+  "Closes a client connection."
+  [ch id]
+  (confirm ch id)
+  (s/close! ch)
   true)
 
 (defn reset-nars
@@ -191,29 +201,62 @@
     (map cstr/trim (cstr/split string (re-pattern IN))))
 
 (defn process-in
-  [id op & args]
+  [ch id op & args]
   (case op
-    "new-op"     (apply sendCMD (into [id "new-op"] (map new-op args)))
-    "input"      (apply sendCMD (into [id "input"] (map input-narsese args)))
-    "valid"      (apply sendCMD (into [id "valid"] (map valid-narsese args)))
-    "concept"    (apply sendCMD (into [id "concept"] (concepts args)))
-    "concepts"   (apply sendCMD (into [id "concept"] (concepts)))
-    "help"       (sendCMD id "help" (str HELP))
-    "reset"      (confirm id (reset-nars))
-    "quit"       (confirm id (quit))
-    "answer"     (confirm id (apply answer-question (into [id] args)))
+    "new-op"     (apply send-stream (into [ch id "new-op"] (map #(new-op ch %) args)))
+    "input"      (apply send-stream (into [ch id "input"] (map input-narsese args)))
+    "valid"      (apply send-stream (into [ch id "valid"] (map valid-narsese args)))
+    "concept"    (apply send-stream (into [ch id "concept"] (concepts args)))
+    "concepts"   (apply send-stream (into [ch id "concept"] (concepts)))
+    "help"       (send-stream ch id "help" (str HELP))
+    "reset"      (confirm ch id (reset-nars))
+    "quit"       (quit ch)
+    "answer"     (confirm ch id (apply answer-question (into [id] args)))
     (error id)))
 
 ; Main Read Loop
-(defn readCMD
-  "The main reading loop."
-  []
-  (println "Waiting...")
-  (loop [input (<!! READER)]
-  (println (str "Received: " input))
-  (let [parse (parse-in input)]
-    (when (> (count parse) 1) (apply process-in parse)))
-  (if @RUNNING (recur (<!! READER)) (println "Quitting"))))
+(def SERVER (start-server
+  (fn 
+    "REF: https://github.com/ztellman/aleph/blob/master/examples/src/aleph/examples/tcp.clj"
+    [ch info]
+      (println (str "New Connection: " info))
+      (d/loop []
+
+        ;; take a message, and define a default value that tells us if the connection is closed
+        (-> (s/take! s ::none)
+
+          (d/chain
+
+            ;; process message
+            (fn [msg]
+              (when-not (= ::none msg)
+                (println (str "Received: " input))
+                (let [parse (into [ch] (parse-in input))]
+                  (when (>= (count parse) 3)
+                    (apply process-in parse)
+                    true))))
+
+            ;; if we were successful in our response, recur and repeat
+            (fn [result]
+              (when result
+                (d/recur))))
+
+          ;; if there were any issues on the far end, send a stringified exception back
+          ;; and close the connection
+          (d/catch
+            (fn [ex]
+              (s/put! ch (str -1 OUT "quit" OUT ex))
+              (s/close! ch)))))
+  PORT))
+
+;(defn shutdown
+;  "Quits everything"
+;  []
+;  (map quit STREAMS)
+;  (nar/shutdown)
+;  (swap! RUNNING not)
+;  (.close SERVER)
+;  true)
 
 ; Startup
 (defn setup-nars
@@ -238,5 +281,4 @@
 (defn -main [& args]
   ; Setup nars answer-handler and new-op function
   (println "Running!")
-  (setup-nars)
-  (readCMD))
+  (setup-nars))

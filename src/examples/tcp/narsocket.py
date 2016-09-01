@@ -1,38 +1,60 @@
 import socket, time
+#from Queue import *
+#from multiprocessing import Pool
 
 class TimeoutError(Exception):
     pass
 
-class NARSocket:
+class NARSocket(asyncore.dispatcher):
     '''REF:https://docs.python.org/2/howto/sockets.html#socket-howto
+       REF:https://docs.python.org/2/library/asyncore.html
     '''
-    def __init__(self, host, port):
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.connect((host, port))
+    END = '\n'
+    E   = -(len(NARSocket.END)-1)
+    def __init__(self, host, port, callback):
+        asyncore.dispatcher.__init__(self)
+        self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.connect((host, port))
+        self.read_log, self.write_log = [], []
+        self.write_buffer = ''
+        self.read_buffer = ''
+        self.callback = callback
+        
+    def handle_connect(self):
+        print "New Connection!"
+    
+    def handle_close(self):
+        self.close()
+    
+    def readable(self):
+        return True
+        
+    def handle_read(self):
+        read = self.recv(8)
+        if read == '':
+            raise RuntimeError("socket connection broken")
+        self.read_buffer += read
+        if len(self.read_buffer) > 2:
+            if self.read_buffer[self.E:] == self.END:
+                out = self.read_buffer[:self.E]
+                self.read_buffer = ''
+                self.read_callback(out)
 
-    def send(self, msg):
-        totalsent = 0
-        if len(msg) == 0 or msg[-1] != '\n':
-            msg = msg + '\n'
-        while totalsent < len(msg):
-            sent = self.sock.send(msg[totalsent:])
-            if sent == 0:
-                raise RuntimeError("socket connection broken")
-            totalsent = totalsent + sent
+    def writable(self):
+        return (len(self.write_buffer) > 0)
+        
+    def handle_write(self):
+        sent = self.send(self.write_buffer)
+        if sent == 0:
+            raise RuntimeError("socket connection broken")
+        self.write_buffer = self.write_buffer[sent:]
+        
+    def send_socket(self, msg):
+        if len(msg) == 0 or out[self.E:] == self.END:
+            msg += '\n'
+        self.write_buffer += msg
+        self.write_log.append(msg)
 
-    def recv(self, timeout = 5000):
-        out = ''
-        start = time.time()
-        stop = start + timeout
-        while time.time() <= stop:
-            chunk = self.sock.recv(8)
-            if chunk == '':
-                raise RuntimeError("socket connection broken")
-            out += chunk
-            if len(out) > 2:
-                if out[-1:] == "\n":
-                    return out[:-1]
-        raise TimeoutError("Recieve timed out.")
-
-    def close(self):
-        pass
+    def read_callback(self, msg):
+        self.read_log.append(msg)
+        self.callback(msg)
