@@ -27,7 +27,7 @@ class NARSOp():
     def __iter__(self):
         return [self.id, self.op] + self.args
 
-class CommonNARS(NARSocket):
+class NARS(NARSocket):
     def __init__(self, host, port):
         self.ops, self.query = {}, {}
         callback = lambda x: self.process_input(x)
@@ -122,8 +122,8 @@ class CommonNARS(NARSocket):
         else:
             raise Exception("Could not quit.")
 
-class NARSHost(CommonNARS):
-    def __init__(self, host, port, callbacks, rules):
+class NARSHost(NARS):
+    def __init__(self, host, port, callbacks, rules = []):
         super(CommonNARS, self).__init__(host, port)
         for k, f in callbacks.iteritems(): # Initialize callbacks
             conf = self.new_op(k, f)
