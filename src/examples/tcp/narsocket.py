@@ -19,16 +19,28 @@ class NARSocket(asyncore.dispatcher):
         self.write_buffer = ''
         self.read_buffer = ''
         self.callback = callback
-        
+
     def handle_connect(self):
         print "New Connection!"
-    
+
     def handle_close(self):
         self.close()
-    
+
     def readable(self):
         return True
-        
+
+    def read(self):
+        while True:
+            read = self.recv(8)
+            if read == '':
+                raise RuntimeError("socket connection broken")
+            self.read_buffer += read
+            if len(self.read_buffer) > 2:
+                if self.read_buffer[self.E:] == self.END:
+                    out = self.read_buffer[:self.E]
+                    self.read_buffer = ''
+                    return out
+
     def handle_read(self):
         read = self.recv(8)
         if read == '':
@@ -44,13 +56,13 @@ class NARSocket(asyncore.dispatcher):
 
     def writable(self):
         return (len(self.write_buffer) > 0)
-        
+
     def handle_write(self):
         sent = self.send(self.write_buffer)
         if sent == 0:
             raise RuntimeError("socket connection broken")
         self.write_buffer = self.write_buffer[sent:]
-        
+
     def buff(self, msg):
         if len(msg) == 0 or out[self.E:] == self.END:
             msg += '\n'
