@@ -1,5 +1,5 @@
 from narsocket import *
-import uuid
+from uuid import uuid4
 import asyncore
 from time import *
 from Queue import *
@@ -9,7 +9,7 @@ class NARSOp():
     IN   = ":<:"
     OUT  = ":>:"
     def __init__(self, id0, opname, *args):
-        self.id, self.op, self.args = id0, opname, args
+        self.id, self.op, self.args, self.t = id0, opname, args, time()
     def inrep(self):
         return IN.join(iter(self))
     def outrep(self):
@@ -19,98 +19,105 @@ class NARSOp():
     def __iter__(self):
         return [self.id, self.op] + self.args
 
-class OnlineNARS():
+class OnlineNARS(NARSocket):
     # Constants
     CONFIRM = 'confirm'
     INVALID = 'invalid'
     RESERVED = set(['new-op','input','valid','concepts','concept','help','reset','quit','answer','say'])
 
-    def __init__(self, host, port):
-        self.client  = NARSocket(host,port)
-        self.queue = Queue()
-        self.ops = {}
-
-    def __read(self, timeout = 5000):
-        if self.queue.empty():
-            data = self.client.get(timeout)
-        else:
-            data = self.queue.get(timeout = timeout)
-        return self.process_input(data)
+    def __init__(self, host, port, each_read = lambda: True):
+        # Create the main callback function
+        running = True
+        def callback(msg):
+            self.process_input(msg)
+            return each_read()
+            
+        self.data = {}
+        self.recvops = {'say':        print,
+                        'answer':     lambda x: self.handle_answ(x),
+                        'new-op':     lambda x: self.handle_info(x),
+                        'input':      lambda x: self.handle_info(x),
+                        'concept':    lambda x: self.handle_info(x),
+                        'help':       print,
+                        self.CONFIRM: lambda x: self.handle_info(x),
+                        self.INVALID: lambda x: self.handle_info(x)
+        }
+        super(OnlineNARS, self).__init__(host, port, callback)
 
     def process_input(self, data):
-        out = data.split(NARSOp.IN)
-        return NARSOp(*out)
-
-    def wait_confirm(self, id0, timeout = 5000):
-        # Loop until you successfully read something (return), or timeout..
-        start = time()
-        stop = start + timeout
-        while time() < stop:
-
-            # Read data from client
-            data = self.client.get(timeout = stop-time())
-
-            # Which has a first element equal to id0
-            temp = self.process_input(data)
-            if temp.id == id0:
-
-                # And whos second element is either confirm or invalid
-                if temp.op in [self.CONFIRM, self.INVALID]:
-                    return temp.op == self.CONFIRM  # Return true or false depending on value
-
-                # We are expecting a confirmation statement, error if otherwise.
-                else:
-                    raise KeyError("Same id returned, expected a confirmation.")
-
-            # If it is not the same id, save it
+        data = data.split(NARSOp.IN)
+        if len(data) >= 2:
+            out = NARSOp(*data)
+            if out.op in self.ops:
+                self.ops[out.op](out)
             else:
-                self.queue.put(data)
+                self.error(-1,"Unknown Op.")
+        self.error(-1, "Improper Input Format.")
+        
+    def error(self, id0, msg):
+        self.buff(NARSOp(id0,self.INVALID,msg).outrep())
 
-        raise Empty("Confirmation timed out.")
-
-    def wait_test(self, id0, opname, timeout = 5000):
-        # Loop until you successfully read something (return), or timeout..
-        start = time()
-        stop = start + timeout
-        while time() < stop:
-
-            # Read data from client
-            data = self.client.get(timeout = stop-time())
-
-            # Which has a first element equal to id0
-            temp = self.process_input(data)
-            if temp.id == id0:
-
-                # And whos second element is either confirm or invalid
-                if temp.op == opname:
-                    return temp.args  # Return output list
-
-                # We are expecting a confirmation statement, error if otherwise.
-                else:
-                    raise KeyError("Same id returned, expected same opname.")
-
-            # If it is not the same id, save it
-            else:
-                self.queue.put(data)
-
-        raise Empty("Confirmation timed out.")
-
-    def send(self, id0, op0, *args):
-        self.client.put(NARSOp(id0, op0, *args).outrep())
+    def confirm(self, id0, *args):
+        self.buff(NARSOp(id0,self.INVALID,*args).outrep())
+        
+    def send_op(self, op):
+        self.buff(op.outrep())
+        
+    def handle_info(self, op):
+        self.data[(op.id,op.op)] = op.args
+    
+    def handle_answ(self, op):
+        self.data[op.args[0]] = op.args[1]
+    
+    def _ask(self, msg):
+        """ Returns a future answer to the question. """
+        if msg[-1] != '?':
+            raise Exception("Message must end in a question mark.")
+        valid = self.sendNarsese(msg)
+        if not valid[0]:
+            raise Exception("Message invalid.")
+        return self.future(msg)
+        
+    def future(self, key):
+        """ Returns a function which can be called to get the most recent version of the answer requested."""
+        if key in self.query:
+            raise Exception("Query already exists.")
+        else:
+            self.query[key] = None
+        def wrapper():
+            return self.query[key]
+        def ready():
+            return self.query[key] != None
+        return wrapper, ready
 
     def newop(self, opname, f):
-        if opname not in self.ops and opname not in self.RESERVED:
-            self.ops[name] = f
-            id0 = uuid4()
-            self.send(id0, 'new-op', opname)
-            return self.wait_confirm(id0)
+        # Create handler for function
+        id0 = uuid4()
+        def handle_op(op):
+            # Try to run the function from the given operation
+            try:
+                args = f(op.args)
+                success = True
+            except Exception as e:
+                success, args = False, [str(e)]
+            
+            # Send success / failure and post-conditions
+            self.send_op(NARSOp(id0, 'answer', success, *args))
+            
+            # Return a future containing the confirmation or invalidity of the sent answer
+            f1, f2 = self.future((id0, self.CONFIRM)), self.future((id0, self.INVALID))
+            return lambda: f1() or f2()
+            
+        # Check if opname is already used
+        if opname not in self.ops:
+            self.ops[opname] = handle_op            # Put the handler in ops for callback
+            notice = NARSOp(id0, 'new-op', opname)  # Tell NARS you have created the op
+            self.send_op(notice)                    
+            return self.future((id0, 'new-op'))     # Return a future confirmation
         else:
-            return False
+            raise Exception("Operation name already taken.")
 
-    def answer(self, id0, success, *args):
-        self.send(id0, 'answer', success, *args)
-        return self.wait_confirm(id0, timeout = timeout)
-
+    # ----------------------- Need to be changed ----------------
     def sendNarsese(self, args, timeout = 5000):
         id0, opname = uuid4(), 'input'
         self.send(id0, opname, *args)
@@ -139,12 +146,12 @@ class OnlineNARS():
     def reset(self, timeout = 5000):
         id0, opname = uuid4(), 'reset'
         self.send(id0, opname)
-        return self.wait_conf(id0, timeout = timeout)
+        return self.wait_confirm(id0, timeout = timeout)
 
     def quit(self, timeout = 5000):
         id0, opname = uuid4(), 'quit'
         self.send(id0, opname)
-        if self.wait_conf(id0, timeout = timeout):
+        if self.wait_confirm(id0, timeout = timeout):
             self.client.close()
         else:
             raise Exception("Could not quit.")

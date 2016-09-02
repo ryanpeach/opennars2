@@ -1,6 +1,7 @@
 from narsocket import *
 import uuid
 import argparse
+from Queue import *
 
 QUIT = []
 IN   = ":<:"
@@ -19,15 +20,16 @@ port    = args.port
 buffsz  = args.buffsz
 
 # Connection
-client = NARSocket(address, port)
+messages = Queue()
+def callback(msg):
+    messages.put(msg)
+    print(msg)
+client = NARSocket(address, port, callback)
 
 # Test
-client.send("1:<:input:<:<a-->b>.")
-print(client.recv())
-client.send("2:<:input:<:<b-->c>.")
-print(client.recv())
-client.send("3:<:input:<:<a-->c>?")
-print(client.recv())
+client.buff("1:<:input:<:<a-->b>.")
+client.buff("2:<:input:<:<b-->c>.")
+client.buff("3:<:input:<:<a-->c>?")
 
 # Loop
 while True:
@@ -36,5 +38,4 @@ while True:
         print("Quitting...")
         break
     print("Sending: ", data)
-    client.send(data)
-    print(client.recv())
+    client.buff(data)
