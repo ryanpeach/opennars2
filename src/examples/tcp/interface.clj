@@ -116,13 +116,13 @@
           comb (into [operationgoal] args)
           operation (str "(^" op_name (cstr/join ", " args) ")")
           swrite (get OPS opname)
-          sread s/stream]
+          sread (promise)]
       ; Create a waiting reference at this id
       (swap! WAITING conj [id sread]) 
       ; Send the message to the appropriate stream requesting an answer
       (apply send-stream (into [swrite id op_name] comb))
       ; Then wait for a reply
-      (let [[tf concequence] @(s/take! sread)]
+      (let [[tf concequence] @sread]
         ; Destroy the waiting reference
         (swap! WAITING dissoc id)
         ; Then, process concequence as narsee, and return true or false, Confirm receipt
@@ -158,7 +158,7 @@
   (try
     (let [tf (string-to-bool tfstr)
           w (get WAITING id)]
-      (s/put! w (conj [tf] concequence)))
+      (deliver w (conj [tf] concequence)))
     (catch Exception e (println e) (error ch id))))
 
 ; Copied from ircbot
