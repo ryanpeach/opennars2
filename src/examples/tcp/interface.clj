@@ -16,20 +16,22 @@
         Client Querys                       |         Expected Reply
        op    |       args                   |     op     |          args
 1.  new-op   | opname1 opname2...           | new-op     | success1? success2?...
-2.  input    | narsese1 narsese2...         | input      | success1? success2?...
-3.  valid    | narsese1 narsese2...         | valid      | tf1 tf2...
+2.  input    | narsese1 narsese2...         | valid      | validnarsese1? validnarsese2?...
+3.  valid    | narsese1 narsese2...         | valid      | validnarsese1? validnarsese2?...
 4.  concept  | narsese1 narsese2...         | concept    | conceptstr1/invalid conceptstr2/invalid...
-5.  concepts |                              | concept    | conceptstr1 conceptstr2...
+5.  concept  |                              | concept    | conceptstr1 conceptstr2...
 6.  help     |                              | help       | helpstring
 7.  reset    |                              | confirmed? |
 8.  quit     |                              | confirmed? |
-9.  answer   | success? return1 return2...  | confirmed? | validnarsese1? validnarsese2?
 
         Server Querys                       |         Expected Reply
        op    |       args                   |     op     |          args
-9.  op-name  | arg1 arg2...                 | answer     | success? return1 return2...
+9.  op-name  | arg1 arg2...                 | op-name    | success? return1 return2...
 10. say      | narsese                      |            |
 11. answer   | task solution                |            |
+
+        Client Querys                       |         Expected Reply
+12. op-name  | success? return1 return2...  | valid      | validnarsese1? validnarsese2?...
 ")
 
 ; ID & Dividers
@@ -122,12 +124,12 @@
       ; Send the message to the appropriate stream requesting an answer
       (apply send-stream (into [swrite id op_name] comb))
       ; Then wait for a reply
-      (let [[tf concequence] @sread]
+      (let [[tf & concequences] @sread]
         ; Destroy the waiting reference
         (swap! WAITING dissoc id)
         ; Then, process concequence as narsee, and return true or false, Confirm receipt
         (confirm swrite id
-          (input-narsese (str "<" operation "/=>" concequence ">. :|:")))
+          (input-narsese (map #(str "<" operation "/=>" % ">. :|:") concequences)))
         ; Return the given true/false
         tf))
     ; On an exception, remove the opname from OPS so it can be reinitialized, and return false
@@ -154,11 +156,11 @@
 
 (defn answer-question
   "Specifically handles answers."
-  [ch id tfstr concequence]
+  [ch id tfstr & concequences]
   (try
     (let [tf (string-to-bool tfstr)
           w (get WAITING id)]
-      (deliver w (conj [tf] concequence)))
+      (deliver w (into [tf] concequences)))
     (catch Exception e (println e) (error ch id))))
 
 ; Copied from ircbot
@@ -206,15 +208,18 @@
   [ch id op & args]
   (case op
     "new-op"     (apply send-stream (into [ch id "new-op"] (map #(new-op ch %) args)))
-    "input"      (apply send-stream (into [ch id "input"] (map input-narsese args)))
+    "input"      (apply send-stream (into [ch id "valid"] (map input-narsese args)))
     "valid"      (apply send-stream (into [ch id "valid"] (map valid-narsese args)))
-    "concept"    (apply send-stream (into [ch id "concept"] (concepts args)))
-    "concepts"   (apply send-stream (into [ch id "concept"] (concepts)))
+    "concept"    (if (> (count args) 0)
+                    (apply send-stream (into [ch id "concept"] (concepts args)))
+                    (apply send-stream (into [ch id "concept"] (concepts))))
     "help"       (send-stream ch id "help" (str HELP))
     "reset"      (confirm ch id (reset-nars))
     "quit"       (quit ch)
-    "answer"     (try (apply answer-question (into [ch id] args)) (catch Exception e (println e) false))
-    (error id)))
+    (if (contains? WAITING op)
+      (try (apply answer-question (into [ch op] args))
+        (catch Exception e (println e) false))
+      (error id))))
 
 ; Main Read Loop
 (def SERVER (start-server

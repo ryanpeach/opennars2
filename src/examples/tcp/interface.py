@@ -76,7 +76,7 @@ class OnlineNARS(NARSocket):
         if not isinstance(msgs, iter): [msgs]
         id0 = uuid4()
         self.buff(NARSOp(id0,'input',*msgs).outrep())
-        out = map(istrue, self.wait(lambda d: d.id == id0 and d.op == 'input', timeout))
+        out = map(istrue, self.wait(lambda d: d.id == id0 and d.op == 'valid', timeout))
         failed = [msg for tf, msg in zip(out,msgs) if not tf]
         if len(out)==1:
             return out[0]
@@ -105,12 +105,12 @@ class OnlineNARS(NARSocket):
     def getConcepts(self, args = [], timeout = 0):
         id0 = uuid4()
         if args == None or len(args) == 0:
-            opname = 'concepts'
+            opname = 'concept'
             self.buff(NARSOp(id0, opname).outrep())
         else:
             opname = 'concept'
             self.buff(NARSOp(id0, opname, *args).outrep())
-        out = self.wait(lambda d: d.id == id0 and d.op == 'valid', timeout)
+        out = self.wait(lambda d: d.id == id0 and d.op == 'concept', timeout)
         test = [i == INVALID for i in out]
         return [i if good else None for i, good in zip(out, test)]
 
@@ -132,9 +132,10 @@ class OnlineNARS(NARSocket):
         else:
             raise Exception("Could not quit.")
 
+from functools import partial
 class NARSHost(OnlineNARS):
-    def __init__(self, host, port, callbacks, rules = []):
-        super(CommonNARS, self).__init__(host, port)
+    def __init__(self, host, port, callbacks, each_read = lambda: True, rules = []):
+        super(CommonNARS, self).__init__(host, port, each_read)
         for k, f in callbacks.iteritems(): # Initialize callbacks
             conf = self.new_op(k, f)
             if not conf: raise Exception("Invalid key: {}".format(k))

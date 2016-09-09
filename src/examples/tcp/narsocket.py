@@ -11,7 +11,7 @@ class NARSocket(asyncore.dispatcher):
     '''
     END = '\n'
     E   = -(len(NARSocket.END)-1)
-    def __init__(self, host, port, callback):
+    def __init__(self, host, port, callback = lambda: True):
         asyncore.dispatcher.__init__(self)
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connect((host, port))
