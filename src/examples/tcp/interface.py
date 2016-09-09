@@ -4,7 +4,7 @@ import asyncore
 from time import *
 from Queue import *
 from collections import namedtuple
-
+ 
 # Constants
 IN   = ":<:"
 OUT  = ":>:"
@@ -27,8 +27,8 @@ class NARSOp():
     def __iter__(self):
         return [self.id, self.op] + self.args
 
-class NARS(NARSocket):
-    def __init__(self, host, port):
+class OnlineNARS(NARSocket):
+    def __init__(self, host = 'localhost', port = 8080):
         self.ops, self.query = {}, {}
         callback = lambda x: self.process_input(x)
         super(CommonNARS, self).__init__(host, port, callback)
@@ -76,14 +76,24 @@ class NARS(NARSocket):
         if not isinstance(msgs, iter): [msgs]
         id0 = uuid4()
         self.buff(NARSOp(id0,'input',*msgs).outrep())
-        return map(istrue, self.wait(lambda d: d.id == id0 and d.op == 'input', timeout))
-
+        out = map(istrue, self.wait(lambda d: d.id == id0 and d.op == 'input', timeout))
+        failed = [msg for tf, msg in zip(out,msgs) if not tf]
+        if len(out)==1:
+            return out[0]
+        else:
+            all(out), failed
+            
     def valid_narsese(self, msgs, timeout = 0):
         if not isinstance(msgs, iter): [msgs]
         id0 = uuid4()
         self.buff(NARSOp(id0,'valid',*msgs).outrep())
-        return map(istrue, self.wait(lambda d: d.id == id0 and d.op == 'valid', timeout))
-
+        out = map(istrue, self.wait(lambda d: d.id == id0 and d.op == 'valid', timeout))
+        failed = [msg for tf, msg in zip(out,msgs) if not tf]
+        if len(out)==1:
+            return out[0]
+        else:
+            all(out), failed
+            
     def ask(self, msg, timeout = 0):
         if msg[-1] != '?':
             raise Exception("Message must end in a question mark.")
@@ -122,7 +132,7 @@ class NARS(NARSocket):
         else:
             raise Exception("Could not quit.")
 
-class NARSHost(NARS):
+class NARSHost(OnlineNARS):
     def __init__(self, host, port, callbacks, rules = []):
         super(CommonNARS, self).__init__(host, port)
         for k, f in callbacks.iteritems(): # Initialize callbacks
