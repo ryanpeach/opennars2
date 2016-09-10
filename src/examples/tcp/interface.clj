@@ -5,6 +5,7 @@
             [narjure.narsese :refer [parse2]]
             [narjure.debug-util :refer :all]
             [manifold.stream :as s]
+            [manifold.deferred :as d]
             [clojure.string :as cstr]
             [clojure.core.async :refer [>! <! >!! <!! chan go]]
             [examples.tcp.server :refer :all])
@@ -16,22 +17,25 @@
         Client Querys                       |         Expected Reply
        op    |       args                   |     op     |          args
 1.  new-op   | opname1 opname2...           | new-op     | success1? success2?...
-2.  input    | narsese1 narsese2...         | valid      | validnarsese1? validnarsese2?...
-3.  valid    | narsese1 narsese2...         | valid      | validnarsese1? validnarsese2?...
-4.  concept  | narsese1 narsese2...         | concept    | conceptstr1/invalid conceptstr2/invalid...
-5.  concept  |                              | concept    | conceptstr1 conceptstr2...
-6.  help     |                              | help       | helpstring
-7.  reset    |                              | confirmed? |
-8.  quit     |                              | confirmed? |
+2a. ask      | narsese1                     | valid      | validnarsese1?
+2b.          |                              | answer     | task solution
+3.  input    | narsese1 narsese2...         | valid      | validnarsese1? validnarsese2?...
+4.  valid    | narsese1 narsese2...         | valid      | validnarsese1? validnarsese2?...
+5.  concept  | narsese1 narsese2...         | concept    | conceptstr1/invalid conceptstr2/invalid...
+6.  concept  |                              | concept    | conceptstr1 conceptstr2...
+7.  parse    | narsese                      | confirmed? | data
+8.  help     |                              | help       | helpstring
+9.  reset    |                              | confirmed? |
+10. quit     |                              | confirmed? |
 
         Server Querys                       |         Expected Reply
        op    |       args                   |     op     |          args
-9.  op-name  | arg1 arg2...                 | op-name    | success? return1 return2...
-10. say      | narsese                      |            |
-11. answer   | task solution                |            |
+11. op-name  | arg1 arg2...                 | op-name    | success? return1 return2...
+12. say      | narsese                      |            |
+13. answer   | task solution                |            |
 
         Client Querys                       |         Expected Reply
-12. op-name  | success? return1 return2...  | valid      | validnarsese1? validnarsese2?...
+14. op-name  | success? return1 return2...  | confirmed? | validnarsese1? validnarsese2?...
 ")
 
 ; ID & Dividers
@@ -41,13 +45,13 @@
 (def CONFIRMED "confirmed")
 (def INVALID "invalid")
 (def RUNNING true)
-(def WAITING (atom {}))
+(def WAITING (atom {})) ; Maps keys to promises
+(def ANSWERS (atom {})) ; Maps tasks to solutions
 (def OPS (atom {}))
 (def predefined-ops ["new-op" "input" "valid" "concept" "concepts"
                      "help" "reset" "quit" "answer" "say" CONFIRMED INVALID IN OUT])
 
 ; Server
-(def STREAMS (atom {}))
 (def PORT (if (empty? *command-line-args*)
               8080
               (first *command-line-args*)))
@@ -64,18 +68,13 @@
   ([ch op]
   (send-stream ch (newid) op))
   ([ch id op]
-  (let [msg (str id OUT op "\n")]
+  (let [msg (str id OUT op)]
     (println (str "Sending: " msg))
-    (put! ch msg)))
+    (when (not (s/closed? ch)) (s/put! ch msg))))
   ([ch id op & args]
-  (let [msg (str id OUT op OUT (cstr/join OUT args) "\n")]
+  (let [msg (str id OUT op OUT (cstr/join OUT args))]
     (println (str "Sending: " msg))
-    (put! ch msg))))
-  
-(defn send-all
-  "Sends string over TCP to all clients."
-  [arg0 & args]
-  (map #(apply send-stream (into [% arg0] args)) STREAMS))
+    (when (not (s/closed? ch)) (s/put! ch msg)))))
 
 (defn confirm
   "Quick function to send confirmation or error as a response given boolean input."
@@ -93,34 +92,67 @@
 ; Narsese Input
 (defn input-narsese
   "Input the received Narsese into the system."
-  [string]
+  ([string]
   (try
     (let [statement (parse2 string)]
       (nars-input-narsese string)
       (println (str "NARS hears " string))
       true)
     (catch Exception e false)))
+  ([s1 & strings] '(for [x (into [s1] strings)] (input-narsese x))))
 
 (defn valid-narsese
   "Checks if input narsese is valid."
-  [string]
+  ([string]
   (try
     (do (parse2 string) true)
     (catch Exception e false)))
+  ([s1 & strings] '(for [x (into [s1] strings)] (valid-narsese x))))
+
+(defn get-answer
+    [taskn]
+    (let [A_val (get @ANSWERS taskn ::empty)
+          W_val (get @WAITING taskn ::empty)
+          out (promise)]
+    (if-not (= A_val ::empty)
+      (A_val)
+      (if-not (= W_val ::empty)
+        (@W_val)
+        (do (swap! WAITING assoc taskn out) @out)))))
+
+(defn update-answer
+    [taskn soln]
+    (try
+      (deliver (get @WAITING taskn) soln)
+    (catch Exception e))
+    (swap! ANSWERS assoc taskn soln))
+
+;(defn append_to_key [m k v] (assoc m k (if (contains? m k) (conj (get m k) v) [v])))
+(defn ask
+  "Ask a question."
+  [ch id string]
+  (if (valid-narsese string)
+    (let [statement (str (narsese-print (:statement (parse2 string))))]
+        (println "HERE")
+        (send-stream ch id "valid" (input-narsese string))
+        (println "HERE2")
+        (send-stream ch id "answer" (get-answer statement))
+        true)
+    (do (send-stream ch id "valid" false) false)))
 
 ; Asyncronous listening function
 (defn new_op_template
   "Used as the template to define new operations in narsee over the server."
   [op_name args operationgoal]
   ; First, create the key we will use for this particular call
-  (try 
-    (let [id (newid)
-          comb (into [operationgoal] args)
+  (let [id (newid)]
+  (try
+    (let [comb (into [operationgoal] args)
           operation (str "(^" op_name (cstr/join ", " args) ")")
-          swrite (get OPS opname)
+          swrite (get @OPS op_name)
           sread (promise)]
       ; Create a waiting reference at this id
-      (swap! WAITING conj [id sread]) 
+      (swap! WAITING assoc id sread)
       ; Send the message to the appropriate stream requesting an answer
       (apply send-stream (into [swrite id op_name] comb))
       ; Then wait for a reply
@@ -134,18 +166,18 @@
         tf))
     ; On an exception, remove the opname from OPS so it can be reinitialized, and return false
     (catch Exception e
-      (swap! OPS dissoc opname)
+      (swap! OPS dissoc op_name)
       (swap! WAITING dissoc id)
       (println e)
-      (false))))
+      (false)))))
 
 (defn new-op
   "Register a new operation."
   [ch op_name]
   (if (not (or (some #{op_name} predefined-ops)
-               (some #{op_name} (keys OPS))))
-    (do 
-        (swap! OPS conj [op_name ch])
+               (some #{op_name} (keys @OPS))))
+    (do
+        (swap! OPS assoc op_name ch)
         (nars-register-operation (partial new_op_template op_name)) true)
     (false)))
 
@@ -154,25 +186,25 @@
   [tfstr]
   (some #{tfstr} ["True" "true" "t" "T" "1" "1." "1.0"]))
 
-(defn answer-question
+(defn answer-op
   "Specifically handles answers."
   [ch id tfstr & concequences]
   (try
     (let [tf (string-to-bool tfstr)
-          w (get WAITING id)]
+          w (get @WAITING id)]
       (deliver w (into [tf] concequences)))
     (catch Exception e (println e) (error ch id))))
 
 ; Copied from ircbot
 (defn concept
   "Show a concept"
-  [concept-str]
+  ([concept-str]
   (try
     (let [statement (parse2 (str concept-str "."))]
       (dissoc
         (first (narjure.bag/get-by-id @c-bag (:statement statement)))
         :ref))
-    (catch Exception e nil)))
+    (catch Exception e nil))))
 
 (defn concepts
   "Show all the concepts"
@@ -207,41 +239,45 @@
 (defn process-in
   [ch id op & args]
   (case op
-    "new-op"     (apply send-stream (into [ch id "new-op"] (map #(new-op ch %) args)))
-    "input"      (apply send-stream (into [ch id "valid"] (map input-narsese args)))
-    "valid"      (apply send-stream (into [ch id "valid"] (map valid-narsese args)))
+    "new-op"     (apply send-stream (into [ch id "new-op"] '(for [x args] (new-op ch x))))
+    "parse"      (apply confirm (into [ch id] (try [true (parse2 args)] (catch Exception e [false]))))
+    "ask"        (doseq [x args] (ask ch id x))
+    "input"      (apply send-stream (into [ch id "valid"] (apply input-narsese args)))
+    "valid"      (apply send-stream (into [ch id "valid"] (apply valid-narsese args)))
     "concept"    (if (> (count args) 0)
                     (apply send-stream (into [ch id "concept"] (concepts args)))
                     (apply send-stream (into [ch id "concept"] (concepts))))
     "help"       (send-stream ch id "help" (str HELP))
     "reset"      (confirm ch id (reset-nars))
     "quit"       (quit ch)
-    (if (contains? WAITING op)
-      (try (apply answer-question (into [ch op] args))
+    (if (contains? @WAITING op)
+      (try (apply answer-op (into [ch op] args))
         (catch Exception e (println e) false))
       (error id))))
 
 ; Main Read Loop
 (def SERVER (start-server
-  (fn 
-    "REF: https://github.com/ztellman/aleph/blob/master/examples/src/aleph/examples/tcp.clj"
+  (fn
+    ;REF: https://github.com/ztellman/aleph/blob/master/examples/src/aleph/examples/tcp.clj
     [ch info]
       (println (str "New Connection: " info))
       (d/loop []
 
         ;; take a message, and define a default value that tells us if the connection is closed
-        (-> (s/take! s ::none)
+        (-> (s/take! ch ::none)
 
           (d/chain
 
             ;; process message
             (fn [msg]
-              (when-not (= ::none msg)
-                (println (str "Received: " input))
-                (let [parse (into [ch] (parse-in input))]
-                  (when (>= (count parse) 3)
-                    (apply process-in parse)
-                    true))))
+              (if (= ::none msg)
+                (do (s/close! ch) (println "Lost Connection") false)
+                (do
+                  (println (str "Received: " msg))
+                  (let [parse (into [ch] (parse-in msg))]
+                    (when (>= (count parse) 3)
+                      (apply process-in parse)
+                      true)))))
 
             ;; if we were successful in our response, recur and repeat
             (fn [result]
@@ -252,8 +288,9 @@
           ;; and close the connection
           (d/catch
             (fn [ex]
+              (println (str "Lost Connection" ex))
               (s/put! ch (str -1 OUT "quit" OUT ex))
-              (s/close! ch)))))
+              (s/close! ch))))))
   PORT))
 
 ;(defn shutdown
@@ -269,15 +306,14 @@
 (defn setup-nars
   "Registers the operation and answer handler"
   []
-  (nars-register-operation 'op_say (fn [args operationgoal]
-                                      (let [allargs (into [operationgoal] args)
-                                            total   (into [(newid) "say"] allargs)]
-                                      (apply sendCMD total))))
+  ;(nars-register-operation 'op_say (fn [args operationgoal]
+  ;                                    (let [allargs (into [operationgoal] args)
+  ;                                      total   (into [(newid) "say"] allargs)]
+  ;                                (apply send-stream (into [ch] total)))))
   (nars-register-answer-handler (fn [task solution]
                                   (let [taskn (str (narsese-print (:statement task)))
                                         soln  (str (task-to-narsese solution))]
-                                    (sendCMD (newid) "answer" taskn soln)))))
-
+                                    (update-answer taskn soln)))))
 ;(defn -test
 ;  []
 ;  (>!! reader (str 1 IN "input" IN "<a --> b>."))

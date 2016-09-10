@@ -1,24 +1,73 @@
-import socket, time
+from time import time
+import socket
+import asyncore
+from Queue import Queue
+
 #from Queue import *
 #from multiprocessing import Pool
 
 class TimeoutError(Exception):
     pass
 
-class NARSocket(asyncore.dispatcher):
+class NARSocket():
+    END = '\n'
+    E = -len(END)
+    def __init__(self, host = 'localhost', port = 8080):
+        self.SOCKET = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.SOCKET.connect((host, port))
+
+    def write(self, msg):
+        # Buffer the text
+        write_buffer, msg = str(msg), str(msg)
+        if len(msg) >= abs(self.E) and msg[self.E:] != self.END:
+            write_buffer += '\n'
+
+        # Begin writing
+        while len(write_buffer) > 0:
+            sent = self.SOCKET.send(write_buffer)
+            if sent == 0:
+                self.SOCKET.close()
+                raise RuntimeError("socket connection broken")
+            write_buffer = write_buffer[sent:]
+
+    def read(self, timeout = None):
+        read_buffer = ''
+        start = time()
+        if timeout != None: stop = start+timeout
+        else: stop = start
+        while time() < stop or timeout == None:
+            if timeout != None: self.SOCKET.settimeout(stop-time())
+            else: self.SOCKET.settimeout(None)
+            read = self.SOCKET.recv(1)
+            #print(read_buffer)
+            if len(read) == 0:
+                self.SOCKET.close()
+                raise RuntimeError("socket connection broken")
+            read_buffer += read
+            if len(read_buffer) >= abs(self.E):
+                if read_buffer[self.E:] == self.END:
+                    return read_buffer[:self.E]
+
+    def close(self):
+        print("Closing...")
+        self.SOCKET.close()
+
+class NARSocketA(asyncore.dispatcher):
     '''REF:https://docs.python.org/2/howto/sockets.html#socket-howto
        REF:https://docs.python.org/2/library/asyncore.html
     '''
     END = '\n'
-    E   = -(len(NARSocket.END)-1)
-    def __init__(self, host, port, callback = lambda: True):
+    E   = -len(END)
+    def __init__(self, host, port, callback = lambda x, y: True):
         asyncore.dispatcher.__init__(self)
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.connect((host, port))
-        self.read_log, self.write_log = [], []
+        self.conn = (host, port)
+        self.connect(self.conn)
+        self.read_log, self.write_log = Queue(), Queue()
         self.write_buffer = ''
         self.read_buffer = ''
         self.callback = callback
+        self.cb_memory = None
 
     def handle_connect(self):
         print "New Connection!"
@@ -29,29 +78,18 @@ class NARSocket(asyncore.dispatcher):
     def readable(self):
         return True
 
-    def read(self):
-        while True:
-            read = self.recv(8)
-            if read == '':
-                raise RuntimeError("socket connection broken")
-            self.read_buffer += read
-            if len(self.read_buffer) > 2:
-                if self.read_buffer[self.E:] == self.END:
-                    out = self.read_buffer[:self.E]
-                    self.read_buffer = ''
-                    return out
-
     def handle_read(self):
-        read = self.recv(8)
+        read = self.recv(1)
         if read == '':
             raise RuntimeError("socket connection broken")
         self.read_buffer += read
-        if len(self.read_buffer) > 2:
+        if len(self.read_buffer) >= abs(self.E):
             if self.read_buffer[self.E:] == self.END:
                 out = self.read_buffer[:self.E]
                 self.read_buffer = ''
                 cont = self.read_callback(out)
                 if not cont:
+                    self.cb_memory = None
                     self.close()
 
     def writable(self):
@@ -64,11 +102,23 @@ class NARSocket(asyncore.dispatcher):
         self.write_buffer = self.write_buffer[sent:]
 
     def buff(self, msg):
-        if len(msg) == 0 or out[self.E:] == self.END:
+        if len(msg) == 0 or msg[self.E:] != self.END:
             msg += '\n'
         self.write_buffer += msg
-        self.write_log.append(msg)
+        self.write_log.put(msg)
 
     def read_callback(self, msg):
-        self.read_log.append(msg)
-        self.callback(msg)
+        self.read_log.put(msg)
+        if self.cb_memory == None:
+            cont, self.cb_memory = self.callback(msg)
+        else:
+            cont, self.cb_memory = self.callback(msg, self.cb_memory)
+        return cont
+
+    def loop(self):
+        print("Looping...")
+        asyncore.loop()
+        print("Loop end.")
+
+    def reconnect(self):
+        self.connect(self.conn)
