@@ -5,7 +5,6 @@
             :url  "http://www.gnu.org/licenses/old-licenses/gpl-2.0.html"}
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/core.logic "0.8.10"]
-                 [org.clojure/core.async "0.2.385"]
                  [instaparse "1.4.1"]
                  [aleph "0.4.1"]
                  [manifold "0.1.5"]

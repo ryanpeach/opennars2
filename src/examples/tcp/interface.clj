@@ -7,7 +7,6 @@
             [manifold.stream :as s]
             [manifold.deferred :as d]
             [clojure.string :as cstr]
-            [clojure.core.async :refer [>! <! >!! <!! chan go]]
             [examples.tcp.server :refer :all])
   (:gen-class))
 
