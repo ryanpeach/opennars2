@@ -145,41 +145,31 @@
   "Used as the template to define new operations in narsee over the server."
   [op_name args operationgoal]
   ; First, create the key we will use for this particular call
-  (let [id (newid)]
-  (try
-    (let [comb (into [operationgoal] args)
-          operation (str "(^" op_name (cstr/join ", " args) ")")
-          swrite (get @OPS op_name)
-          sread (promise)]
-      ; Create a waiting reference at this id
-      (swap! WAITING assoc id sread)
-      ; Send the message to the appropriate stream requesting an answer
-      (apply send-stream (into [swrite id op_name] comb))
-      ; Then wait for a reply
-      (let [[tf & concequences] @sread]
-        ; Destroy the waiting reference
-        (swap! WAITING dissoc id)
-        ; Then, process concequence as narsee, and return true or false, Confirm receipt
-        (confirm swrite id
-          (input-narsese (map #(str "<" operation "/=>" % ">. :|:") concequences)))
-        ; Return the given true/false
-        tf))
-    ; On an exception, remove the opname from OPS so it can be reinitialized, and return false
-    (catch Exception e
-      (swap! OPS dissoc op_name)
-      (swap! WAITING dissoc id)
-      (println e)
-      (false)))))
+  (let [id (newid)
+        operation (str "(^" op_name (cstr/join ", " args) ")")
+        swrite (get @OPS op_name :None)
+        sread (promise)]
+      (if-not (= swrite :None)             ; If this is an op
+        (do (swap! WAITING assoc id sread) ; Create a waiting reference at this id
+            ; Send the message to the appropriate stream requesting an answer
+            (apply send-stream (into [swrite id op_name operationgoal] args))
+            ; Then wait for a reply
+            (let [out @sread]            ; out is a vector. (first out) is assumed to be true/false, the rest are considered narsese statements.
+              (swap! WAITING dissoc id)  ; Destroy the waiting reference
+              out))                      ; Then, return what was read.
+        [false])))                       ; Otherwise return false
 
 (defn new-op
   "Register a new operation."
   [ch op_name]
-  (if (not (or (some #{op_name} predefined-ops)
-               (some #{op_name} (keys @OPS))))
+  (if (not (or (some #{op_name} predefined-ops) ; op_name must not be a predefined-op
+               (some #{op_name} (keys @OPS))))  ; op_name must not be taken by some other definition
     (do
-        (swap! OPS assoc op_name ch)
-        (nars-register-operation (partial new_op_template op_name)) true)
-    (false)))
+        (swap! OPS assoc op_name ch) ; Associate operation name with the chanel of the host
+        (swap! OPS assoc ch op_name) ; Associate channel with the operation name so it can be removed on close of host
+        (nars-register-operation (partial new_op_template op_name)) ; Register the operation with NARS
+        true) ; Return True
+    (false))) ; Otherwise Return False
 
 (defn string-to-bool
   "Converts to true if it matches certain templates, false otherwise."
@@ -215,12 +205,16 @@
     (replace-with returns not INVALID))) ; replace errors with INVALID and return
   ([arg0 & args] (apply concepts (into [arg0] args))))            ; can take them either as a list or as a bunch of items
 
-; Read Loop
 (defn quit
   "Closes a client connection."
-  [ch id]
-  (confirm ch id)
-  (s/close! ch)
+  [ch]
+  (loop [ops (get @OPS ch)]                    ; Loop 
+    (if-not (empty? ops)                       ; Terminate loop when empty or nul
+      (do (swap! OPS (fn [m k] (dissoc m (peek-at-key-from-map m k))) ch) ; dissasoc the opname key in OPS that associated with this channel
+          (swap! OPS pop-at-key-from-map m ch) ; Pop the opname from this channel's associated vector in OPS 
+          (recur (get @OPS ch)))               ; Recur with the rest of the associated ops
+      (swap! OPS dissoc ch)))                  ; Finally, remove the ch key itself
+  (s/close! ch)                                ; Close the channel after all references to it have been removed
   true)
 
 (defn reset-nars
@@ -249,7 +243,7 @@
                     (apply send-stream (into [ch id "concept"] (concepts))))
     "help"       (send-stream ch id "help" (str HELP))
     "reset"      (confirm ch id (reset-nars))
-    "quit"       (quit ch)
+    "quit"       (do (confirm ch id) (quit ch))
     (if (contains? @WAITING op)
       (try (apply answer-op (into [ch op] args))
         (catch Exception e (println e) false))
@@ -289,8 +283,8 @@
           (d/catch
             (fn [ex]
               (println (str "Lost Connection" ex))
-              (s/put! ch (str -1 OUT "quit" OUT ex))
-              (s/close! ch))))))
+              (s/put! ch (str -1 OUT "quit" OUT ex)) ; sends a quit signal id of -1
+              (quit ch))))))                         ; Quit this channel
   PORT))
 
 ;(defn shutdown
