@@ -53,7 +53,7 @@ class NARS(NARSocket):
     #
     #    self.error(-1, "Improper Input Format.")
 
-    def wait(self, key, do, timeout = None):
+    def wait(self, key, timeout = None):
         start = time()
         if timeout != None: stop = start+timeout
         else: stop = start
@@ -97,7 +97,7 @@ class NARS(NARSocket):
         else: id0 = str(uuid())
 
         # Begin write
-        self.write(NARSOp(id0,'input',*msgs))
+        self.write(NARSOp(id0,op,*msgs))
         self.logger.debug("Done Writing")
         ret = self.wait(lambda d: d.id == id0 and d.op == 'valid', timeout)
         out = [istrue(x) for x in ret]
@@ -118,20 +118,15 @@ class NARS(NARSocket):
         if '>?' not in msg:
             raise Exception("Message must end in a question mark.")
         id0 = str(uuid())
-        valid = self.input_narsese(msg, timeout=timeout, id0=id0)
+        valid = self._input_narsese('ask', msg, timeout=timeout, id0=id0)
         if not valid:
             raise Exception("Message invalid.")
-        print("Waiting confirmation.")
-        ok = self.wait(lambda d: d.id == id0 and d.op == 'valid', timeout)
-        if all(ok):
-            print("Confirmed. Awaiting reply.")
-            try:
-                return self.wait(lambda d: d.op == 'answer' and d.args[0] == msg, timeout)[1:]
-            except TimeoutError as e:
-                print("Timeout.")
-                return None
-        else:
-            raise KeyError("Invalid Narsese")
+        self.logger.debug("Confirmed. Awaiting reply.")
+        try:
+            return self.wait(lambda d: d.op == 'answer' and d.id == id0, timeout)
+        except TimeoutError as e:
+            self.logger.error("Timeout.")
+            return None
 
     def concept(self, *args, **kwargs):
         # Unpack inputs

@@ -82,7 +82,7 @@ class TestOnlineNARS():
         self.client.input_narsese("<a-->b>.", "<b-->c>.")
         assert(self.client.ask("<a-->c>?"))
         try:
-            self.client.ask("<a-->d>?", 100)
+            self.client.ask("<a-->d>?", 1)
             raise Exception("Expected TimeoutError")
         except TimeoutError:
             pass

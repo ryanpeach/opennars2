@@ -116,8 +116,7 @@
 
 (defn peek-from-map-at-key
     [m k]
-    (let [l (get m k false)]
-      (when l (peek l))))
+    (peek (get m k [])))
 
 (defn pop-from-map-at-key
     [m k]
@@ -126,19 +125,26 @@
 
 (defn request-answer
     [ch id taskn]
-    (swap! WAITING conj-to-map-at-key taskn {:ch ch :id id}))
+    (let [soln (get @ANSWERS taskn)]
+    (if soln
+        (send-stream ch id "answer" soln)
+        (swap! WAITING conj-to-map-at-key taskn {:ch ch :id id}))))
 
 (defn update-answer
     [taskn soln]
-    (loop [v (peek-from-map-at-key @WAITING taskn)]
-      (println (str "Here1" v (and v true)))
-      (when v
+    (swap! ANSWERS assoc taskn soln)
+    (loop [v (peek-from-map-at-key @WAITING taskn)
+           cont (not (empty? (get @WAITING taskn)))]
+      (println (str "Here1" cont))
+      (when cont
         (println "Here2")
         (send-stream (:ch v) (:id v) "answer" soln)
         (println "Here3")
         (swap! WAITING pop-from-map-at-key taskn)
         (println "Here4")
-        (recur (peek-from-map-at-key @WAITING taskn)))))
+        (recur (peek-from-map-at-key @WAITING taskn)
+               (not (empty? (get @WAITING taskn)))))))
+
 
 ;(defn append_to_key [m k v] (assoc m k (if (contains? m k) (conj (get m k) v) [v])))
 (defn ask
@@ -146,9 +152,9 @@
   [ch id string]
   (if (valid-narsese string)
     (let [statement (str (narsese-print (:statement (parse2 string))))]
-        (send-stream ch id "valid" (input-narsese string))
+        (send-stream ch id "valid" true)
         (request-answer ch id statement)
-        true)
+        (input-narsese string))
     (do (send-stream ch id "valid" false) false)))
 
 ; Asyncronous listening function
@@ -297,11 +303,11 @@
 
           ;; if there were any issues on the far end, send a stringified exception back
           ;; and close the connection
-          ;(d/catch
-            ;(fn [ex]
-              ;(println (str "Lost Connection" ex))
-              ;(s/put! ch (str -1 OUT "quit" OUT ex))
-              ;(s/close! ch)))
+          (d/catch
+            (fn [ex]
+              (println (str "Lost Connection" ex))
+              (s/put! ch (str -1 OUT "quit" OUT ex))
+              (s/close! ch)))
               )))
   PORT))
 
