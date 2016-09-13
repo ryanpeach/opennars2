@@ -65,25 +65,24 @@ class TestOnlineNARS():
     def setUp(self):
         self.client = NARS(address, port)
 
-    def test_input_narsese(self):
-        ok, bad = self.client.input_narsese("<a-->b>.", "<a->b>.")
-        assert(not ok)
-        assert(bad == ["<a->b>."])
-        assert(not self.client.input_narsese("<a->b>."))
-        assert(self.client.input_narsese("<a-->b>."))
-
-    def test_valid_narsese(self):
-        ok, bad = self.client.input_narsese("<a-->b>.", "<a->b>.")
-        assert(not ok)
-        assert(bad == ["<a->b>."])
-        assert(not self.client.input_narsese("<a->b>."))
-        assert(self.client.input_narsese("<a-->b>."))
+    def _test_input_narsese(self, op):
+        ok, bad = op("<a-->b>.", "<a->b>.")
+        print(ok, bad)
+        assert not all(ok), "ok contained false. "+str(ok)
+        assert bad == ["<a->b>."], "bad did not equal proper value. {} != {}".format(bad, ["<a->b>."])
+        assert ok[0], "ok[0] is not True. {}".format(ok)
+        in1 = op("<a<-b>.")
+        assert not in1, "Did not detect incorrect narsese as expected. "+str(in1)
+        in2 = op("<a-->b>.")
+        assert in2, "Did not detect correct narsese as expected."+str(in2)
+    def test_input_narsese(self): return self._test_input_narsese(self.client.input_narsese)
+    def test_valid_narsese(self): return self._test_input_narsese(self.client.valid_narsese)
 
     def test_ask(self):
         self.client.input_narsese("<a-->b>.", "<b-->c>.")
         assert(self.client.ask("<a-->c>?"))
         try:
-            self.client.ask("<a-->c>?", 100)
+            self.client.ask("<a-->d>?", 100)
             raise Exception("Expected TimeoutError")
         except TimeoutError:
             pass
@@ -114,8 +113,8 @@ if __name__=="__main__":
             print("{}: Failed, {}".format(f.__name__, e))
             print("----------------")
 
-    test(test_NARSocket)
-    test(test_NARSocketA)
+    #test(test_NARSocket)
+    #test(test_NARSocketA)
 
     OLNARS = TestOnlineNARS()
     test(OLNARS.test_input_narsese)

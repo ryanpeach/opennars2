@@ -98,34 +98,47 @@
       (nars-input-narsese string)
       (println (str "NARS hears " string))
       true)
-    (catch Exception e false)))
-  ([s1 & strings] '(for [x (into [s1] strings)] (input-narsese x))))
+    (catch Exception e false))))
 
 (defn valid-narsese
   "Checks if input narsese is valid."
   ([string]
   (try
     (do (parse2 string) true)
-    (catch Exception e false)))
-  ([s1 & strings] '(for [x (into [s1] strings)] (valid-narsese x))))
+    (catch Exception e false))))
 
-(defn get-answer
-    [taskn]
-    (let [A_val (get @ANSWERS taskn ::empty)
-          W_val (get @WAITING taskn ::empty)
-          out (promise)]
-    (if-not (= A_val ::empty)
-      (A_val)
-      (if-not (= W_val ::empty)
-        (@W_val)
-        (do (swap! WAITING assoc taskn out) @out)))))
+(defn conj-to-map-at-key
+    [m k v]
+    (let [l (get m k false)]
+      (if l
+        (assoc m k (conj l v))
+        (assoc m k [v]))))
+
+(defn peek-from-map-at-key
+    [m k]
+    (let [l (get m k false)]
+      (when l (peek l))))
+
+(defn pop-from-map-at-key
+    [m k]
+    (let [l (get m k false)]
+      (if l (assoc m k (pop l)) (m))))
+
+(defn request-answer
+    [ch id taskn]
+    (swap! WAITING conj-to-map-at-key taskn {:ch ch :id id}))
 
 (defn update-answer
     [taskn soln]
-    (try
-      (deliver (get @WAITING taskn) soln)
-    (catch Exception e))
-    (swap! ANSWERS assoc taskn soln))
+    (loop [v (peek-from-map-at-key @WAITING taskn)]
+      (println (str "Here1" v (and v true)))
+      (when v
+        (println "Here2")
+        (send-stream (:ch v) (:id v) "answer" soln)
+        (println "Here3")
+        (swap! WAITING pop-from-map-at-key taskn)
+        (println "Here4")
+        (recur (peek-from-map-at-key @WAITING taskn)))))
 
 ;(defn append_to_key [m k v] (assoc m k (if (contains? m k) (conj (get m k) v) [v])))
 (defn ask
@@ -133,10 +146,8 @@
   [ch id string]
   (if (valid-narsese string)
     (let [statement (str (narsese-print (:statement (parse2 string))))]
-        (println "HERE")
         (send-stream ch id "valid" (input-narsese string))
-        (println "HERE2")
-        (send-stream ch id "answer" (get-answer statement))
+        (request-answer ch id statement)
         true)
     (do (send-stream ch id "valid" false) false)))
 
@@ -241,9 +252,9 @@
   (case op
     "new-op"     (apply send-stream (into [ch id "new-op"] '(for [x args] (new-op ch x))))
     "parse"      (apply confirm (into [ch id] (try [true (parse2 args)] (catch Exception e [false]))))
-    "ask"        (doseq [x args] (ask ch id x))
-    "input"      (apply send-stream (into [ch id "valid"] (apply input-narsese args)))
-    "valid"      (apply send-stream (into [ch id "valid"] (apply valid-narsese args)))
+    "ask"        (ask ch id (first args))
+    "input"      (apply send-stream (into [ch id "valid"] (for [x args] (input-narsese x))))
+    "valid"      (apply send-stream (into [ch id "valid"] (for [x args] (valid-narsese x))))
     "concept"    (if (> (count args) 0)
                     (apply send-stream (into [ch id "concept"] (concepts args)))
                     (apply send-stream (into [ch id "concept"] (concepts))))
@@ -286,11 +297,12 @@
 
           ;; if there were any issues on the far end, send a stringified exception back
           ;; and close the connection
-          (d/catch
-            (fn [ex]
-              (println (str "Lost Connection" ex))
-              (s/put! ch (str -1 OUT "quit" OUT ex))
-              (s/close! ch))))))
+          ;(d/catch
+            ;(fn [ex]
+              ;(println (str "Lost Connection" ex))
+              ;(s/put! ch (str -1 OUT "quit" OUT ex))
+              ;(s/close! ch)))
+              )))
   PORT))
 
 ;(defn shutdown
@@ -313,6 +325,7 @@
   (nars-register-answer-handler (fn [task solution]
                                   (let [taskn (str (narsese-print (:statement task)))
                                         soln  (str (task-to-narsese solution))]
+                                    (println (str "New Solution: " taskn " " soln))
                                     (update-answer taskn soln)))))
 ;(defn -test
 ;  []

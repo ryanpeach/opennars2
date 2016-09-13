@@ -6,8 +6,8 @@ from Queue import *
 from collections import *
 
 # Constants
-IN   = ":<:"
-OUT  = ":>:"
+IN   = ":>:"
+OUT  = ":<:"
 CONFIRM = 'confirm'
 INVALID = 'invalid'
 RESERVED = set(['new-op','input','valid','concepts','concept','help','reset','quit','answer','say'])
@@ -58,13 +58,16 @@ class NARS(NARSocket):
         if timeout != None: stop = start+timeout
         else: stop = start
         while time() < stop or timeout == None:
+            self.logger.debug("Waiting...")
             if timeout != None:
                 read = self.read(stop-time()).split(IN)
             else:
                 read = self.read(None).split(IN)
+            self.logger.info("Wait Received: {}".format(read))
             data = NARSOp(*read)
             if key(data):
                 return data.args
+
         raise TimeoutError("Wait confirmation timed out.")
 
     def wait_conf(self, id0, timeout = None):
@@ -72,10 +75,12 @@ class NARS(NARSocket):
         if timeout != None: stop = start+timeout
         else: stop = start
         while time() < stop or timeout == 0:
+            self.logger.debug("Waiting...")
             if timeout != None:
                 read = self.read(stop-time()).split(IN)
             else:
                 read = self.read(None).split(IN)
+            self.logger.info("Wait Received: {}".format(read))
             data = NARSOp(*read)
             if data.id == id0:
                 if data.op == CONFIRM:
@@ -84,47 +89,64 @@ class NARS(NARSocket):
                     return False
         raise TimeoutError("Wait confirmation timed out.")
 
-    def input_narsese(self, msgs, timeout = None, id0 = str(uuid())):
-        if not isinstance(msgs, (list, tuple)): msgs = [msgs]
+    def _input_narsese(self, op, *msgs, **kwargs):
+        # Unpack inputs
+        if 'timeout' in kwargs: timeout = kwargs['timeout']
+        else: timeout = None
+        if 'id0' in kwargs: id0 = kwargs['id0']
+        else: id0 = str(uuid())
+
+        # Begin write
         self.write(NARSOp(id0,'input',*msgs))
-        out = map(istrue, self.wait(lambda d: d.id == id0 and d.op == 'valid', timeout))
+        self.logger.debug("Done Writing")
+        ret = self.wait(lambda d: d.id == id0 and d.op == 'valid', timeout)
+        out = [istrue(x) for x in ret]
+        self.logger.debug("Done Waiting: "+str(out))
         failed = [msg for tf, msg in zip(out,msgs) if not tf]
+        self.logger.debug("Failures: "+str(failed))
         if len(out) == 1:
             return out[0]
         else:
-            all(out), failed
+            return out, failed
 
-    def valid_narsese(self, msgs, timeout = None):
-        if not isinstance(msgs, (list, tuple)): msgs = [msgs]
-        id0 = str(uuid())
-        self.write(NARSOp(id0,'valid',*msgs))
-        out = map(istrue, self.wait(lambda d: d.id == id0 and d.op == 'valid', timeout))
-        failed = [msg for tf, msg in zip(out,msgs) if not tf]
-        if len(out)==1:
-            return out[0]
-        else:
-            all(out), failed
+    def input_narsese(self, *msgs, **kwargs):
+        return self._input_narsese('input',*msgs,**kwargs)
+    def valid_narsese(self, *msgs, **kwargs):
+        return self._input_narsese('valid',*msgs,**kwargs)
 
     def ask(self, msg, timeout = None):
         if '>?' not in msg:
             raise Exception("Message must end in a question mark.")
         id0 = str(uuid())
-        valid = self.input_narsese(msg, timeout, id0)
+        valid = self.input_narsese(msg, timeout=timeout, id0=id0)
         if not valid:
             raise Exception("Message invalid.")
-        self.wait(lambda d: d.id == id0 and d.op == 'valid', timeout)
-        return self.wait(lambda d: d.op == 'answer' and d.args[0] == msg, timeout)[1:]
+        print("Waiting confirmation.")
+        ok = self.wait(lambda d: d.id == id0 and d.op == 'valid', timeout)
+        if all(ok):
+            print("Confirmed. Awaiting reply.")
+            try:
+                return self.wait(lambda d: d.op == 'answer' and d.args[0] == msg, timeout)[1:]
+            except TimeoutError as e:
+                print("Timeout.")
+                return None
+        else:
+            raise KeyError("Invalid Narsese")
 
-    def concept(self, args = [], timeout = None):
-        id0 = str(uuid())
-        if args == None or len(args) == 0:
+    def concept(self, *args, **kwargs):
+        # Unpack inputs
+        if 'timeout' in kwargs: timeout = kwargs['timeout']
+        else: timeout = None
+        if 'id0' in kwargs: id0 = kwargs['id0']
+        else: id0 = str(uuid())
+        if not args:
             opname = 'concept'
             self.write(NARSOp(id0, opname))
         else:
             opname = 'concept'
             self.write(NARSOp(id0, opname, *args))
         out = self.wait(lambda d: d.id == id0 and d.op == 'concept', timeout)
-        test = [i == INVALID for i in out]
+        test = [i != INVALID for i in out]
         return [i if good else None for i, good in zip(out, test)]
 
     def parse(self, msg, timeout = None):
@@ -164,7 +186,7 @@ class NARSHost(NARSocketA):
     def input_narsese(self, *args):
         """ Assumes the narsese is good. """
         pass
-        
+
     def new_op(self, opname, f):
         id0 = uuid4()
         self.ops[opname] = f

@@ -2,6 +2,22 @@ from time import time
 import socket
 import asyncore
 from Queue import Queue
+import logging
+
+def createLogger(name, filepath='./log/'):
+    # REF: https://docs.python.org/2/howto/logging-cookbook.html
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.DEBUG)
+    fh = logging.FileHandler(filepath+name+'.log')
+    fh.setLevel(logging.DEBUG)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    fh.setFormatter(formatter)
+    ch.setFormatter(formatter)
+    logger.addHandler(fh)
+    logger.addHandler(ch)
+    return logger
 
 #from Queue import *
 #from multiprocessing import Pool
@@ -12,9 +28,10 @@ class TimeoutError(Exception):
 class NARSocket():
     END = '\n'
     E = -len(END)
-    def __init__(self, host = 'localhost', port = 8080):
+    def __init__(self, host = 'localhost', port = 8080, name='narsocket', logpath='./log/'):
         self.SOCKET = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.SOCKET.connect((host, port))
+        self.logger = createLogger(name, logpath)
 
     def write(self, msg):
         # Buffer the text
@@ -25,10 +42,12 @@ class NARSocket():
         # Begin writing
         while len(write_buffer) > 0:
             sent = self.SOCKET.send(write_buffer)
+            self.logger.debug("Wrote :"+write_buffer[:sent])
             if sent == 0:
                 self.SOCKET.close()
                 raise RuntimeError("socket connection broken")
             write_buffer = write_buffer[sent:]
+        self.logger.info("Wrote: "+msg)
 
     def read(self, timeout = None):
         read_buffer = ''
@@ -39,6 +58,7 @@ class NARSocket():
             if timeout != None: self.SOCKET.settimeout(stop-time())
             else: self.SOCKET.settimeout(None)
             read = self.SOCKET.recv(1)
+            self.logger.debug("Received: "+read)
             #print(read_buffer)
             if len(read) == 0:
                 self.SOCKET.close()
@@ -46,6 +66,7 @@ class NARSocket():
             read_buffer += read
             if len(read_buffer) >= abs(self.E):
                 if read_buffer[self.E:] == self.END:
+                    self.logger.info("Received: "+read_buffer)
                     return read_buffer[:self.E]
 
     def close(self):
