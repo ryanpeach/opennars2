@@ -6,6 +6,7 @@
             [narjure.debug-util :refer :all]
             [manifold.stream :as s]
             [manifold.deferred :as d]
+            [pulsar.core :refer [promise deliver]]
             [clojure.string :as cstr]
             [examples.tcp.server :refer :all])
   (:gen-class))
@@ -13,54 +14,79 @@
 ; The help dialogue for the server
 (def HELP
 "
-        Client Querys                       |         Expected Reply
-       op    |       args                   |     op     |          args
-1.  new-op   | opname1 opname2...           | new-op     | success1? success2?...
-2a. ask      | narsese1                     | valid      | validnarsese1?
-2b.          |                              | answer     | task solution
-3.  input    | narsese1 narsese2...         | valid      | validnarsese1? validnarsese2?...
-4.  valid    | narsese1 narsese2...         | valid      | validnarsese1? validnarsese2?...
-5.  concept  | narsese1 narsese2...         | concept    | conceptstr1/invalid conceptstr2/invalid...
-6.  concept  |                              | concept    | conceptstr1 conceptstr2...
-7.  parse    | narsese                      | confirmed? | data
-8.  help     |                              | help       | helpstring
-9.  reset    |                              | confirmed? |
-10. quit     |                              | confirmed? |
+         Client Querys                       |         Expected Reply
+        op    |       args                   |     op     |          args
+1.   new-op   | opname1 opname2...           | new-op     | success1? success2?...
+2a.  ask      | narsese1                     | valid      | validnarsese1?
+2b.           |                              | answer     | task solution
+3.   input    | narsese1 narsese2...         | valid      | validnarsese1? validnarsese2?...
+4.   valid    | narsese1 narsese2...         | valid      | validnarsese1? validnarsese2?...
+5.   concept  | narsese1 narsese2...         | concept    | conceptstr1/invalid conceptstr2/invalid...
+6.   concept  |                              | concept    | conceptstr1 conceptstr2...
+7.   parse    | narsese                      | confirmed? | data
+8.   help     |                              | help       | helpstring
+9.   reset    |                              | confirmed? |
+10.  quit     |                              | confirmed? |
+14. op-name   | success? return1 return2...  | confirmed? | errorstring
 
-        Server Querys                       |         Expected Reply
-       op    |       args                   |     op     |          args
-11. op-name  | arg1 arg2...                 | op-name    | success? return1 return2...
-12. say      | narsese                      |            |
-13. answer   | task solution                |            |
-
-        Client Querys                       |         Expected Reply
-14. op-name  | success? return1 return2...  | confirmed? | validnarsese1? validnarsese2?...
+         Server Querys                       |         Expected Reply
+        op    |       args                   |     op     |          args
+11. op-name   | arg1 arg2...                 | op-name    | success? concequence1 concequence2
+12. say       | narsese                      | NOTE: Must be returned in 500ms.
+13. answer    | task solution                | Otherwise try sending just success? on accepting answer.
+14. error     |                              | Then send input sentences for future output.
+              |                              | Server only waits for confirmation or reply on op-name queries.
 ")
 
 ; ID & Dividers
-(defn newid [] (str (java.util.UUID/randomUUID)))
+(defn newid [] (str (java.util.UUID/randomUUID))) ; Easy new uuid wrapper.
 (def IN ":<:")
 (def OUT ":>:")
 (def CONFIRMED "confirmed")
 (def INVALID "invalid")
-(def RUNNING true)
-(def WAITING (atom {})) ; Maps keys to promises
-(def ANSWERS (atom {})) ; Maps tasks to solutions
-(def OPS (atom {}))
+(def RUNNING (atrom true))      ; Defines that the server is running
+(def WAITING (atom {}))         ; Maps tasks to lists of channel and query id's to be sent upon updated answer. {taskn [{:ch s/stream :id id}]}
+                                ; Also maps id's to promises from new-op queries.
+(def ANSWERS (atom {}))         ; Maps tasks to solutions, allows for immediate responses upon ask.
+(def OPS (atom {}))             ; Maps custom operation names to the channel (s/stream) which hosts them.
+(def TIMEOUT 500)               ; Timeout used for custom operations, set to half a second
 (def predefined-ops ["new-op" "input" "valid" "concept" "concepts"
-                     "help" "reset" "quit" "answer" "say" CONFIRMED INVALID IN OUT])
-
-; Server
-(def PORT (if (empty? *command-line-args*)
-              8080
-              (first *command-line-args*)))
+                     "help" "reset" "quit" "answer" "say" "parse" CONFIRMED INVALID IN OUT]) ; Illegal custom op-names
+(def PORT (if (empty? *command-line-args*)        ; The port can be set from the command line
+              8080                                ; It defaults to 8080 which is commonly used on c9.io and localhost
+              (first (int *command-line-args*)))) ; Otherwise, the first arg becomes the port.
 
 ; Support functions
 (defn replace-with
+  "Replaces any x in collection l with y, given f(x) returns true."
   [l f y]
   (let [r (fn [x] (if (f x) y x))] ; if f(x) is true, then replace with y, else return x
     (map r l)))                    ; return the mapping of r onto l
 
+(defn conj-to-map-at-key
+  "Given a map associating keys with collections of values,
+   Conjoins v to collection associated with k.
+   Associates new collection containing v if k does not exist in m."
+  [m k v]
+  (let [l (get m k false)]
+    (if l
+      (assoc m k (conj l v))
+      (assoc m k [v]))))
+
+(defn peek-from-map-at-key
+  "Given a map associating keys with collections of values,
+   Peeks from the associated collection in map m at key k."
+  [m k]
+  (peek (get m k [])))
+
+(defn pop-from-map-at-key
+  "Given a map associating keys with collections of values,
+   Pops from the associated collection in map m at key k.
+   Returns new map, usable as (swap! m pop-from-map-at-key k)."
+    [m k]
+    (let [l (get m k false)]
+      (if l (assoc m k (pop l)) (m))))
+    
 ; Communication
 (defn send-stream
   "Sends string over TCP to given stream."
@@ -106,22 +132,6 @@
     (do (parse2 string) true)
     (catch Exception e false))))
 
-(defn conj-to-map-at-key
-    [m k v]
-    (let [l (get m k false)]
-      (if l
-        (assoc m k (conj l v))
-        (assoc m k [v]))))
-
-(defn peek-from-map-at-key
-    [m k]
-    (peek (get m k [])))
-
-(defn pop-from-map-at-key
-    [m k]
-    (let [l (get m k false)]
-      (if l (assoc m k (pop l)) (m))))
-
 (defn request-answer
     [ch id taskn]
     (let [soln (get @ANSWERS taskn)]
@@ -136,11 +146,11 @@
            cont (not (empty? (get @WAITING taskn)))]
       (println (str "Here1" cont))
       (when cont
-        (println "Here2")
+        ;(println "Here2")
         (send-stream (:ch v) (:id v) "answer" soln)
-        (println "Here3")
+        ;(println "Here3")
         (swap! WAITING pop-from-map-at-key taskn)
-        (println "Here4")
+        ;(println "Here4")
         (recur (peek-from-map-at-key @WAITING taskn)
                (not (empty? (get @WAITING taskn)))))))
 
@@ -151,10 +161,11 @@
   [ch id string]
   (if (valid-narsese string)
     (let [statement (str (narsese-print (:statement (parse2 string))))]
-        (send-stream ch id "valid" true)
+        ;(send-stream ch id "valid" true)
         (request-answer ch id statement)
         (input-narsese string))
-    (do (send-stream ch id "valid" false) false)))
+    ;(do (send-stream ch id "valid" false) false)))
+    false))
 
 ; Asyncronous listening function
 (defn new_op_template
@@ -162,17 +173,20 @@
   [op_name args operationgoal]
   ; First, create the key we will use for this particular call
   (let [id (newid)
-        operation (str "(^" op_name (cstr/join ", " args) ")")
+        operation (str "(^" op_name ", " (cstr/join ", " args) ")")
         swrite (get @OPS op_name :None)
         sread (promise)]
       (if-not (= swrite :None)             ; If this is an op
         (do (swap! WAITING assoc id sread) ; Create a waiting reference at this id
-            ; Send the message to the appropriate stream requesting an answer
+            ; Send the request to the appropriate stream hosting the op
             (apply send-stream (into [swrite id op_name operationgoal] args))
             ; Then wait for a reply
-            (let [out @sread]            ; out is a vector. (first out) is assumed to be true/false, the rest are considered narsese statements.
-              (swap! WAITING dissoc id)  ; Destroy the waiting reference
-              out))                      ; Then, return what was read.
+            (let [out (deref sread @TIMEOUT :timeout)] ; out is a vector. (first out) is assumed to be true/false, the rest are considered narsese statements.
+              (swap! WAITING dissoc id) ; Destroy the waiting reference
+              (if (= out :timeout) (do (error swrite id "Timeout Error.") ; Write a timeout error to channel
+                                       [false])                           ; And return a false vector
+                                   (do (confirm swrite id)                ; Confirm receive
+                                       out))                              ; Then, return what was read.
         [false])))                       ; Otherwise return false
 
 (defn new-op
@@ -195,12 +209,17 @@
 (defn answer-op
   "Specifically handles answers."
   [ch id tfstr & concequences]
-  (try
-    (let [tf (string-to-bool tfstr)
-          w (get @WAITING id)]
-      (deliver w (into [tf] concequences)))
-    (catch Exception e (println e) (error ch id))))
-
+  (let [tf (string-to-bool tfstr)
+        w (get @WAITING id)]
+    (deliver w tf)))
+  
+(defn concequences
+  [operation concequences]
+  (let [op_name (first operation)
+        op_args (cstr/join ", " (rest operation))
+        c_args  (cstr/join ", " concequences)]
+    (str "<(^" op_name "," op_args ") --> (&&, " c_args ")>. :|:")))
+  
 ; Copied from ircbot
 (defn concept
   "Show a concept"
@@ -245,13 +264,13 @@
   [string]
     (println (str "Parsing: " string))
     (map cstr/trim (cstr/split string (re-pattern IN))))
-
+  
 (defn process-in
   [ch id op & args]
   (case op
     "new-op"     (apply send-stream (into [ch id "new-op"] '(for [x args] (new-op ch x))))
     "parse"      (apply confirm (into [ch id] (try [true (parse2 args)] (catch Exception e [false]))))
-    "ask"        (ask ch id (first args))
+    "ask"        (apply send-stream (into [ch id "valid"] (for [x args] (ask ch id x))))
     "input"      (apply send-stream (into [ch id "valid"] (for [x args] (input-narsese x))))
     "valid"      (apply send-stream (into [ch id "valid"] (for [x args] (valid-narsese x))))
     "concept"    (if (> (count args) 0)
@@ -260,10 +279,8 @@
     "help"       (send-stream ch id "help" (str HELP))
     "reset"      (confirm ch id (reset-nars))
     "quit"       (do (confirm ch id) (quit ch))
-    (if (contains? @WAITING op)
-      (try (apply answer-op (into [ch op] args))
-        (catch Exception e (println e) false))
-      (error id))))
+    (if (contains? @WAITING op) (apply answer-op (into [ch op] args))
+                                (error ch id "No such operation."))))
 
 ; Main Read Loop
 (def SERVER (start-server
