@@ -44,7 +44,7 @@
 (def OUT ":>:")
 (def CONFIRMED "confirmed")
 (def INVALID "invalid")
-(def RUNNING (atrom true))      ; Defines that the server is running
+;(def RUNNING (atrom true))      ; Defines that the server is running
 (def WAITING (atom {}))         ; Maps tasks to lists of channel and query id's to be sent upon updated answer. {taskn [{:ch s/stream :id id}]}
                                 ; Also maps id's to promises from new-op queries.
 (def ANSWERS (atom {}))         ; Maps tasks to solutions, allows for immediate responses upon ask.
