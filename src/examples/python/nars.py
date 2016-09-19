@@ -1,4 +1,5 @@
-from narsocket import *
+from tcp.narsocket import *
+from timeout import loop_timeout
 from uuid import uuid4 as uuid
 import asyncore
 from time import *
@@ -54,40 +55,31 @@ class NARS(NARSocket):
     #    self.error(-1, "Improper Input Format.")
 
     def wait(self, key, timeout = None):
-        start = time()
-        if timeout != None: stop = start+timeout
-        else: stop = start
-        while time() < stop or timeout == None:
+        @loop_timeout(timeout)
+        def _wait(key, timeout = None):
             self.logger.debug("Waiting...")
-            if timeout != None:
-                read = self.read(stop-time()).split(IN)
-            else:
-                read = self.read(None).split(IN)
+            read = self.read(timeout).split(IN)
             self.logger.info("Wait Received: {}".format(read))
             data = NARSOp(*read)
             if key(data):
-                return data.args
-
-        raise TimeoutError("Wait confirmation timed out.")
+                return data.args,
+        return _wait(key)
 
     def wait_conf(self, id0, timeout = None):
-        start = time()
-        if timeout != None: stop = start+timeout
-        else: stop = start
-        while time() < stop or timeout == 0:
+        @loop_timeout(timeout)
+        def _wait_conf(id0, timeout = None):
             self.logger.debug("Waiting...")
-            if timeout != None:
-                read = self.read(stop-time()).split(IN)
-            else:
-                read = self.read(None).split(IN)
+            read = self.read(timeout).split(IN)
             self.logger.info("Wait Received: {}".format(read))
             data = NARSOp(*read)
             if data.id == id0:
                 if data.op == CONFIRM:
-                    return True
+                    return True,
                 elif data.op == INVALID:
-                    return False
-        raise TimeoutError("Wait confirmation timed out.")
+                    return False,
+            else:
+                return None,
+        return _wait_conf(id0)
 
     def _input_narsese(self, op, *msgs, **kwargs):
         # Unpack inputs
@@ -187,3 +179,7 @@ class NARSHost(NARSocketA):
         self.ops[opname] = f
         self.buff(NARSOp(id0,'new-op',opname).outrep())
         return istrue(self.wait(id0, 'new-op')[0])
+
+if __name__=="__main__":
+    import test
+    

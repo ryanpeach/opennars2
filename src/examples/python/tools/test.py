@@ -1,5 +1,5 @@
-from narsocket import *
-from nars import *
+from ..tcp.narsocket import *
+from ..nars import *
 from uuid import uuid4 as uuid
 import argparse
 from Queue import *

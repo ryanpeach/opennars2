@@ -1,4 +1,4 @@
-from time import time
+from ..tools.timeout import loop_timeout
 import socket
 import asyncore
 from Queue import Queue
@@ -21,9 +21,6 @@ def createLogger(name, filepath='./log/'):
 
 #from Queue import *
 #from multiprocessing import Pool
-
-class TimeoutError(Exception):
-    pass
 
 class NARSocket():
     END = '\n'
@@ -50,13 +47,9 @@ class NARSocket():
         self.logger.info("Wrote: "+msg)
 
     def read(self, timeout = None):
-        read_buffer = ''
-        start = time()
-        if timeout != None: stop = start+timeout
-        else: stop = start
-        while time() < stop or timeout == None:
-            if timeout != None: self.SOCKET.settimeout(stop-time())
-            else: self.SOCKET.settimeout(None)
+        @loop_timeout(timeout)
+        def _read(read_buffer = '', timeout = None):
+            self.SOCKET.settimeout(timeout)
             read = self.SOCKET.recv(1)
             self.logger.debug("Received: "+read)
             #print(read_buffer)
@@ -67,7 +60,9 @@ class NARSocket():
             if len(read_buffer) >= abs(self.E):
                 if read_buffer[self.E:] == self.END:
                     self.logger.info("Received: "+read_buffer)
-                    return read_buffer[:self.E]
+                    return read_buffer[:self.E],
+            return None, {'read_buffer': read_buffer}
+        return _read()
 
     def close(self):
         print("Closing...")
