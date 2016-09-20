@@ -26,7 +26,7 @@
       (catch Exception e [false]))))
 
 ; List the ops we desire by their library
-(def ops (seq {"math" ['+ '- '* '/ 'quot 'rem 'float 'double 'int]}))
+(def ops {"core" [count type] "math" ['+ '- '* '/ 'quot 'rem 'float 'double 'int]})
 
 ; Get their names by appending their op name to the library name 
 (def names (map-hash-list2 (fn [lib op] (str lib "_" op)) ops))
@@ -36,4 +36,25 @@
 
 ; register all operations
 (defn register []
-  (for [[op n] op-names] (nars-register-operation n (template op))))
+  (for [[op n] op-names]
+       (nars-register-operation n (template op))
+       (apply nars-input-narsese (requirements op))
+       ))
+
+(defn quotes [s] (str "\"" s "\""))
+
+; TODO pass values natively as objects
+(defn process-map1 [map_name m]
+  (map (fn [[k v]] (nsentence (n<-> (n* map_name k) v)) (seq m)))
+(defn process-map2 [map_name m]
+  (map (fn [[k v]] (nsentence (n--> (n* map_name v) k)) (seq m)))
+(defn process-map3 [parent m]
+  (apply concat ; flattens the recursion
+  (for [k (keys m)]
+    (let [v (get m k)]
+      (if (map? v)
+        (recur (n* parent k) v)
+        [(nsentence (n<-> (n* parent k) v))])))))
+
+(defn requirements [op_name op]
+  (process-map1 op_name (meta #op)))
