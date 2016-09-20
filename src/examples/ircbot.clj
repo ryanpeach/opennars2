@@ -65,12 +65,44 @@
       (str "NARS hears " string))
     (catch Exception e (str "Invalid narsese " string))))
 
+(defn sentence [x] (str x "."))
+(defn quotes [x] (str "\"" x "\""))
+(defn instance [x] (str "{" x "}"))
+(defn property [x] (str "[" x "]"))
+(defn nop [x & y] (str "<(" x "," (clojure.string/join "," y) ")>"))
+(defn --> [x y] (nop "-->" x y))
+(defn {-- [x y] (nop "{--" x y))
+(defn --] [x y] (nop "--]" x y))
+(defn <-> [x y] (nop "<->" x y))
+(defn c*  [& x] (nop (into ["*"] x)))
+(defn c&/ [& x] (nop (into ["&/"] x)))
+(defn c&& [& x] (nop (into ["&&"] x)))
+
+(def _SAYING "SAYING")
+(def _CONTAINS "CONTAINS")
+(def NLP "NLP")
+(defn nlp-domain [i] (str "(" NLP "," i ")"))
+(def TOKEN (nlp-domain "TOKEN"))
+(def SENTENCE (nlp-domain "SENTENCE"))
+(def SAYING (nlp-domain _SAYING))
+(def CONTAINS (nlp-domain _CONTAINS))
 (defn parse-sentence
   "NLP representation handling."
-  [string event-symbol]
-  (let [words (clojure.string/split string #" ")
-        sentence (str "<(*," (clojure.string/join "," words) ") --> SENTENCE>. " event-symbol)]
-    (parse-narsese sentence)))
+  [string author event-symbol]
+  (let [tokens (clojure.string/split string #" ")
+        sname (quotes string)
+        tokens_are_tokens (map #({-- % TOKEN) tokens)
+        tokens_are_said_by_author (map #(str (--> (c* author %) SAYING)) tokens)
+        tokens_together_are_name (<-> (apply c&/ tokens_are_said_by_author) sname)
+        tokens_together_are_sentence [({-- sname SENTENCE)]
+        tokens_are_in_sentence (map #(--> (c* sname %) CONTAINS) tokens)
+        events (map #(str % " " event-symbol) (map sentence tokens_are_said_by_author))
+        sentences (map sentence (concat tokens_are_tokens
+                                        tokens_together_are_name
+                                        tokens_together_are_sentence
+                                        tokens_are_in_sentence))
+        all (into sentences events)]
+    (apply parse-narsese all)))
 
 (defn reset-nars
   "Resets the system"
@@ -86,10 +118,12 @@
     (case command
       ("!n" "!nars" "!narsese")
         [(parse-narsese string) state]
+      ("!ns")
+        [(parse-narsese (str (sentence (--> (c* nick string) _SAYING)) " :|:") state)]
       ("!ss" "!static-sentence")
-        [(parse-sentence string "") state]
+        [(parse-sentence string nick "") state]
       ("!s" "!sentence")
-        [(parse-sentence string ":|:") state]
+        [(parse-sentence string nick ":|:") state]
       ("!c" "!concept")
         [(concept string) state]
       ("!cs" "!concepts")
