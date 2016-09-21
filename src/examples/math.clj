@@ -7,13 +7,7 @@
             [narjure.string :as n]))
 
 ; --- Support functions ---
-(defn apply_args
-    "Like apply but assumes the last item is a list,
-     the first item is the operation, and the rest are constant.
-     Ex: (apply * (into [1 2] args)) --> (apply_args * 1 2 args)"
-    [op & args]
-    (apply op (into (butlast args) (last args))))
-
+(defn map_now [f args] (for [x args] (apply f x))
 (defn map-hash-list [op x]
   "Applies op to every item in the map of lists x.
    op is a function taking only the value as a parameter."
@@ -23,12 +17,30 @@
    op is a function taking the key and value as a parameter."
   (into {} (map (fn [[k v]] [k (map #(op k %) v)]) (seq x))))
 
+; NARS
+(def references (atom {}))
+(def names (atom 0))
+(defn get-name [obj] (swap! names inc) (n/ext-set (str "%%$" @names)))
+(defn nars-deref [arg] (get @references arg))
+(defn nars-ref [obj] (let [out_ref (get-name obj)] (swap! references assoc out_ref obj) out_ref))
+(defn op-return-sentence [op args_ref out_ref] (n/belief (n/--> (apply n/* args_ref out_ref) op)))
+(defn op-return-error [op args_ref err] (n/belief (n/--> (apply n/* args_ref (n/quotes (str err))) op)))
+
+; Sensorimotor template
 (defn template
     "The template to register an op with NARS"
     [op]
     (fn [args operationgoal]
-      (apply_args op args)))
-      ;(catch Exception e [false]))))
+        (try 
+        (let [o_args  (map_now nars-deref args)
+              f       (nars-deref op)
+              o_out   (apply f o_args)
+              out_ref (nars-ref o_out)]
+          (nars-input-narsese (op-return-sentence op o_args out_ref)) true)
+        (catch Exception e
+          (println e)
+          (nars-input-narsese (op-return-error op o_args e)) false))
+    ))
 
 ; TODO pass values natively as objects
 (defn process-map1 [map_name m]
@@ -54,19 +66,15 @@
 ;(defmacro qt_lst [& x] (let [out (map #(list 'quote %) x)] (into [] out)))
 (defmacro meta_fun [fun] (list 'meta (list 'var fun)))
 (defmacro var_lst [& x] (let [out (map #(list 'var %) x)] (into [] out)))
- ; for example
-
 
 ; register all operations
-(defn requirements [fvar]
-  (rmap1 (n/quotes fvar) (meta fvar)))
+(defn requirements [f_ref fvar]
+  (rmap1 f_ref (meta fvar)))
 (defn register [fvar]
-  (nars-register-operation
-      (symbol (str fvar))
-      (template fvar))
-  (for [x (requirements fvar)] (do
-      (println (str "Sending " x))
-      (nars-input-narsese x))))
+  (let [f_ref (nars-ref fvar)
+        temp  (template f_ref)]
+  (nars-register-operation temp)
+  (map_now nars-input-narsese (requirements f_ref fvar))))
 
 (def ops (var_lst + - * / quot rem float double int))
 (defn -main [& args]
