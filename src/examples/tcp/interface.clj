@@ -6,7 +6,7 @@
             [narjure.debug-util :refer :all]
             [manifold.stream :as s]
             [manifold.deferred :as d]
-            [pulsar.core :refer [promise deliver]]
+            [co.paralleluniverse.pulsar.core :refer [promise]]
             [clojure.string :as cstr]
             [examples.tcp.server :refer :all])
   (:gen-class))
@@ -16,7 +16,7 @@
 "
          Client Querys                       |         Expected Reply
         op    |       args                   |     op     |          args
-1.   new-op   | opname1 opname2...           | new-op     | success1? success2?...
+1.   new-op   | opname1 opname2...           | valid      | success1? success2?...
 2a.  ask      | narsese1                     | valid      | validnarsese1?
 2b.           |                              | answer     | task solution
 3.   input    | narsese1 narsese2...         | valid      | validnarsese1? validnarsese2?...
@@ -31,11 +31,11 @@
 
          Server Querys                       |         Expected Reply
         op    |       args                   |     op     |          args
-11. op-name   | arg1 arg2...                 | op-name    | success? concequence1 concequence2
-12. say       | narsese                      | NOTE: Must be returned in 500ms.
-13. answer    | task solution                | Otherwise try sending just success? on accepting answer.
-14. error     |                              | Then send input sentences for future output.
-              |                              | Server only waits for confirmation or reply on op-name queries.
+11. op-name   | arg1 arg2...                 | confirmed? |
+12. say       | narsese                      |            |
+13. answer    | task solution                |            |
+14. error     |                              |            |
+              |                              | NOTE: Must be returned in 500ms.
 ")
 
 ; ID & Dividers
@@ -86,7 +86,7 @@
     [m k]
     (let [l (get m k false)]
       (if l (assoc m k (pop l)) (m))))
-    
+
 ; Communication
 (defn send-stream
   "Sends string over TCP to given stream."
@@ -161,19 +161,19 @@
   [ch id string]
   (if (valid-narsese string)
     (let [statement (str (narsese-print (:statement (parse2 string))))]
-        ;(send-stream ch id "valid" true)
+        (send-stream ch id "valid" true)
         (request-answer ch id statement)
-        (input-narsese string))
+        (input-narsese string) true)
     ;(do (send-stream ch id "valid" false) false)))
     false))
 
+(defn confirmed? [lst] (= (first lst) CONFIRMED))
 ; Asyncronous listening function
 (defn new_op_template
   "Used as the template to define new operations in narsee over the server."
   [op_name args operationgoal]
   ; First, create the key we will use for this particular call
   (let [id (newid)
-        operation (str "(^" op_name ", " (cstr/join ", " args) ")")
         swrite (get @OPS op_name :None)
         sread (promise)]
       (if-not (= swrite :None)             ; If this is an op
@@ -184,10 +184,9 @@
             (let [out (deref sread @TIMEOUT :timeout)] ; out is a vector. (first out) is assumed to be true/false, the rest are considered narsese statements.
               (swap! WAITING dissoc id) ; Destroy the waiting reference
               (if (= out :timeout) (do (error swrite id "Timeout Error.") ; Write a timeout error to channel
-                                       [false])                           ; And return a false vector
-                                   (do (confirm swrite id)                ; Confirm receive
-                                       out))                              ; Then, return what was read.
-        [false])))                       ; Otherwise return false
+                                       false)                             ; And return a false vector
+                                   (confirmed? out))                      ; Otherwise, return what was sent
+        false)))))                                                          ; Otherwise return false
 
 (defn new-op
   "Register a new operation."
@@ -197,9 +196,9 @@
     (do
         (swap! OPS assoc op_name ch) ; Associate operation name with the chanel of the host
         (swap! OPS assoc ch op_name) ; Associate channel with the operation name so it can be removed on close of host
-        (nars-register-operation (partial new_op_template op_name)) ; Register the operation with NARS
+        (nars-register-operation (symbol op_name) (partial new_op_template op_name)) ; Register the operation with NARS
         true) ; Return True
-    (false))) ; Otherwise Return False
+    false)) ; Otherwise Return False
 
 (defn string-to-bool
   "Converts to true if it matches certain templates, false otherwise."
@@ -212,14 +211,14 @@
   (let [tf (string-to-bool tfstr)
         w (get @WAITING id)]
     (deliver w tf)))
-  
+
 (defn concequences
   [operation concequences]
   (let [op_name (first operation)
         op_args (cstr/join ", " (rest operation))
         c_args  (cstr/join ", " concequences)]
     (str "<(^" op_name "," op_args ") --> (&&, " c_args ")>. :|:")))
-  
+
 ; Copied from ircbot
 (defn concept
   "Show a concept"
@@ -243,10 +242,10 @@
 (defn quit
   "Closes a client connection."
   [ch]
-  (loop [ops (get @OPS ch)]                    ; Loop 
+  (loop [ops (get @OPS ch)]                    ; Loop
     (if-not (empty? ops)                       ; Terminate loop when empty or nul
-      (do (swap! OPS (fn [m k] (dissoc m (peek-at-key-from-map m k))) ch) ; dissasoc the opname key in OPS that associated with this channel
-          (swap! OPS pop-at-key-from-map m ch) ; Pop the opname from this channel's associated vector in OPS 
+      (do (swap! OPS (fn [m k] (dissoc m (peek-from-map-at-key m k))) ch) ; dissasoc the opname key in OPS that associated with this channel
+          (swap! OPS pop-from-map-at-key ch) ; Pop the opname from this channel's associated vector in OPS
           (recur (get @OPS ch)))               ; Recur with the rest of the associated ops
       (swap! OPS dissoc ch)))                  ; Finally, remove the ch key itself
   (s/close! ch)                                ; Close the channel after all references to it have been removed
@@ -264,13 +263,13 @@
   [string]
     (println (str "Parsing: " string))
     (map cstr/trim (cstr/split string (re-pattern IN))))
-  
+
 (defn process-in
   [ch id op & args]
   (case op
-    "new-op"     (apply send-stream (into [ch id "new-op"] '(for [x args] (new-op ch x))))
+    "new-op"     (apply send-stream (into [ch id "valid"] (for [x args] (new-op ch x))))
     "parse"      (apply confirm (into [ch id] (try [true (parse2 args)] (catch Exception e [false]))))
-    "ask"        (apply send-stream (into [ch id "valid"] (for [x args] (ask ch id x))))
+    "ask"        (ask ch id (first args))
     "input"      (apply send-stream (into [ch id "valid"] (for [x args] (input-narsese x))))
     "valid"      (apply send-stream (into [ch id "valid"] (for [x args] (valid-narsese x))))
     "concept"    (if (> (count args) 0)

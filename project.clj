@@ -14,6 +14,7 @@
                  [org.clojure/data.priority-map "0.0.7"]
                  [org.clojure/core.match "0.3.0-alpha4"]
                  [org.clojure/core.unify "0.5.5"]
+                 [org.clojure/core.async "0.2.391"]
                  [co.paralleluniverse/pulsar "0.7.5"]
                  [org.immutant/immutant "2.1.2"]
                  [clj-time "0.11.0"]

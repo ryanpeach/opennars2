@@ -1,5 +1,6 @@
-from ..tcp.narsocket import *
-from ..nars import *
+from narsocket import *
+from nars import *
+from timeout import TimeoutError
 from uuid import uuid4 as uuid
 import argparse
 from Queue import *
@@ -75,8 +76,8 @@ class TestOnlineNARS():
         assert not in1, "Did not detect incorrect narsese as expected. "+str(in1)
         in2 = op("<a-->b>.")
         assert in2, "Did not detect correct narsese as expected."+str(in2)
-    def test_input_narsese(self): return self._test_input_narsese(self.client.input_narsese)
-    def test_valid_narsese(self): return self._test_input_narsese(self.client.valid_narsese)
+    def test_input_narsese(self): self._test_input_narsese(self.client.input_narsese)
+    def test_valid_narsese(self): self._test_input_narsese(self.client.valid_narsese)
 
     def test_ask(self):
         self.client.input_narsese("<a-->b>.", "<b-->c>.")
@@ -86,6 +87,14 @@ class TestOnlineNARS():
             raise Exception("Expected TimeoutError")
         except TimeoutError:
             pass
+
+    def test_op(self):
+        self.client._input_narsese('new-op','plus')
+        self.client.input_narsese("<(*, 1, 2, ?out) --> ^plus>?", id0="1")
+        heard = self.client.wait(lambda: True)
+        print("op", heard)
+        assert(heard[0] == "^plus")
+        self.confirm()
 
     def test_concept(self):
         print(self.client.concept())
@@ -103,15 +112,16 @@ if __name__=="__main__":
     def test(f, *args):
         print("\n----------------")
         print("Testing {}".format(f.__name__))
-        try:
-            out = f(*args)
-            print("----------------")
-            print("{}: Passed, {}".format(f.__name__, out))
-            print("----------------")
-        except Exception as e:
-            print("----------------")
-            print("{}: Failed, {}".format(f.__name__, e))
-            print("----------------")
+        #try:
+        if len(args)>0: out = f(*args)
+        else: out = f()
+        print("----------------")
+        print("{}: Passed, {}".format(f.__name__, out))
+        print("----------------")
+        #except Exception as e:
+        #    print("----------------")
+        #    print("{}: Failed, {}".format(f.__name__, e))
+        #    print("----------------")
 
     #test(test_NARSocket)
     #test(test_NARSocketA)
@@ -120,11 +130,12 @@ if __name__=="__main__":
     test(OLNARS.test_input_narsese)
     test(OLNARS.test_valid_narsese)
     test(OLNARS.test_ask)
-    test(OLNARS.test_concept)
-    test(OLNARS.test_parse)
-    test(OLNARS.test_help)
-    test(OLNARS.test_reset)
-    test(OLNARS.test_quit)
+    test(OLNARS.test_op)
+    #test(OLNARS.test_concept)
+    #test(OLNARS.test_parse)
+    #test(OLNARS.test_help)
+    #test(OLNARS.test_reset)
+    #test(OLNARS.test_quit)
 # Loop
 #while True:
 #    data = raw_input()

@@ -1,5 +1,5 @@
-from tcp.narsocket import *
-from timeout import loop_timeout
+from narsocket import *
+from timeout import TimeoutError, none_val
 from uuid import uuid4 as uuid
 import asyncore
 from time import *
@@ -55,31 +55,34 @@ class NARS(NARSocket):
     #    self.error(-1, "Improper Input Format.")
 
     def wait(self, key, timeout = None):
-        @loop_timeout(timeout)
-        def _wait(key, timeout = None):
+        start = time()
+        stop = start + none_val(timeout)                                    # stop is set to start + timeout, timeout defaults to 0 if None
+        while stop <= start or time() <= stop:                              # Runs forever if there is a zero or negative stop, or runs until time() is passed stop time
+            timeout = stop - time()
             self.logger.debug("Waiting...")
-            read = self.read(timeout).split(IN)
+            read = self.read(timeout=timeout).split(IN)
             self.logger.info("Wait Received: {}".format(read))
             data = NARSOp(*read)
             if key(data):
-                return data.args,
-        return _wait(key)
+                print("wait here", timeout)
+                return data.args
+        raise TimeoutError
 
     def wait_conf(self, id0, timeout = None):
-        @loop_timeout(timeout)
-        def _wait_conf(id0, timeout = None):
+        start = time()
+        stop = start + none_val(timeout)                                    # stop is set to start + timeout, timeout defaults to 0 if None
+        while stop <= start or time() <= stop:                              # Runs forever if there is a zero or negative stop, or runs until time() is passed stop time
+            timeout = stop - time()
             self.logger.debug("Waiting...")
             read = self.read(timeout).split(IN)
             self.logger.info("Wait Received: {}".format(read))
             data = NARSOp(*read)
             if data.id == id0:
                 if data.op == CONFIRM:
-                    return True,
+                    return True
                 elif data.op == INVALID:
-                    return False,
-            else:
-                return None,
-        return _wait_conf(id0)
+                    return False
+        raise TimeoutError
 
     def _input_narsese(self, op, *msgs, **kwargs):
         # Unpack inputs
@@ -118,7 +121,7 @@ class NARS(NARSocket):
             return self.wait(lambda d: d.op == 'answer' and d.id == id0, timeout)
         except TimeoutError as e:
             self.logger.error("Timeout.")
-            return None
+            raise TimeoutError
 
     def concept(self, *args, **kwargs):
         # Unpack inputs
@@ -182,4 +185,3 @@ class NARSHost(NARSocketA):
 
 if __name__=="__main__":
     import test
-    

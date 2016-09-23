@@ -6,6 +6,6 @@ setup(name='OpenNARS',
       author='Ryan Peach',
       author_email='ryan.peach@outlook.com',
       url='https://github.com/opennars/opennars2',
-      package_dir = {'nars': 'src/examples/tcp'}
-      packages=['nars', 'nars.tcp', 'nars.tools']
+      package_dir = {'nars': 'src/examples/python'}
+      packages=['nars']
 )

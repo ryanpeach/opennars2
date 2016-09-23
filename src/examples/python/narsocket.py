@@ -1,4 +1,5 @@
-from ..tools.timeout import loop_timeout
+from time import time
+from timeout import TimeoutError, none_val
 import socket
 import asyncore
 from Queue import Queue
@@ -47,10 +48,21 @@ class NARSocket():
         self.logger.info("Wrote: "+msg)
 
     def read(self, timeout = None):
-        @loop_timeout(timeout)
-        def _read(read_buffer = '', timeout = None):
-            self.SOCKET.settimeout(timeout)
-            read = self.SOCKET.recv(1)
+        read_buffer = ''
+        start = time()
+        stop = start + none_val(timeout)                                    # stop is set to start + timeout, timeout defaults to 0 if None
+        while stop <= start or time() <= stop:                              # Runs forever if there is a zero or negative stop, or runs until time() is passed stop time
+            timeout = stop - time()
+            print("read here ", timeout)
+            if timeout > 0:
+                self.SOCKET.settimeout(timeout)
+            else:
+                self.SOCKET.settimeout(None)
+            try:
+                read = self.SOCKET.recv(1)
+                self.SOCKET.settimeout(None)
+            except socket.timeout:
+                raise TimeoutError("Read timed out with buffer: " + read_buffer)
             self.logger.debug("Received: "+read)
             #print(read_buffer)
             if len(read) == 0:
@@ -60,9 +72,8 @@ class NARSocket():
             if len(read_buffer) >= abs(self.E):
                 if read_buffer[self.E:] == self.END:
                     self.logger.info("Received: "+read_buffer)
-                    return read_buffer[:self.E],
-            return None, {'read_buffer': read_buffer}
-        return _read()
+                    return read_buffer[:self.E]
+        raise TimeoutError
 
     def close(self):
         print("Closing...")
