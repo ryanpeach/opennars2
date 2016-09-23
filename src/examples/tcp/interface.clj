@@ -173,6 +173,7 @@
   "Used as the template to define new operations in narsee over the server."
   [op_name args operationgoal]
   ; First, create the key we will use for this particular call
+  (println (str "new op call " op_name " " args " " operationgoal))
   (let [id (newid)
         swrite (get @OPS op_name :None)
         sread (promise)]
@@ -186,7 +187,7 @@
               (if (= out :timeout) (do (error swrite id "Timeout Error.") ; Write a timeout error to channel
                                        false)                             ; And return a false vector
                                    (confirmed? out))                      ; Otherwise, return what was sent
-        false)))))                                                          ; Otherwise return false
+        (println "No streams to write for op.") false)))))                ; Otherwise return false
 
 (defn new-op
   "Register a new operation."
