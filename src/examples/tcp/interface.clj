@@ -197,6 +197,7 @@
     (do
         (swap! OPS assoc op_name ch) ; Associate operation name with the chanel of the host
         (swap! OPS assoc ch op_name) ; Associate channel with the operation name so it can be removed on close of host
+        (println "New op" (str (symbol op_name)))
         (nars-register-operation (symbol op_name) (partial new_op_template op_name)) ; Register the operation with NARS
         true) ; Return True
     false)) ; Otherwise Return False

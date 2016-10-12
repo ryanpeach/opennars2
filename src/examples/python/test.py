@@ -90,7 +90,7 @@ class TestOnlineNARS():
 
     def test_op(self):
         self.client._input_narsese('new-op','plus')
-        self.client.input_narsese("<(*, 1, 2, ?out) --> plus>!", id0="1")
+        self.client.input_narsese("<(*, 1, 2, ?out) --> ^plus>!", id0="1")
         heard = self.client.wait(lambda: True)
         print("op", heard)
         assert(heard[0] == "^plus")

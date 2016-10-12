@@ -18,6 +18,7 @@
     executes operation with optionally supplied parameters
     if feedback msg required posts :sentence-msg to task creator"
   [from [msg operationgoal]]
+  (println msg " " operationgoal)
   (let [feedback (assoc operationgoal :task-type :belief
                                       :occurrence 0)
         operation (:statement operationgoal)
